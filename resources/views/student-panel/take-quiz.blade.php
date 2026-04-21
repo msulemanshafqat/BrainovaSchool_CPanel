@@ -1,181 +1,270 @@
 @extends('student-panel.partials.master')
+
 @section('title')
-    Take Quiz: {{ $data['title'] }}
+    {{ $data['isReview'] ? 'Review Quiz' : 'Take Quiz' }}: {{ $data['title'] }}
 @endsection
 
 @section('content')
 <div class="page-content">
+
     <div class="page-header">
         <div class="row align-items-center">
-            <div class="col-sm-6">
-                <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h4>
+            <div class="col-sm-8">
+                <h4 class="bradecrumb-title mb-0">{{ $data['homework']->title ?? 'Quiz' }}</h4>
+                @if ($data['homework']->description)
+                    <p class="text-muted mt-1 mb-0">{{ $data['homework']->description }}</p>
+                @endif
             </div>
-            <div class="col-sm-6 text-end">
-                <h4 id="quiz-timer" class="text-danger fw-bold"><i class="fa-solid fa-clock"></i> 00:00</h4>
+            <div class="col-sm-4 text-end">
+                {{-- Timer: counts UP during quiz, hidden in review mode --}}
+                @if (!$data['isReview'])
+                    <h4 id="quiz-timer" class="text-primary fw-bold">
+                        <i class="fa-solid fa-stopwatch"></i> 00:00
+                    </h4>
+                    <small class="text-muted">Time Elapsed</small>
+                @else
+                    <span class="badge bg-secondary fs-6">Review Mode — Read Only</span>
+                @endif
             </div>
         </div>
     </div>
 
+    {{-- =====================================================================
+         REVIEW MODE: student already submitted — show read-only results
+    ====================================================================== --}}
+    @if ($data['isReview'])
+    <div class="card ot-card mt-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">
+                    <i class="fa-solid fa-trophy text-warning"></i>
+                    Your Score:
+                    <span class="text-success fw-bold">{{ $data['submission']->marks }}</span>
+                    / {{ $data['homework']->marks }}
+                </h4>
+                <a href="{{ route('student-panel-homeworks.index') }}"
+                   class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Homework
+                </a>
+            </div>
+            <hr>
+            @foreach ($data['questions'] as $i => $q)
+            <div class="card mb-3 p-4 border-start border-4
+                {{ $q->correct_answer ? 'border-success' : 'border-secondary' }}"
+                style="background:#fafafa;">
+                <h5>{{ $i + 1 }}. {{ $q->question }}</h5>
+                <ol type="A" class="mt-2">
+                    @foreach (['option_a','option_b','option_c','option_d'] as $opt)
+                        <li class="{{ $q->correct_answer === $q->$opt ? 'text-success fw-bold' : '' }}">
+                            {{ $q->$opt }}
+                            @if ($q->correct_answer === $q->$opt)
+                                <i class="fa-solid fa-check-circle text-success ms-1"></i>
+                            @endif
+                        </li>
+                    @endforeach
+                </ol>
+                <p class="mb-1"><strong>Correct Answer:</strong>
+                    <span class="text-success">{{ $q->correct_answer }}</span>
+                </p>
+                @if ($q->explanation && $q->explanation !== '-')
+                    <p class="text-info mb-0 mt-2">
+                        <strong>Explanation:</strong> {{ $q->explanation }}
+                    </p>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- =====================================================================
+         LIVE QUIZ MODE: first attempt
+    ====================================================================== --}}
+    @else
     <div class="card ot-card mt-4" id="quiz-container">
         <div class="card-body p-5">
-            
-            {{-- Progress Bar --}}
+
             <div class="progress mb-4" style="height: 10px;">
-                <div class="progress-bar bg-success" id="quiz-progress" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-success" id="quiz-progress"
+                     role="progressbar" style="width:0%"></div>
             </div>
 
-            <h5 class="text-muted mb-4">Question <span id="current-q-num">1</span> of <span id="total-q-num">X</span></h5>
-            
-            {{-- Question Text --}}
-            <h3 class="mb-4 text-dark" id="question-text">Loading Question...</h3>
+            <h5 class="text-muted mb-4">
+                Question <span id="current-q-num">1</span>
+                of <span id="total-q-num">0</span>
+            </h5>
 
-            {{-- Options --}}
-            <div class="options-container mb-4">
-                <div class="form-check mb-3 custom-radio-box p-3 border rounded">
-                    <input class="form-check-input" type="radio" name="quiz_option" id="opt_a" value="A">
-                    <label class="form-check-label w-100 fs-5" for="opt_a" id="label_a">Option A</label>
-                </div>
-                <div class="form-check mb-3 custom-radio-box p-3 border rounded">
-                    <input class="form-check-input" type="radio" name="quiz_option" id="opt_b" value="B">
-                    <label class="form-check-label w-100 fs-5" for="opt_b" id="label_b">Option B</label>
-                </div>
-                <div class="form-check mb-3 custom-radio-box p-3 border rounded">
-                    <input class="form-check-input" type="radio" name="quiz_option" id="opt_c" value="C">
-                    <label class="form-check-label w-100 fs-5" for="opt_c" id="label_c">Option C</label>
-                </div>
-                <div class="form-check mb-3 custom-radio-box p-3 border rounded">
-                    <input class="form-check-input" type="radio" name="quiz_option" id="opt_d" value="D">
-                    <label class="form-check-label w-100 fs-5" for="opt_d" id="label_d">Option D</label>
-                </div>
+            <h3 class="mb-4 text-dark" id="question-text">Loading...</h3>
+
+            <div class="options-container mb-4" id="options-container">
+                {{-- Options rendered by JS using actual option text as values --}}
             </div>
 
-            {{-- Hint Section --}}
             <div class="alert alert-warning mb-4 d-none" id="hint-box">
-                <strong><i class="fa-solid fa-lightbulb"></i> Hint:</strong> <span id="hint-text"></span>
-                <div class="mt-2 text-danger small"><em>Note: Using this hint will deduct 50% of the marks for this question.</em></div>
+                <strong><i class="fa-solid fa-lightbulb"></i> Hint:</strong>
+                <span id="hint-text"></span>
+                <div class="mt-2 text-danger small">
+                    <em>Using this hint deducts 50% of this question's marks.</em>
+                </div>
             </div>
 
-            {{-- Controls --}}
             <div class="d-flex justify-content-between align-items-center mt-5">
-                <button class="btn btn-outline-secondary btn-lg" id="btn-prev" onclick="changeQuestion(-1)" disabled><i class="fa-solid fa-arrow-left"></i> Previous</button>
-                
-                <button class="btn btn-warning" id="btn-hint" onclick="showHint()"><i class="fa-solid fa-lightbulb"></i> Show Hint (-50% marks)</button>
-                
-                <button class="btn btn-primary btn-lg" id="btn-next" onclick="changeQuestion(1)">Next <i class="fa-solid fa-arrow-right"></i></button>
-                <button class="btn btn-success btn-lg d-none" id="btn-submit" onclick="submitQuiz()"><i class="fa-solid fa-check-double"></i> Submit Quiz</button>
-            </div>
+                <button class="btn btn-outline-secondary btn-lg"
+                        id="btn-prev" onclick="changeQuestion(-1)" disabled>
+                    <i class="fa-solid fa-arrow-left"></i> Previous
+                </button>
 
+                <button class="btn btn-warning d-none" id="btn-hint" onclick="showHint()">
+                    <i class="fa-solid fa-lightbulb"></i> Show Hint (−50%)
+                </button>
+
+                <button class="btn btn-primary btn-lg" id="btn-next" onclick="changeQuestion(1)">
+                    Next <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <button class="btn btn-success btn-lg d-none" id="btn-submit" onclick="submitQuiz()">
+                    <i class="fa-solid fa-check-double"></i> Submit Quiz
+                </button>
+            </div>
         </div>
     </div>
 
-    {{-- RESULTS SCREEN (Hidden until submission) --}}
+    {{-- Results screen — hidden until AJAX returns success --}}
     <div class="card ot-card mt-4 d-none" id="results-container">
         <div class="card-body p-5 text-center">
-            <h1 class="display-4 text-success mb-3"><i class="fa-solid fa-trophy"></i> Quiz Complete!</h1>
-            <h3 class="mb-4">Your Score: <span id="final-score" class="fw-bold text-primary">0</span> / <span id="max-score">0</span></h3>
-            <p class="text-muted">Below is a review of your answers.</p>
+            <h1 class="display-4 text-success mb-3">
+                <i class="fa-solid fa-trophy"></i> Quiz Complete!
+            </h1>
+            <h3 class="mb-2">
+                Your Score:
+                <span id="final-score" class="fw-bold text-primary">—</span>
+                / <span id="max-score">{{ $data['homework']->marks }}</span>
+            </h3>
+            <p class="text-muted mb-1">Time taken: <strong id="final-time">—</strong></p>
             <hr>
-            <div id="review-section" class="text-start mt-5">
-                {{-- JS will populate this with Red/Green review --}}
-            </div>
-            <a href="{{ route('student-panel-homeworks.index') }}" class="btn btn-primary btn-lg mt-4">Return to Dashboard</a>
+            <div id="review-section" class="text-start mt-4"></div>
+            <a href="{{ route('student-panel-homeworks.index') }}"
+               class="btn btn-primary btn-lg mt-4">
+                Return to Homework
+            </a>
         </div>
     </div>
+    @endif
 
 </div>
 
 <style>
-    .custom-radio-box { cursor: pointer; transition: all 0.2s; }
-    .custom-radio-box:hover { background-color: #f8f9fa; border-color: #007bff !important; }
-    input[type=radio] { cursor: pointer; transform: scale(1.2); margin-right: 10px; }
-    .review-card { border-left: 5px solid #ccc; background: #fafafa; }
-    .review-correct { border-left-color: #28a745; background: #eafbee; }
-    .review-incorrect { border-left-color: #dc3545; background: #fdf2f2; }
+    .option-box          { cursor: pointer; transition: all 0.15s; }
+    .option-box:hover    { background: #f0f4ff; border-color: #4e73df !important; }
+    .option-box.selected { background: #e8f0fe; border-color: #4e73df !important; border-width: 2px !important; }
+    .review-correct      { border-left: 5px solid #28a745; background: #f0fbf4; }
+    .review-incorrect    { border-left: 5px solid #dc3545; background: #fff5f5; }
+    .review-unanswered   { border-left: 5px solid #ffc107; background: #fffdf0; }
 </style>
-
 @endsection
 
 @push('script')
+@if (!$data['isReview'])
 <script>
-    // Load Data from Laravel Controller
-    const questions = @json($data['questions']);
-    const homeworkId = {{ $data['homework']->id }};
-    
-    // Quiz State
+    // =========================================================================
+    // DATA FROM LARAVEL
+    // =========================================================================
+    const questions   = @json($data['questions']);
+    const homeworkId  = {{ $data['homework']->id }};
+    const totalMarks  = {{ $data['homework']->marks ?? 0 }};
+
+    // =========================================================================
+    // STATE
+    // =========================================================================
     let currentIndex = 0;
-    let userAnswers = {}; // Format: { question_id: 'A' }
-    let hintsUsed = {};   // Format: { question_id: true }
-    
-    // Timer setup (e.g., 20 mins)
-    let timeRemaining = questions.length * 60; // 1 minute per question default
+    // userAnswers stores the ACTUAL OPTION TEXT, not A/B/C/D.
+    // This is critical: DB correct_answer stores full text (e.g. "Mercury"),
+    // so we must compare text-to-text, never letter-to-text.
+    let userAnswers = {};   // { question_id: 'option_text' }
+    let hintsUsed   = {};   // { question_id: true }
+
+    // Count-up stopwatch
+    let elapsedSeconds = 0;
     let timerInterval;
 
-    $(document).ready(function() {
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    $(document).ready(function () {
         $('#total-q-num').text(questions.length);
         startTimer();
         loadQuestion(0);
-
-        // Make whole div click the radio button
-        $('.custom-radio-box').click(function() {
-            $(this).find('input[type="radio"]').prop('checked', true);
-            // Save answer instantly
-            userAnswers[questions[currentIndex].id] = $(this).find('input[type="radio"]').val();
-        });
     });
 
+    // =========================================================================
+    // STOPWATCH — counts up from 00:00, stops on submit
+    // =========================================================================
     function startTimer() {
-        timerInterval = setInterval(function() {
-            if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                submitQuiz(); // Auto submit when time runs out
-            } else {
-                timeRemaining--;
-                let minutes = Math.floor(timeRemaining / 60);
-                let seconds = timeRemaining % 60;
-                $('#quiz-timer').html(`<i class="fa-solid fa-clock"></i> ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-            }
+        timerInterval = setInterval(function () {
+            elapsedSeconds++;
+            let m = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+            let s = (elapsedSeconds % 60).toString().padStart(2, '0');
+            $('#quiz-timer').html(`<i class="fa-solid fa-stopwatch"></i> ${m}:${s}`);
         }, 1000);
     }
 
+    function stopTimer() {
+        clearInterval(timerInterval);
+        let m = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+        let s = (elapsedSeconds % 60).toString().padStart(2, '0');
+        $('#final-time').text(`${m}:${s}`);
+    }
+
+    // =========================================================================
+    // QUESTION RENDERING
+    // Radio VALUES are the actual option text — NOT A/B/C/D letters.
+    // This ensures comparison with DB correct_answer (which stores full text) works.
+    // =========================================================================
     function loadQuestion(index) {
-        if(index < 0 || index >= questions.length) return;
-        
+        if (index < 0 || index >= questions.length) return;
+        currentIndex = index;
+
         let q = questions[index];
         $('#current-q-num').text(index + 1);
         $('#question-text').text(q.question);
-        $('#label_a').text(q.option_a);
-        $('#label_b').text(q.option_b);
-        $('#label_c').text(q.option_c);
-        $('#label_d').text(q.option_d);
 
-        // Reset UI
-        $('input[name="quiz_option"]').prop('checked', false);
+        // Build option boxes dynamically
+        let opts = [
+            { label: 'A', text: q.option_a },
+            { label: 'B', text: q.option_b },
+            { label: 'C', text: q.option_c },
+            { label: 'D', text: q.option_d },
+        ];
+
+        let html = '';
+        opts.forEach(function (opt) {
+            let isSelected = userAnswers[q.id] === opt.text;
+            html += `
+                <div class="form-check mb-3 option-box p-3 border rounded ${isSelected ? 'selected' : ''}"
+                     data-value="${escapeHtml(opt.text)}"
+                     onclick="selectOption(this, '${escapeHtml(opt.text)}')">
+                    <strong>${opt.label}.</strong> ${escapeHtml(opt.text)}
+                </div>`;
+        });
+        $('#options-container').html(html);
+
+        // Hint visibility
         $('#hint-box').addClass('d-none');
-        
-        // Restore previous answer if they clicked "Previous"
-        if(userAnswers[q.id]) {
-            $(`input[value="${userAnswers[q.id]}"]`).prop('checked', true);
-        }
-
-        // Show/Hide Hint Button based on if they already used it or if a hint exists
-        if(q.hint && q.hint.trim() !== '' && q.hint !== '-') {
-            $('#btn-hint').removeClass('d-none');
-            if(hintsUsed[q.id]) {
+        if (q.hint && q.hint.trim() !== '' && q.hint !== '-') {
+            if (hintsUsed[q.id]) {
                 $('#hint-text').text(q.hint);
                 $('#hint-box').removeClass('d-none');
-                $('#btn-hint').addClass('d-none'); // Hide button if already clicked
+                $('#btn-hint').addClass('d-none');
+            } else {
+                $('#btn-hint').removeClass('d-none');
             }
         } else {
-            $('#btn-hint').addClass('d-none'); // No hint available
+            $('#btn-hint').addClass('d-none');
         }
 
-        // Progress Bar
-        let progress = ((index) / questions.length) * 100;
-        $('#quiz-progress').css('width', progress + '%');
+        // Progress bar
+        $('#quiz-progress').css('width', ((index / questions.length) * 100) + '%');
 
         // Buttons
         $('#btn-prev').prop('disabled', index === 0);
-        
         if (index === questions.length - 1) {
             $('#btn-next').addClass('d-none');
             $('#btn-submit').removeClass('d-none');
@@ -185,9 +274,14 @@
         }
     }
 
+    function selectOption(el, value) {
+        $('.option-box').removeClass('selected');
+        $(el).addClass('selected');
+        userAnswers[questions[currentIndex].id] = value;
+    }
+
     function changeQuestion(step) {
-        currentIndex += step;
-        loadQuestion(currentIndex);
+        loadQuestion(currentIndex + step);
     }
 
     function showHint() {
@@ -198,75 +292,91 @@
         $('#btn-hint').addClass('d-none');
     }
 
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g,  '&amp;')
+            .replace(/</g,  '&lt;')
+            .replace(/>/g,  '&gt;')
+            .replace(/"/g,  '&quot;')
+            .replace(/'/g,  '&#039;');
+    }
+
+    // =========================================================================
+    // SUBMIT QUIZ
+    // Sends answers to server for grading (server is source of truth for score).
+    // Client-side review is shown after server responds with earned marks.
+    // =========================================================================
     function submitQuiz() {
-        clearInterval(timerInterval); // Stop Timer
-        
-        // Change the button so they know it's saving
-        $('#btn-submit').html('<i class="fa-solid fa-spinner fa-spin"></i> Grading...').prop('disabled', true);
+        stopTimer();
+        $('#btn-submit').html('<i class="fa-solid fa-spinner fa-spin"></i> Submitting...').prop('disabled', true);
 
-        // Grading Logic
-        let score = 0;
-        let htmlReview = '';
+        // Build client-side review HTML (shown after server confirms)
+        let reviewHtml = '';
+        questions.forEach(function (q, i) {
+            let userAnswer = userAnswers[q.id] || null;
+            let isCorrect  = userAnswer &&
+                             userAnswer.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
+            let statusClass = !userAnswer ? 'review-unanswered'
+                            : isCorrect   ? 'review-correct'
+                                          : 'review-incorrect';
+            let icon = !userAnswer ? '<i class="fa-solid fa-minus-circle text-warning"></i>'
+                     : isCorrect   ? '<i class="fa-solid fa-check-circle text-success"></i>'
+                                   : '<i class="fa-solid fa-times-circle text-danger"></i>';
 
-        questions.forEach((q, i) => {
-            let userAnswer = userAnswers[q.id] || 'None';
-            let isCorrect = (userAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase());
-            
-            let pointsEarned = 0;
-            if (isCorrect) {
-                pointsEarned = 1; 
-                if(hintsUsed[q.id]) pointsEarned = 0.5; // Penalty!
-            }
-            score += pointsEarned;
+            let optHtml = `
+                <ol type="A">
+                    <li ${q.correct_answer === q.option_a ? 'class="fw-bold text-success"' : ''}>${escapeHtml(q.option_a)}</li>
+                    <li ${q.correct_answer === q.option_b ? 'class="fw-bold text-success"' : ''}>${escapeHtml(q.option_b)}</li>
+                    <li ${q.correct_answer === q.option_c ? 'class="fw-bold text-success"' : ''}>${escapeHtml(q.option_c)}</li>
+                    <li ${q.correct_answer === q.option_d ? 'class="fw-bold text-success"' : ''}>${escapeHtml(q.option_d)}</li>
+                </ol>`;
 
-            let statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
-            let icon = isCorrect ? '<i class="fa-solid fa-check-circle text-success"></i>' : '<i class="fa-solid fa-times-circle text-danger"></i>';
-
-            htmlReview += `
-                <div class="card p-4 mb-3 review-card ${statusClass}">
-                    <h5>${i+1}. ${q.question}</h5>
-                    <p class="mb-1"><strong>Your Answer:</strong> ${userAnswer}</p>
-                    <p class="mb-1"><strong>Correct Answer:</strong> ${q.correct_answer} ${icon}</p>
-                    ${hintsUsed[q.id] ? '<p class="text-warning small mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Hint Penalty Applied (-50%)</p>' : ''}
-                    ${q.explanation && q.explanation !== '-' ? `<hr><p class="text-info mb-0"><strong>Explanation:</strong> ${q.explanation}</p>` : ''}
-                </div>
-            `;
+            reviewHtml += `
+                <div class="card p-4 mb-3 ${statusClass}">
+                    <h5>${i+1}. ${escapeHtml(q.question)} ${icon}</h5>
+                    ${optHtml}
+                    <p class="mb-1 mt-2"><strong>Your Answer:</strong>
+                        ${userAnswer ? escapeHtml(userAnswer) : '<em class="text-warning">Not answered</em>'}
+                    </p>
+                    <p class="mb-0"><strong>Correct Answer:</strong>
+                        <span class="text-success">${escapeHtml(q.correct_answer)}</span>
+                    </p>
+                    ${hintsUsed[q.id] ? '<p class="text-warning small mt-1 mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Hint penalty applied (−50%)</p>' : ''}
+                    ${q.explanation && q.explanation !== '-' ? `<hr><p class="text-info mb-0"><strong>Explanation:</strong> ${escapeHtml(q.explanation)}</p>` : ''}
+                </div>`;
         });
 
-        // ==========================================
-        // PHASE 3: Send the data to the backend!
-        // ==========================================
-        let payload = {
-            _token: '{{ csrf_token() }}',
-            homework_id: homeworkId,
-            score: score,
-            answers: userAnswers,
-            hints: hintsUsed
-        };
+        // POST to server — server grades against DB answers (source of truth)
+        $.post(
+            "{{ route('student-panel-homework.submit-interactive-quiz') }}",
+            {
+                _token:      '{{ csrf_token() }}',
+                homework_id: homeworkId,
+                answers:     userAnswers,
+                hints:       hintsUsed,
+            },
+            function (response) {
+                if (response.status === 'already_submitted') {
+                    alert('This quiz was already submitted.');
+                    window.location.href = "{{ route('student-panel-homeworks.index') }}";
+                    return;
+                }
 
-        $.post("{{ route('student-panel-homework.submit-interactive-quiz') }}", payload, function(response) {
-            // SUCCESS! Hide the quiz and show the results!
-            $('#quiz-container').addClass('d-none');
-            $('#results-container').removeClass('d-none');
-            
-            $('#final-score').text(score);
-            $('#max-score').text(questions.length);
-            $('#review-section').html(htmlReview);
-            
-}).fail(function(xhr) {
-            // Print the exact Laravel error to the console and screen!
-            console.log(xhr.responseText);
-            
-            let errorMessage = "Unknown Server Error";
-            if(xhr.responseJSON && xhr.responseJSON.message) {
-                errorMessage = xhr.responseJSON.message;
-            } else {
-                errorMessage = xhr.responseText; 
+                // Show results
+                $('#quiz-container').addClass('d-none');
+                $('#results-container').removeClass('d-none');
+                $('#final-score').text(response.earned);
+                $('#review-section').html(reviewHtml);
             }
-
-            alert("LARAVEL ERROR: " + errorMessage);
-            $('#btn-submit').html('<i class="fa-solid fa-check-double"></i> Submit Quiz').prop('disabled', false);
+        ).fail(function (xhr) {
+            console.error(xhr.responseText);
+            alert('Submission failed. Please check your connection and try again.');
+            $('#btn-submit')
+                .html('<i class="fa-solid fa-check-double"></i> Submit Quiz')
+                .prop('disabled', false);
+            startTimer(); // Resume timer so they can retry
         });
     }
 </script>
+@endif
 @endpush

@@ -3,256 +3,393 @@
 @section('title')
     {{ @$data['title'] }}
 @endsection
+
 @section('content')
+    <input type="hidden" id="url" value="{{ url('/') }}">
+
     <div class="page-content">
 
-        {{-- bradecrumb Area S t a r t --}}
+        {{-- BREADCRUMB --}}
         <div class="page-header">
             <div class="row">
                 <div class="col-sm-6">
                     <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h4>
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a></li>
-                        <li class="breadcrumb-item" aria-current="page"><a
-                                href="{{ route('homework.index') }}">{{ $data['title'] }}</a></li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('homework.index') }}">{{ $data['title'] }}</a>
+                        </li>
                         <li class="breadcrumb-item active" aria-current="page">{{ ___('common.edit') }}</li>
                     </ol>
                 </div>
             </div>
         </div>
-        {{-- bradecrumb Area E n d --}}
+        {{-- END BREADCRUMB --}}
+
         <div class="card ot-card">
             <div class="card-body">
-                <form action="{{ route('homework.update', [$data['homework']->id]) }}" enctype="multipart/form-data" method="post" id="markRegister">
+
+                <form action="{{ route('homework.update', $data['homework']->id) }}"
+                      enctype="multipart/form-data"
+                      method="post">
                     @csrf
                     @method('PUT')
+
                     <div class="row mb-3">
                         <div class="col-lg-12">
                             <div class="row">
 
+                                {{-- 1. CLASS --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="validationServer04" class="form-label">{{ ___('student_info.class') }} <span
-                                        class="fillable">*</span></label>
+                                    <label class="form-label">
+                                        {{ ___('student_info.class') }} <span class="fillable">*</span>
+                                    </label>
                                     <select id="getSections"
-                                        class="nice-select niceSelect bordered_style wide class @error('class') is-invalid @enderror"
-                                        name="class" id="validationServer04" required
-                                        aria-describedby="validationServer04Feedback">
+                                            class="nice-select niceSelect bordered_style wide class @error('class') is-invalid @enderror"
+                                            name="class">
                                         <option value="">{{ ___('student_info.select_class') }}</option>
                                         @foreach ($data['classes'] as $item)
-                                            <option {{ old('class', $data['homework']->classes_id) == $item->class->id ? 'selected' : '' }}
-                                                value="{{ $item->class->id }}">{{ $item->class->name }}</option>
+                                            <option value="{{ $item->class->id }}"
+                                                {{ old('class', $data['homework']->classes_id) == $item->class->id ? 'selected' : '' }}>
+                                                {{ $item->class->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     @error('class')
-                                        <div id="validationServer04Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
+                                {{-- 2. SECTION --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="validationServer04" class="form-label">{{ ___('student_info.section') }} <span
-                                        class="fillable">*</span></label>
+                                    <label class="form-label">
+                                        {{ ___('student_info.section') }} <span class="fillable">*</span>
+                                    </label>
                                     <select id="getSubjects"
-                                        class="nice-select niceSelect sections bordered_style wide section @error('section') is-invalid @enderror"
-                                        name="section" id="validationServer04" required
-                                        aria-describedby="validationServer04Feedback">
+                                            class="nice-select niceSelect sections bordered_style wide section @error('section') is-invalid @enderror"
+                                            name="section">
                                         <option value="">{{ ___('student_info.select_section') }}</option>
                                         @foreach ($data['sections'] as $item)
-                                            <option {{ old('section', $data['homework']->section_id) == $item->section_id ? 'selected' : '' }}
-                                                value="{{ $item->section_id }}">{{ $item->section->name }}</option>
+                                            <option value="{{ $item->section_id }}"
+                                                {{ old('section', $data['homework']->section_id) == $item->section_id ? 'selected' : '' }}>
+                                                {{ $item->section->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     @error('section')
-                                        <div id="validationServer04Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
+                                {{-- 3. SUBJECT --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="validationServer04" class="form-label">{{ ___('academic.subject') }} <span
-                                        class="fillable">*</span></label>
+                                    <label class="form-label">
+                                        {{ ___('academic.subject') }} <span class="fillable">*</span>
+                                    </label>
                                     <select id="subject"
-                                        class="nice-select niceSelect subjects bordered_style wide @error('subject') is-invalid @enderror"
-                                        name="subject" id="validationServer04" required
-                                        aria-describedby="validationServer04Feedback">
+                                            class="nice-select niceSelect subjects bordered_style wide @error('subject') is-invalid @enderror"
+                                            name="subject">
                                         <option value="">{{ ___('examination.select_subject') }}</option>
                                         @foreach ($data['subjects'] as $item)
-                                            <option {{ old('subject', $data['homework']->subject_id) == $item->subject_id ? 'selected' : '' }}
-                                                value="{{ $item->subject_id }}">{{ $item->subject->name }}</option>
+                                            <option value="{{ $item->subject_id }}"
+                                                {{ old('subject', $data['homework']->subject_id) == $item->subject_id ? 'selected' : '' }}>
+                                                {{ $item->subject->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     @error('subject')
-                                        <div id="validationServer04Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
-                                {{-- ADDED: Task Category --}}
+                                {{-- 4. TASK CATEGORY --}}
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">{{ ___('common.Task Category') }} <span class="fillable">*</span></label>
-                                    <select id="task_type" class="nice-select niceSelect bordered_style wide @error('task_type') is-invalid @enderror" name="task_type" required>
-                                        <option value="homework" {{ $data['homework']->task_type == 'homework' ? 'selected' : '' }}>Standard Homework</option>
-                                        <option value="project" {{ $data['homework']->task_type == 'project' ? 'selected' : '' }}>Project</option>
-                                        <option value="activity" {{ $data['homework']->task_type == 'activity' ? 'selected' : '' }}>Activity</option>
-                                        <option value="game" {{ $data['homework']->task_type == 'game' ? 'selected' : '' }}>Educational Game</option>
-                                        <option value="assignment" {{ $data['homework']->task_type == 'assignment' ? 'selected' : '' }}>Assignment</option>
-                                        <option value="quiz" {{ $data['homework']->task_type == 'quiz' ? 'selected' : '' }}>Quiz</option>
+                                    <label class="form-label">
+                                        {{ ___('common.Task Category') }} <span class="fillable">*</span>
+                                    </label>
+                                    <select id="task_type"
+                                            class="nice-select niceSelect bordered_style wide @error('task_type') is-invalid @enderror"
+                                            name="task_type">
+                                        <option value="homework"   {{ old('task_type', $data['homework']->task_type) == 'homework'   ? 'selected' : '' }}>Standard Homework</option>
+                                        <option value="project"    {{ old('task_type', $data['homework']->task_type) == 'project'    ? 'selected' : '' }}>Project</option>
+                                        <option value="activity"   {{ old('task_type', $data['homework']->task_type) == 'activity'   ? 'selected' : '' }}>Activity</option>
+                                        <option value="game"       {{ old('task_type', $data['homework']->task_type) == 'game'       ? 'selected' : '' }}>Game</option>
+                                        <option value="assignment" {{ old('task_type', $data['homework']->task_type) == 'assignment' ? 'selected' : '' }}>Assignment</option>
+                                        <option value="quiz"       {{ old('task_type', $data['homework']->task_type) == 'quiz'       ? 'selected' : '' }}>Quiz</option>
                                     </select>
                                     @error('task_type')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
+                                {{-- 5. ASSIGNMENT DATE --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="exampleDataList" class="form-label ">{{ ___('account.date') }} <span
-                                            class="fillable">*</span></label>
-                                    <input class="form-control ot-input @error('date') is-invalid @enderror" name="date" type="date"
-                                        value="{{ old('date', $data['homework']->date) }}" id="exampleDataList" required
-                                        placeholder="{{ ___('common.enter_date') }}">
+                                    <label class="form-label">
+                                        {{ ___('account.date') }} <span class="fillable">*</span>
+                                    </label>
+                                    <input type="date"
+                                           class="form-control ot-input @error('date') is-invalid @enderror"
+                                           name="date"
+                                           id="hw_date"
+                                           value="{{ old('date', $data['homework']->date) }}">
                                     @error('date')
-                                        <div id="validationServer06Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
+                                {{-- 6. SUBMISSION DATE --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="exampleDataList" class="form-label ">{{ ___('common.submission_date') }} <span
-                                            class="fillable"></span></label>
-                                    <input class="form-control ot-input @error('submission_date') is-invalid @enderror" name="submission_date" type="date"
-                                        value="{{ old('submission_date', $data['homework']->submission_date) }}" id="exampleDataList"
-                                        placeholder="{{ ___('common.enter_submission_date') }}">
+                                    <label class="form-label">{{ ___('common.submission_date') }} <span class="fillable">*</span></label>
+                                    <input type="date"
+                                           class="form-control ot-input @error('submission_date') is-invalid @enderror"
+                                           name="submission_date"
+                                           value="{{ old('submission_date', $data['homework']->submission_date) }}">
                                     @error('submission_date')
-                                        <div id="validationServer06Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
-                                {{-- UPDATED: Made Marks Mandatory with HTML required --}}
+                                {{-- 7. MARKS --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="exampleDataList" class="form-label ">{{ ___('examination.marks') }} <span class="fillable">*</span></label>
-                                    <input class="form-control ot-input @error('marks') is-invalid @enderror" name="marks" required
-                                        value="{{ old('marks', $data['homework']->marks) }}" id="total-marks"
-                                        placeholder="{{ ___('examination.marks') }}">
+                                    <label class="form-label">
+                                        {{ ___('examination.marks') }} <span class="fillable">*</span>
+                                    </label>
+                                    <input type="number"
+                                           class="form-control ot-input @error('marks') is-invalid @enderror"
+                                           name="marks"
+                                           id="total-marks"
+                                           value="{{ old('marks', $data['homework']->marks) }}"
+                                           placeholder="{{ ___('examination.marks') }}"
+                                           min="0">
                                     @error('marks')
-                                        <div id="validationServer04Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
-                                <div class="col-md-4">
-                                    <label for="exampleDataList"
-                                        class="form-label ">{{ ___('common.document') }} <span
-                                            class="fillable"></span></label>
-                                    <div class="ot_fileUploader left-side mb-3">
-                                        <input class="form-control" type="text"
-                                            placeholder="{{ ___('common.document') }}" readonly="" id="placeholder">
-                                        <button class="primary-btn-small-input" type="button">
-                                            <label class="btn btn-lg ot-btn-primary"
-                                                for="fileBrouse">{{ ___('common.browse') }}</label>
-                                            <input type="file" class="d-none form-control" name="document" id="fileBrouse" accept="image/*,.pdf,.doc,.docx">
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {{-- ADDED: Homework Group (Mandatory) --}}
-                                <div class="col-md-4 mb-3" id="question_group_div">
-                                    <label class="form-label">Homework Group <span class="fillable">*</span></label>
-                                    <select id="question_group" class="nice-select niceSelect bordered_style wide" name="question_group" required>
-                                        <option value="">{{ ___('online-examination.Select question group') }}</option>
-                                        @foreach ($data['question_groups'] ?? [] as $item)
-                                            {{-- Assuming column might be question_group_id if it exists, otherwise just lists --}}
-                                            <option value="{{ $item->id }}" {{ (isset($data['homework']->question_group_id) && $data['homework']->question_group_id == $item->id) ? 'selected' : '' }}>{{ $item->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
+                                {{-- 8. TOPIC --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="validationServer04" class="form-label">{{ ___('common.status') }} <span class="fillable">*</span></label>
+                                    <label for="hw_topic" class="form-label">
+                                        Homework Topic <span class="fillable">*</span>
+                                    </label>
+                                    <input type="text"
+                                           class="form-control ot-input @error('topic') is-invalid @enderror"
+                                           name="topic"
+                                           id="hw_topic"
+                                           value="{{ old('topic', $data['homework']->topic ?? '') }}"
+                                           placeholder="e.g. Solar System, Fractions, World War II">
+                                    <small class="text-muted">This will appear at the start of the title.</small>
+                                    @error('topic')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- 9. STATUS --}}
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">
+                                        {{ ___('common.status') }} <span class="fillable">*</span>
+                                    </label>
                                     <select class="nice-select niceSelect bordered_style wide @error('status') is-invalid @enderror"
-                                    name="status" id="validationServer04" required
-                                    aria-describedby="validationServer04Feedback">
-                                        <option value="{{ App\Enums\Status::ACTIVE }}" {{$data['homework']->status == App\Enums\Status::ACTIVE ? 'selected':''}}>{{ ___('common.active') }}</option>
-                                        <option value="{{ App\Enums\Status::INACTIVE }}" {{$data['homework']->status == App\Enums\Status::INACTIVE ? 'selected':''}}>{{ ___('common.inactive') }}</option>
+                                            name="status">
+                                        <option value="{{ App\Enums\Status::ACTIVE }}"
+                                            {{ old('status', $data['homework']->status) == App\Enums\Status::ACTIVE ? 'selected' : '' }}>
+                                            {{ ___('common.active') }}
+                                        </option>
+                                        <option value="{{ App\Enums\Status::INACTIVE }}"
+                                            {{ old('status', $data['homework']->status) == App\Enums\Status::INACTIVE ? 'selected' : '' }}>
+                                            {{ ___('common.inactive') }}
+                                        </option>
                                     </select>
                                     @error('status')
-                                        <div id="validationServer04Feedback" class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
-                                {{-- ADDED: Homework Title --}}
-                                <div class="col-md-12 mb-3">
-                                    <label for="homework_title" class="form-label ">Homework Title <span class="fillable">*</span></label>
-                                    <input class="form-control ot-input @error('title') is-invalid @enderror" name="title" id="homework_title" value="{{ old('title', $data['homework']->title ?? '') }}" placeholder="Auto-generated title will appear here..." required>
-                                    <small class="text-muted">The system generates this name automatically, but you can edit it if needed.</small>
+                                {{-- 10. FILE UPLOAD (document OR quiz CSV — toggled by JS) --}}
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" id="file_upload_label">
+                                        {{ ___('common.document') }}
+                                    </label>
+                                    @if ($data['homework']->upload)
+                                        <div class="mb-1">
+                                            <small class="text-muted">
+                                                Current file:
+                                                <a href="{{ globalAsset($data['homework']->upload->path, '') }}"
+                                                   target="_blank">View</a>
+                                                — upload a new file below to replace it.
+                                            </small>
+                                        </div>
+                                    @endif
+                                    <div class="ot_fileUploader left-side mb-1">
+                                        <input class="form-control"
+                                               type="text"
+                                               id="file_placeholder"
+                                               placeholder="{{ ___('common.document') }} (optional)"
+                                               readonly>
+                                        <button class="primary-btn-small-input" type="button">
+                                            <label class="btn btn-lg ot-btn-primary" for="fileBrouse">
+                                                {{ ___('common.browse') }}
+                                            </label>
+                                            {{--
+                                                CRITICAL: name is toggled by JS between
+                                                  - "document"            (non-quiz)
+                                                  - "bulk_questions_file" (quiz)
+                                                This was the root cause of quiz CSV replacement failing on edit.
+                                            --}}
+                                            <input type="file"
+                                                   class="d-none form-control"
+                                                   name="document"
+                                                   id="fileBrouse"
+                                                   accept="image/*,.pdf,.doc,.docx">
+                                        </button>
+                                    </div>
+                                    @error('document')
+                                        <div class="text-danger font-size-12">{{ $message }}</div>
+                                    @enderror
+                                    @error('bulk_questions_file')
+                                        <div class="text-danger font-size-12">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
-                                {{-- ADDED: DYNAMIC QUIZ INFO BANNER --}}
+                                {{-- 11. QUIZ MODE BANNER --}}
                                 <div class="col-md-12 mb-3 d-none" id="csv_template_hint">
-                                    <div class="alert alert-info d-flex align-items-center justify-content-between">
-                                        <span><i class="fa-solid fa-circle-info"></i> <strong>Quiz Mode Active:</strong> Please upload your questions using the Browse button above. Only CSV files matching the template are accepted.</span>
-                                        <a href="{{ asset('Quiz_Template.csv') }}" class="btn btn-sm btn-primary" download="Quiz_Template.csv">
+                                    <div class="alert alert-info d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <span>
+                                            <i class="fa-solid fa-circle-info"></i>
+                                            <strong>Quiz Mode Active:</strong>
+                                            Uploading a new CSV will replace all existing questions for this quiz.
+                                        </span>
+                                        <a href="{{ route('homework.download-sample') }}"
+                                           class="btn btn-sm btn-primary">
                                             <i class="fa-solid fa-download"></i> Download CSV Template
                                         </a>
                                     </div>
                                 </div>
 
+                                {{-- 12. AUTO-GENERATED TITLE (readonly) --}}
                                 <div class="col-md-12 mb-3">
-                                    <label for="exampleDataList" class="form-label ">{{ ___('account.description') }}</label>
-                                    <textarea class="form-control ot-textarea @error('description') is-invalid @enderror" name="description"
-                                    placeholder="{{ ___('account.enter_description') }}">{{ old('description', $data['homework']->description) }}</textarea>
-                                    @error('description')
-                                        <div id="validationServer04Feedback" class="invalid-feedback">{{ $message }}</div>
+                                    <label for="hw_title" class="form-label">
+                                        Homework Title <span class="fillable">*</span>
+                                    </label>
+                                    <input type="text"
+                                           class="form-control ot-input @error('title') is-invalid @enderror"
+                                           name="title"
+                                           id="hw_title"
+                                           value="{{ old('title', $data['homework']->title ?? '') }}"
+                                           placeholder="Fill in the Topic to regenerate the title..."
+                                           readonly>
+                                    <small class="text-muted">
+                                        Auto-generated from your inputs. Not editable — ensures a consistent naming standard.
+                                    </small>
+                                    @error('title')
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
-                                <div class="col-md-12 mt-24">
+                                {{-- 13. DESCRIPTION --}}
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">{{ ___('account.description') }}</label>
+                                    <textarea class="form-control ot-textarea @error('description') is-invalid @enderror"
+                                              name="description"
+                                              placeholder="{{ ___('account.enter_description') }}">{{ old('description', $data['homework']->description) }}</textarea>
+                                    @error('description')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- 14. SUBMIT --}}
+                                <div class="col-md-12 mt-4 mb-4">
                                     <div class="text-end">
-                                        <button class="btn btn-lg ot-btn-primary"><span><i class="fa-solid fa-save"></i>
-                                            </span>{{ ___('common.submit') }}</button>
+                                        <button type="submit" class="btn btn-lg ot-btn-primary">
+                                            <i class="fa-solid fa-save"></i> {{ ___('common.submit') }}
+                                        </button>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
 @endsection
 
 @push('script')
-    <script>
-        $(document).ready(function() {
-            // Task Type behavior
-            $('body').on('change', '#task_type', function() {
-                var selectedTask = $(this).val();
-                if (selectedTask === 'quiz') {
-                    $('#csv_template_hint').removeClass('d-none');
-                    $('#fileBrouse').attr('accept', '.csv, text/csv, application/csv, text/plain, application/vnd.ms-excel'); 
-                } else {
-                    $('#csv_template_hint').addClass('d-none');
-                    $('#fileBrouse').attr('accept', 'image/*,.pdf,.doc,.docx'); 
-                }
-            });
+<script>
+$(document).ready(function () {
 
-            $('#task_type').trigger('change');
-        });
+    // =========================================================================
+    // 1. TASK TYPE TOGGLE — switches file input name/accept between quiz and non-quiz
+    // This was the critical missing fix from the original edit.blade.php.
+    // Without toggling the name, quiz CSV replacement never reached the Repository.
+    // =========================================================================
+    $('#task_type').on('change', function () {
+        var taskType = $(this).val();
 
-        // Auto-generate Title based on selections
-        function generateTitle() {
-            let group = $('#question_group option:selected').text().trim();
-            let cls = $('#getSections option:selected').text().trim();
-            let subj = $('#subject option:selected').text().trim();
-            let task = $('#task_type option:selected').text().trim();
-            let date = $('input[name="date"]').val();
-
-            // Ignore default "Select" placeholder text
-            if(group.includes('Select') || !group) group = '';
-            if(cls.includes('Select') || !cls) cls = '';
-            if(subj.includes('Select') || !subj) subj = '';
-            
-            // Combine them with underscores
-            let parts = [group, cls, subj, task, date].filter(Boolean); // removes empty values
-            if(parts.length > 0) {
-                $('#homework_title').val(parts.join('_'));
-            }
+        if (taskType === 'quiz') {
+            $('#csv_template_hint').removeClass('d-none');
+            $('#file_upload_label').html('Quiz Question File <span class="text-muted">(upload new CSV to replace questions)</span>');
+            $('#fileBrouse').attr('name', 'bulk_questions_file');
+            $('#fileBrouse').attr('accept', '.csv,text/csv,text/plain');
+            $('#file_placeholder').attr('placeholder', 'Upload new Quiz CSV to replace existing questions (optional)');
+        } else {
+            $('#csv_template_hint').addClass('d-none');
+            $('#file_upload_label').html('{{ ___('common.document') }}');
+            $('#fileBrouse').attr('name', 'document');
+            $('#fileBrouse').attr('accept', 'image/*,.pdf,.doc,.docx');
+            $('#file_placeholder').attr('placeholder', '{{ ___('common.document') }} (optional)');
         }
 
-        // Trigger generation when any of these dropdowns/inputs change
-        $('#question_group, #getSections, #subject, #task_type, input[name="date"]').on('change', generateTitle);
-    </script>
+        generateTitle();
+    });
+
+    // Show selected filename in the readonly text box
+    $('#fileBrouse').on('change', function () {
+        var fileName = $(this).val().split('\\').pop();
+        $('#file_placeholder').val(fileName);
+    });
+
+    // Apply correct state immediately based on the saved task_type
+    $('#task_type').trigger('change');
+
+    // =========================================================================
+    // 2. AUTO-GENERATE TITLE
+    // Format: {topic}_{ClassShorthand}_{SubjectAbbr}_{TaskAbbr}_{date}
+    // Example: solar_3_IPC_prj_2026-04-22
+    // Title is readonly — only topic + dropdowns drive it.
+    // =========================================================================
+    var taskAbbr = {
+        'homework':   'hw',
+        'project':    'prj',
+        'activity':   'act',
+        'game':       'game',
+        'assignment': 'assign',
+        'quiz':       'quiz'
+    };
+
+    function generateTitle() {
+        var topic = $('#hw_topic').val().trim();
+        var cls   = $('#getSections option:selected').text().trim();
+        var subj  = $('#subject option:selected').text().trim();
+        var task  = $('#task_type').val();
+        var date  = $('#hw_date').val();
+
+        if (!cls  || cls.toLowerCase().includes('select'))  cls  = '';
+        if (!subj || subj.toLowerCase().includes('select')) subj = '';
+
+        // Strip "GRADE-" / "Grade " prefix, keep number/code only
+        cls = cls.replace(/grade[\s\-]*/i, '').trim();
+
+        var abbr  = taskAbbr[task] || task;
+        var parts = [topic, cls, subj, abbr, date].filter(Boolean);
+        $('#hw_title').val(parts.length > 0 ? parts.join('_') : '');
+    }
+
+    $('#hw_topic, #getSections, #subject, #task_type, #hw_date').on('change input', generateTitle);
+
+});
+</script>
 @endpush
