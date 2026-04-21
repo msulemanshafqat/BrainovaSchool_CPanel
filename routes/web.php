@@ -360,25 +360,19 @@ Route::middleware(saasMiddleware())->group(function () {
 
 
 /* ADDED BY NAZ */
-/* ADDED BY NAZ */
-/* START: Daily Homework Quiz Feature */
-use App\Http\Controllers\Custom\HomeworkQuizController;
+/* START: Brainova — Student Homework Quiz Routes */
+Route::middleware(['auth'])->group(function () {
+    // Student: take an interactive quiz assigned as homework
+    Route::get(
+        '/student-panel/homework/take-quiz/{id}',
+        [\App\Http\Controllers\StudentPanel\HomeworkController::class, 'takeQuiz']
+    )->name('student-panel-homework.take-quiz');
 
-Route::group(['middleware' => ['auth']], function () {
-    // We use 'homework-quiz' as the prefix to keep it completely separate from the core 'homework'
-    Route::get('/homework-quiz/create', [HomeworkQuizController::class, 'create'])->name('homework-quiz.create');
-    Route::post('/homework-quiz/store', [HomeworkQuizController::class, 'store'])->name('homework-quiz.store');
-    
-    // AJAX route for fetching questions
-    Route::get('/homework-quiz/get-all-questions', [HomeworkQuizController::class, 'getAllQuestions'])->name('homework-quiz.get-all-questions');
-    
-    // THE FIX: Student Take Quiz Route is now safely inside the Auth group!
-    Route::get('/student-panel/homework/take-quiz/{id}', [\App\Http\Controllers\StudentPanel\HomeworkController::class, 'takeQuiz'])->name('student-panel-homework.take-quiz');
+    // Student: submit completed interactive quiz answers
+    Route::post(
+        '/student-panel/homework/submit-interactive-quiz',
+        [\App\Http\Controllers\StudentPanel\HomeworkController::class, 'submitInteractiveQuiz']
+    )->name('student-panel-homework.submit-interactive-quiz');
 });
-// THE FIX: Student Take Quiz Route is now safely inside the Auth group!
-    Route::get('/student-panel/homework/take-quiz/{id}', [\App\Http\Controllers\StudentPanel\HomeworkController::class, 'takeQuiz'])->name('student-panel-homework.take-quiz');
-    
-    // NEW: Phase 3 - Route to submit the interactive quiz score
-    Route::post('/student-panel/homework/submit-interactive-quiz', [\App\Http\Controllers\StudentPanel\HomeworkController::class, 'submitInteractiveQuiz'])->name('student-panel-homework.submit-interactive-quiz');
-/* END: Daily Homework Quiz Feature */
+/* END: Brainova — Student Homework Quiz Routes */
 /* ENDED BY NAZ */

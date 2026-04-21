@@ -7,7 +7,7 @@ use App\Models\HomeworkStudent;
 use App\Traits\CommonHelperTrait;
 use App\Traits\ReturnFormatTrait;
 use Illuminate\Support\Facades\Auth;
-use App\Repositories\StudentPanel\Homework\HomeworkInterface;
+use Illuminate\Support\Facades\DB;
 
 class HomeworkRepository implements HomeworkInterface
 {
@@ -15,7 +15,7 @@ class HomeworkRepository implements HomeworkInterface
 
     private $model;
 
-    function __construct(Homework $model)
+    public function __construct(Homework $model)
     {
         $this->model = $model;
     }
@@ -23,41 +23,58 @@ class HomeworkRepository implements HomeworkInterface
     public function index()
     {
         return $this->model::where('classes_id', Auth::user()->student?->session_class_student?->classes_id)
-                        ->where('section_id', Auth::user()->student?->session_class_student?->section_id)
-                        ->orderBy('id', 'DESC')
-                        ->paginate(10);
-
+            ->where('section_id', Auth::user()->student?->session_class_student?->section_id)
+            ->where('session_id', setting('session'))
+            ->orderByDesc('id')
+            ->paginate(10);
     }
-
 
     public function show($id)
     {
-        return $this->model::with('examQuestions')->find($id);
+        // examQuestions loads from homework_questions → question_banks (online-exam).
+        // Homework quiz questions are in homework_quiz_questions and are handled separately.
+        return $this->model::find($id);
     }
 
+    /**
+     * Standard homework file submission (non-quiz task types).
+     * Stores the uploaded file and marks the homework as submitted.
+     */
     public function submit($request)
     {
+        DB::beginTransaction();
         try {
+            $student = Auth::user()->student;
 
-            if(!$homework_student = HomeworkStudent::where('student_id', Auth::user()->student->id)->where('homework_id', $request->homework_id)->first()) {
+            $homeworkStudent = HomeworkStudent::where('student_id', $student->id)
+                ->where('homework_id', $request->homework_id)
+                ->first();
 
-                $homework_student              = new HomeworkStudent();
-                $homework_student->homework    = null;
+            if (!$homeworkStudent) {
+                $homeworkStudent = new HomeworkStudent();
             }
 
-            $homework_student->student_id  = Auth::user()->student->id;
-            $homework_student->homework_id = $request->homework_id;
-            $homework_student->date        = date('Y-m-d');
+            $homeworkStudent->student_id  = $student->id;
+            $homeworkStudent->homework_id = $request->homework_id;
+            $homeworkStudent->date        = now()->format('Y-m-d');
 
-            // if($request->hasFile('homework')) {
-            //     $homework_student->homework    = $this->UploadImageUpdate($request->homework, 'backend/uploads/homeworks', $homework_student->homework);
-            // }
+            if ($request->hasFile('homework')) {
+                $homeworkStudent->homework = $this->UploadImageUpdate(
+                    $request->homework,
+                    'backend/uploads/homeworks',
+                    $homeworkStudent->homework
+                );
+            }
 
-            $homework_student->save();
-            return $homework_student;
+            $homeworkStudent->save();
+
+            DB::commit();
+            return $homeworkStudent;
+
         } catch (\Throwable $th) {
-            dd($th);
+            DB::rollBack();
+            \Log::error('Homework Submit Error: ' . $th->getMessage());
+            throw $th;
         }
-
     }
 }
