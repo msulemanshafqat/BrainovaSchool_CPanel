@@ -21,6 +21,7 @@ yarn-error.log
 /storage/debugbar
 .DS_Store
 DS_Store
+firebase_credentials.json
 /public/backend/uploads/*
 /lang/*
 *.zip
