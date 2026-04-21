@@ -1,0 +1,8 @@
+{
+    "Installer": true,
+    "MainApp": false,
+    "LiveChat": true,
+    "Forums": true,
+    "PushNotification": true,
+    "BehaviourRecord": false
+}

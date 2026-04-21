@@ -1,0 +1,68 @@
+/* ========================================== */
+/* BRAINOVA GLOBAL MODERN UI OVERRIDE         */
+/* ========================================== */
+
+/* 1. Import a Modern Font (Poppins) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif !important;
+    background-color: #f8fafc !important; /* Soft, modern off-white background */
+}
+
+/* 2. Modernize all Input Fields (Forms) */
+input, select, textarea {
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 10px 15px !important;
+    transition: all 0.3s ease !important;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #4ca1af !important;
+    box-shadow: 0 0 0 3px rgba(76, 161, 175, 0.2) !important;
+    outline: none !important;
+}
+
+/* 3. Modernize all Buttons Globally */
+.btn, button {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+}
+
+.btn:hover, button:hover {
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* 4. Modernize "Cards" and Content Boxes */
+.card, .panel, .box {
+    border-radius: 15px !important;
+    border: none !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    background: #ffffff !important;
+}
+
+/* ========================================== */
+/* MOBILE RESPONSIVENESS ADJUSTMENTS          */
+/* ========================================== */
+
+@media (max-width: 768px) {
+    /* Make the 4 boxes stack nicely on phones */
+    .btn, button {
+        width: 100% !important; /* Full width buttons on mobile are easier to tap */
+        margin-bottom: 10px;
+    }
+
+    h2 {
+        font-size: 24px !important; /* Shrink large headers slightly for small screens */
+    }
+
+    /* Ensure the profile photo doesn't look too huge on tiny screens */
+    div[style*="width: 100px"] {
+        width: 80px !important;
+        height: 80px !important;
+    }
+}

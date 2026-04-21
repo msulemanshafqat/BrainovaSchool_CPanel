@@ -1,0 +1,41 @@
+[14-Apr-2026 02:29:40 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[14-Apr-2026 14:21:13 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[14-Apr-2026 14:21:18 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[14-Apr-2026 14:21:23 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[14-Apr-2026 14:29:03 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[14-Apr-2026 14:29:09 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[14-Apr-2026 14:29:16 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getInventoryIds() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 390
+[15-Apr-2026 09:22:30 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 09:22:34 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 09:22:38 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 09:26:35 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 09:27:32 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 09:36:36 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 09:56:22 UTC] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Admin\HomeworkController::getAllQuestions() in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 277
+[15-Apr-2026 11:29:15 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 11:29:34 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 95
+[15-Apr-2026 11:44:46 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 67
+[15-Apr-2026 11:45:10 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 67
+[15-Apr-2026 11:46:48 UTC] PHP Fatal error:  Cannot redeclare App\Repositories\Homework\HomeworkRepository::store() in /home/fjojsvvy/public_html/app/Repositories/Homework/HomeworkRepository.php on line 67
+[16-Apr-2026 02:40:16 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:40:19 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:40:26 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:40:30 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:40:35 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:41:31 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:41:56 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:42:02 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:42:11 UTC] PHP Fatal error:  Trait "App\Http\Controllers\Admin\Illuminate\Support\Facades\DB" not found in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 27
+[16-Apr-2026 02:51:17 UTC] PHP Fatal error:  Cannot use Illuminate\Support\Facades\DB as DB because the name is already in use in /home/fjojsvvy/public_html/app/Http/Controllers/Admin/HomeworkController.php on line 29
+[19-Apr-2026 02:42:17 Asia/Karachi] PHP Fatal error:  Uncaught ErrorException: Cannot modify header information - headers already sent by (output started at /home/fjojsvvy/public_html/app/Http/Controllers/Custom/HomeworkQuizController.php:1) in /home/fjojsvvy/public_html/vendor/symfony/http-foundation/Response.php:322
+Stack trace:
+#0 /home/fjojsvvy/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(256): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(2, 'Cannot modify h...', '/home/fjojsvvy/...', 322)
+#1 [internal function]: Illuminate\Foundation\Bootstrap\HandleExceptions->Illuminate\Foundation\Bootstrap\{closure}(2, 'Cannot modify h...', '/home/fjojsvvy/...', 322)
+#2 /home/fjojsvvy/public_html/vendor/symfony/http-foundation/Response.php(322): header('HTTP/1.1 500 In...', true, 500)
+#3 /home/fjojsvvy/public_html/vendor/symfony/http-foundation/Response.php(401): Symfony\Component\HttpFoundation\Response->sendHeaders()
+#4 /home/fjojsvvy/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(219): Symfony\Component\HttpFoundation\Response->send()
+#5 /home/fjojsvvy/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(196): Illuminate\Foundation\Bootstrap\HandleExceptions->renderHttpResponse(Object(ErrorException))
+#6 /home/fjojsvvy/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(256): Illuminate\Foundation\Bootstrap\HandleExceptions->handleException(Object(ErrorException))
+#7 [internal function]: Illuminate\Foundation\Bootstrap\HandleExceptions->Illuminate\Foundation\Bootstrap\{closure}(Object(ErrorException))
+#8 {main}
+  thrown in /home/fjojsvvy/public_html/vendor/symfony/http-foundation/Response.php on line 322

@@ -1,0 +1,31 @@
+{
+    "name": "nwidart/behaviourrecord",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\BehaviourRecord\\": "",
+            "Modules\\BehaviourRecord\\App\\": "app/",
+            "Modules\\BehaviourRecord\\Database\\Factories\\": "database/factories/",
+            "Modules\\BehaviourRecord\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\BehaviourRecord\\Tests\\": "tests/"
+        }
+    }
+}
