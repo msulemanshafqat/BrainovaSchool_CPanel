@@ -2,4 +2,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/fjojsvvy/public_html
-    - /bin/cp -R %PROJECT_ROOT%/. $DEPLOYPATH
+    - /bin/cp -R /home/fjojsvvy/brainova_git/. $DEPLOYPATH
