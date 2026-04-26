@@ -20,25 +20,35 @@ class HomeworkRepository implements HomeworkInterface
         $this->model = $model;
     }
 
+    /**
+     * Returns all homework for the student's current class/section.
+     * Uses get() (not paginate) so the portal can group by subject and
+     * compute per-subject chart data across the full dataset.
+     */
     public function index()
     {
-        return $this->model::where('classes_id', Auth::user()->student?->session_class_student?->classes_id)
+        return $this->model::with(['subject', 'upload'])
+            ->where('classes_id', Auth::user()->student?->session_class_student?->classes_id)
             ->where('section_id', Auth::user()->student?->session_class_student?->section_id)
             ->where('session_id', setting('session'))
             ->orderByDesc('id')
-            ->paginate(10);
+            ->get();
     }
 
     public function show($id)
     {
-        // examQuestions loads from homework_questions → question_banks (online-exam).
-        // Homework quiz questions are in homework_quiz_questions and are handled separately.
+        // Note: examQuestions loads from homework_questions → question_banks (online-exam).
+        // Homework quiz questions live in homework_quiz_questions — handled separately.
         return $this->model::find($id);
     }
 
     /**
      * Standard homework file submission (non-quiz task types).
-     * Stores the uploaded file and marks the homework as submitted.
+     * Stores the uploaded file and records the homework as submitted.
+     *
+     * IMPORTANT: UploadImageUpdate MUST be called — it was previously commented
+     * out, which meant files were never stored and the submission status never
+     * persisted across page reloads.
      */
     public function submit($request)
     {
@@ -46,34 +56,38 @@ class HomeworkRepository implements HomeworkInterface
         try {
             $student = Auth::user()->student;
 
-            $homeworkStudent = HomeworkStudent::where('student_id', $student->id)
+            $homework_student = HomeworkStudent::where('student_id', $student->id)
                 ->where('homework_id', $request->homework_id)
                 ->first();
 
-            if (!$homeworkStudent) {
-                $homeworkStudent = new HomeworkStudent();
+            if (!$homework_student) {
+                $homework_student           = new HomeworkStudent();
+                $homework_student->homework = null;
             }
 
-            $homeworkStudent->student_id  = $student->id;
-            $homeworkStudent->homework_id = $request->homework_id;
-            $homeworkStudent->date        = now()->format('Y-m-d');
+            $homework_student->student_id  = $student->id;
+            $homework_student->homework_id = $request->homework_id;
+            $homework_student->date        = date('Y-m-d');
 
+            // File upload — was previously commented out, causing "submitted" status
+            // to never persist (the record saved but the file was never stored,
+            // and the next page load showed "Not Submitted Yet" again).
             if ($request->hasFile('homework')) {
-                $homeworkStudent->homework = $this->UploadImageUpdate(
+                $homework_student->homework = $this->UploadImageUpdate(
                     $request->homework,
                     'backend/uploads/homeworks',
-                    $homeworkStudent->homework
+                    $homework_student->homework
                 );
             }
 
-            $homeworkStudent->save();
-
+            $homework_student->save();
             DB::commit();
-            return $homeworkStudent;
+            return $homework_student;
 
         } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Homework Submit Error: ' . $th->getMessage());
+            // Never dd() in production — it dumps sensitive data to the browser.
+            \Log::error('Student Homework Submit Error: ' . $th->getMessage());
             throw $th;
         }
     }

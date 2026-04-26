@@ -1,4 +1,3 @@
-{{-- edited by nazish  asif--}}
 {{--
     Homework Evaluation Partial
     Loaded via AJAX into the evaluation modal on the homework index page.
