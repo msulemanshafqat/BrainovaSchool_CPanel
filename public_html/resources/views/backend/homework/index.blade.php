@@ -5,6 +5,7 @@
      Sets the browser tab title dynamically from $data['title'].
      ============================================================ --}}
 @extends('backend.master')
+{{-- =thinking--}}
 @section('title') {{ @$data['title'] }} @endsection
 
 {{-- ============================================================
