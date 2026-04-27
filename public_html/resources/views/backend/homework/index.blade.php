@@ -72,6 +72,14 @@
 --}}
 /* ── Sticky filter bar ── */
 .hw-filter-sticky{position:sticky;top:0;z-index:20;background:#f8fafc;padding:10px 0;margin-bottom:12px;border-bottom:1px solid var(--bb)}
+/* Force nice-select generated <div> to fill the flex wrapper div.
+   Without this, the plugin renders its own fixed-width div and ignores the parent's flex:1. */
+.hw-filter-sticky .nice-select{width:100%!important;min-width:0!important;box-sizing:border-box}
+/* Force nice-select generated divs to fill their wrapper div completely.
+   nice-select replaces <select> with a <div class="nice-select">.
+   Without this, that div uses its own internal default width. */
+.hw-filter-sticky .nice-select{width:100% !important;box-sizing:border-box;font-size:12px !important}
+.hw-filter-sticky .nice-select .list{width:100% !important}
 
 {{-- ── Table Wrapper (.hw-wrap) ──
      Clips rounded corners on the table and draws the outer border.
@@ -277,7 +285,7 @@
 @endphp
 
 
-   {{--  Full-width card above the table. Shows task counts by category
+    {{-- Full-width card above the table. Shows task counts by category
      (Total, Quizzes, Submissions, Pending Eval, Overdue) as a bar chart.
      Alert for pending eval is embedded as a slim strip inside the card.
 --}}
@@ -347,14 +355,12 @@
          they do NOT submit the form, they just show/hide rows instantly.
     --}}
     <div class="hw-filter-sticky">
-      {{-- FIX: form style attribute properly closed; each select wrapped in a flex div
-           because nice-select replaces <select> with its own <div> at runtime —
-           styling the <select> directly has no effect on the rendered dropdown width.
-           The wrapper div is what the browser actually lays out. --}}
-      <form action="{{ route('homework.search') }}" method="post" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%" id="hf">
+      <form action="{{ route('homework.search') }}" method="post" style="display:flex;align-items:center;gap:6px;width:100%" id="hf">
         @csrf
-        <div style="flex:1;min-width:120px">
-          <select name="class" id="getSections" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:13px" onchange="this.form.submit()">
+        {{-- Each wrapper is 1/4 of the bar width. No flex-wrap so all 4 stay on one line.
+             min-width:0 prevents flex children from overflowing their container. --}}
+        <div style="flex:1;min-width:0">
+          <select name="class" id="getSections" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:12px" onchange="this.form.submit()">
             <option value="">All Classes</option>
             @foreach($data['classes']??[] as $item)
               @if(!empty($item->class))
@@ -363,18 +369,18 @@
             @endforeach
           </select>
         </div>
-        <div style="flex:1;min-width:120px">
-          <select name="section" id="getSubjects" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:13px" onchange="this.form.submit()">
+        <div style="flex:1;min-width:0">
+          <select name="section" id="getSubjects" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:12px" onchange="this.form.submit()">
             <option value="">All Sections</option>
           </select>
         </div>
-        <div style="flex:1;min-width:120px">
-          <select name="subject" id="subject" class="nice-select niceSelect subjects bordered_style" style="width:100%;font-size:13px" onchange="this.form.submit()">
+        <div style="flex:1;min-width:0">
+          <select name="subject" id="subject" class="nice-select niceSelect subjects bordered_style" style="width:100%;font-size:12px" onchange="this.form.submit()">
             <option value="">All Subjects</option>
           </select>
         </div>
-        <div style="flex:1;min-width:120px">
-          <select id="typeFilter" class="nice-select niceSelect bordered_style" style="width:100%;font-size:13px">
+        <div style="flex:1;min-width:0">
+          <select id="typeFilter" name="task_type" class="nice-select niceSelect bordered_style" style="width:100%;font-size:12px">
             <option value="all">All Types</option>
             <option value="quiz">Quiz</option>
             <option value="homework">Homework</option>
@@ -767,17 +773,53 @@ new Chart(document.getElementById('tC'),{type:'doughnut',data:{labels:@json(arra
   });
 })();
 
-// Type filter — 4th dropdown filters rows client-side (no page reload)
-{{-- ── Client-Side Type Filter ──
-     The typeFilter <select> value is checked on change.
-     Rows whose data-ft doesn't match get the .hh class (display:none).
-     value="all" clears all hiding and shows every row.
-     Works across both Active and Overdue section tables simultaneously.
---}}
-document.getElementById('typeFilter').addEventListener('change', function(){
-  const ft = this.value;
-  document.querySelectorAll('.hw-tbl-section tbody tr[data-ft]')
-    .forEach(r => r.classList.toggle('hh', ft !== 'all' && r.dataset.ft !== ft));
+// Type filter — wrapped in document.ready so it runs AFTER nice-select has initialised.
+// nice-select triggers jQuery's 'change' event on the original hidden <select>,
+// so $(document).on('change') correctly catches it.
+$(document).ready(function(){
+  $(document).on('change', '#typeFilter', function(){
+    const ft = $(this).val();
+    $('.hw-tbl-section tbody tr[data-ft]').each(function(){
+      $(this).toggleClass('hh', ft !== 'all' && $(this).data('ft') !== ft);
+    });
+  });
+});
+
+// ── Section dropdown population via AJAX ──
+// When a class is selected, fetch its sections and rebuild the section dropdown.
+// When a section is selected, fetch its subjects and rebuild the subject dropdown.
+// These use the same AJAX routes the rest of the app uses for niceSelect.
+$(document).on('change','#getSections', function(){
+  var classId = $(this).val();
+  var url     = $('#url').val() + '/get-sections';
+  $('#getSubjects').empty().append('<option value="">All Sections</option>');
+  $('#subject').empty().append('<option value="">All Subjects</option>');
+  if(!classId) return;
+  $.post(url, {class_id: classId, _token: $('meta[name="csrf-token"]').attr('content')}, function(data){
+    $.each(data, function(i, item){
+      $('#getSubjects').append('<option value="'+ item.id +'">'+ item.name +'</option>');
+    });
+    // Reinitialise nice-select so the new options show in the custom dropdown UI
+    if(typeof $.fn.niceSelect === 'function'){
+      $('#getSubjects').niceSelect('update');
+      $('#subject').niceSelect('update');
+    }
+  });
+});
+
+$(document).on('change','#getSubjects', function(){
+  var sectionId = $(this).val();
+  var url       = $('#url').val() + '/get-subjects';
+  $('#subject').empty().append('<option value="">All Subjects</option>');
+  if(!sectionId) return;
+  $.post(url, {section_id: sectionId, _token: $('meta[name="csrf-token"]').attr('content')}, function(data){
+    $.each(data, function(i, item){
+      $('#subject').append('<option value="'+ item.id +'">'+ item.name +'</option>');
+    });
+    if(typeof $.fn.niceSelect === 'function'){
+      $('#subject').niceSelect('update');
+    }
+  });
 });
 
 // Collapsible sections
