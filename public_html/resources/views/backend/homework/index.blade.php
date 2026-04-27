@@ -1,4 +1,5 @@
 {{-- ============================================================
+     mod by nazish
      TEMPLATE INHERITANCE
      Extends the main backend layout (master.blade.php).
      Sets the browser tab title dynamically from $data['title'].
