@@ -6,7 +6,7 @@
 @section('content')
     <div class="page-content">
 
-        {{-- bradecrumb Area S t a r t --}}
+        {{-- thinking bradecrumb Area S t a r t --}}
         <div class="page-header">
             <div class="row">
                 <div class="col-sm-6">
