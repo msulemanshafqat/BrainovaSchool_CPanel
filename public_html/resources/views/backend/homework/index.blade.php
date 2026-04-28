@@ -5,7 +5,7 @@
      Sets the browser tab title dynamically from $data['title'].
      ============================================================ --}}
 @extends('backend.master')
-{{-- =thinking--}}
+{{-- =thinking again--}}
 @section('title') {{ @$data['title'] }} @endsection
 
 {{-- ============================================================
@@ -25,7 +25,7 @@
     transition: max-height 0.3s ease-in-out; /* Ensures the open/close is a smooth slide */
 }
 /* END: Accordion Collapse Fix */
-{{-- Font family applied to the whole portal wrapper --}}
+{{-- 1. Font family applied to the whole portal wrapper --}}
 .hw-portal{font-family:'Plus Jakarta Sans',sans-serif}
 
 {{-- ── CSS Custom Properties (Design Tokens) ──
