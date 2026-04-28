@@ -190,7 +190,7 @@
                                                             <span class="icon mr-8">
                                                                 <i class="fa-solid {{ $row->task_type === 'quiz' ? 'fa-chart-bar' : 'fa-save' }}"></i>
                                                             </span>
-                                                            {{ $row->task_type === 'quiz' ? 'View Scores' : ___('common.evaluation') }}
+                                                            {{ $row->task_type === 'quiz' ? 'Display Scores' : ___('common.evaluation') }}
                                                         </a>
                                                     </li>
 

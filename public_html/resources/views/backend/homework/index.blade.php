@@ -514,7 +514,7 @@
                 @elseif($row->upload)
                   <li><a class="dropdown-item" href="{{ url($row->upload->path) }}" target="_blank"><i class="fa-solid fa-eye me-2 text-secondary"></i>View Document</a></li>
                 @endif
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#mEv" onclick="openEval({{$row->id}})"><i class="fa-solid fa-{{$row->task_type==='quiz'?'chart-bar':'check-double'}} me-2 text-success"></i>{{$row->task_type==='quiz'?'View Scores':'Evaluate'}}</a></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#mEv" onclick="openEval({{$row->id}})"><i class="fa-solid fa-{{$row->task_type==='quiz'?'chart-bar':'check-double'}} me-2 text-success"></i>{{$row->task_type==='quiz'?'Check Scores':'Evaluate'}}</a></li>
                 @if($row->task_type==='quiz')
                   <li><a class="dropdown-item" href="{{ route('homework.quiz-analytics', $row->id) }}" target="_blank"><i class="fa-solid fa-magnifying-glass-chart me-2 text-info"></i>Quiz Analytics</a></li>
                 @endif
