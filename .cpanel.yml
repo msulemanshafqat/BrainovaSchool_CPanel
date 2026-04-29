@@ -2,4 +2,16 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/fjojsvvy/public_html
-    - tar --exclude='.git' -cf - /home/fjojsvvy/repositories/BrainovaSchoolLE/. | tar -xf - -C $DEPLOYPATH
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/app/. $DEPLOYPATH/app
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/bootstrap/. $DEPLOYPATH/bootstrap
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/cgi-bin/. $DEPLOYPATH/cgi-bin
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/command/. $DEPLOYPATH/command
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/config/. $DEPLOYPATH/config
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/database/. $DEPLOYPATH/database
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/frontend-html/. $DEPLOYPATH/frontend-html
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/lang/. $DEPLOYPATH/lang
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/Modules/. $DEPLOYPATH/Modules
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/public/. $DEPLOYPATH/public
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/resources/. $DEPLOYPATH/resources
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/routes/. $DEPLOYPATH/routes
+    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/storage/. $DEPLOYPATH/storage
