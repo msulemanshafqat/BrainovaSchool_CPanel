@@ -2,4 +2,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/fjojsvvy/public_html
-    - /bin/cp -R /home/fjojsvvy/repositories/BrainovaSchoolLE/. $DEPLOYPATH
+    - tar --exclude='.git' -cf - /home/fjojsvvy/repositories/BrainovaSchoolLE/. | tar -xf - -C $DEPLOYPATH
