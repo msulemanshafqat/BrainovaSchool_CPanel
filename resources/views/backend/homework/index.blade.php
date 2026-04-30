@@ -400,14 +400,14 @@
         </div>
         <div style="flex:1;min-width:0">
           <select id="typeFilter" name="task_type" class="nice-select niceSelect bordered_style" style="width:100%;font-size:12px">
-            <option value="all">All Types</option>
-            <option value="quiz">Quiz</option>
-            <option value="homework">Homework</option>
-            <option value="project">Project</option>
-            <option value="activity">Activity</option>
-            <option value="game">Game</option>
-            <option value="assignment">Assignment</option>
-          </select>
+    <option value="all" {{ request('task_type', 'all') == 'all' ? 'selected' : '' }}>All Types</option>
+    <option value="quiz" {{ request('task_type') == 'quiz' ? 'selected' : '' }}>Quiz</option>
+    <option value="homework" {{ request('task_type') == 'homework' ? 'selected' : '' }}>Homework</option>
+    <option value="project" {{ request('task_type') == 'project' ? 'selected' : '' }}>Project</option>
+    <option value="activity" {{ request('task_type') == 'activity' ? 'selected' : '' }}>Activity</option>
+    <option value="game" {{ request('task_type') == 'game' ? 'selected' : '' }}>Game</option>
+    <option value="assignment" {{ request('task_type') == 'assignment' ? 'selected' : '' }}>Assignment</option>
+</select>
         </div>
       </form>
     </div>
@@ -837,20 +837,10 @@
 // so $(document).on('change') correctly catches it.
 $(document).ready(function(){
 
-  // ── Type-filter pills ──
-  $(document).on('change', '#typeFilter', function(){
-    const ft = $(this).val();
-    $('.hw-tbl-section tbody tr[data-ft]').each(function(){
-      $(this).toggleClass('hh', ft !== 'all' && $(this).data('ft') !== ft);
-    });
-  });
-
   // ── Cascade helpers ──
   var baseUrl = $('#url').val();
   var token   = $('meta[name="csrf-token"]').attr('content');
 
-  // Re-populate sections dropdown; pre-select `preselectSection` if provided.
-  // Calls onDone() when finished so subjects can chain off it.
   function loadSections(classId, preselectSection, onDone) {
     if (!classId) { if (onDone) onDone(); return; }
     $.post(baseUrl + '/get-sections', { class_id: classId, _token: token }, function(data) {
@@ -864,7 +854,6 @@ $(document).ready(function(){
     });
   }
 
-  // Re-populate subjects dropdown; pre-select `preselectSubject` if provided.
   function loadSubjects(sectionId, preselectSubject) {
     if (!sectionId) return;
     $.post(baseUrl + '/get-subjects', { section_id: sectionId, _token: token }, function(data) {
@@ -877,63 +866,60 @@ $(document).ready(function(){
     });
   }
 
-  // ── On page load: pre-populate child dropdowns from URL params ──
-  // This fixes the blank section/subject dropdowns after the page reloads
-  // due to a server-side filter having already been applied.
+  // ── State Restoration ──
   var preClass   = '{{ request("class") }}';
   var preSection = '{{ request("section") }}';
   var preSubject = '{{ request("subject") }}';
+  var preTaskType= '{{ request("task_type", "all") }}';
 
+  // Apply the client-side task type filter on page load if it was preserved
+  if (preTaskType !== 'all') {
+    $('.hw-tbl-section tbody tr[data-ft]').each(function(){
+      $(this).toggleClass('hh', $(this).data('ft') !== preTaskType);
+    });
+  }
+
+  // Cascade populate dropdowns on page load based on current selections
   if (preClass) {
     loadSections(preClass, preSection, function() {
       if (preSection) loadSubjects(preSection, preSubject);
     });
   }
 
-  // ── Class changes → load its sections then submit to filter ──
-  // Removes the race condition caused by inline onchange="this.form.submit()"
-  // (which used to submit before AJAX could populate sections).
+  // ── Dropdown Change Handlers ──
+
+  // Class changes
   $(document).on('change', '#getSections', function() {
-    var classId = $(this).val();
-    // Clear child dropdowns immediately
     $('#getSubjects').empty().append('<option value="">All Sections</option>');
     $('#subject').empty().append('<option value="">All Subjects</option>');
     if (typeof $.fn.niceSelect === 'function') {
       $('#getSubjects').niceSelect('update');
       $('#subject').niceSelect('update');
     }
-    // Submit the form; on the reloaded page the JS above will re-populate sections
-    $('#hf').submit();
+    $('#hf').submit(); // Submit form, page reload will trigger loadSections
   });
 
-  // ── Section changes → load its subjects, then submit to filter ──
+  // Section changes
   $(document).on('change', '#getSubjects', function() {
-    var sectionId = $(this).val();
     $('#subject').empty().append('<option value="">All Subjects</option>');
     if (typeof $.fn.niceSelect === 'function') $('#subject').niceSelect('update');
-
-    if (!sectionId) {
-      // "All Sections" selected — submit without loading subjects
-      $('#hf').submit();
-      return;
-    }
-
-    // Load subjects for this section, then submit so the table filters by section
-    $.post(baseUrl + '/get-subjects', { section_id: sectionId, _token: token }, function(data) {
-      $.each(data, function(i, item) {
-        $('#subject').append('<option value="'+ item.id +'">'+ item.name +'</option>');
-      });
-      if (typeof $.fn.niceSelect === 'function') $('#subject').niceSelect('update');
-      $('#hf').submit();
-    }).fail(function() {
-      // Even on AJAX failure, still submit so the section filter is applied
-      $('#hf').submit();
-    });
+    
+    // Removed the redundant AJAX call here. Just submit the form cleanly. 
+    // The page reload will trigger loadSubjects automatically using preSection.
+    $('#hf').submit();
   });
 
-  // ── Subject changes → submit to filter ──
+  // Subject changes
   $(document).on('change', '#subject', function() {
     $('#hf').submit();
+  });
+
+  // Task Type changes (Client-side visual filtering)
+  $(document).on('change', '#typeFilter', function(){
+    const ft = $(this).val();
+    $('.hw-tbl-section tbody tr[data-ft]').each(function(){
+      $(this).toggleClass('hh', ft !== 'all' && $(this).data('ft') !== ft);
+    });
   });
 
 });
