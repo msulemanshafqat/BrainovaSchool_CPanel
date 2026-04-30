@@ -4,6 +4,7 @@
 @endsection
 @section('content')
     <div class="page-content">
+        echo "hello";
 
         {{-- bradecrumb Area S t a r t --}}
         <div class="page-header">
