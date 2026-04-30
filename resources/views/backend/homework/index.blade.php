@@ -5,7 +5,7 @@
      ============================================================ --}}
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
-
+echo "hello"
 {{-- ============================================================
      PAGE-SPECIFIC CSS (pushed into the <head> via @stack('style'))
      Everything below is scoped to this page only.
