@@ -352,14 +352,13 @@ $(document).ready(function () {
         $('#file_placeholder').val(fileName);
     });
 
-    // Apply correct state immediately based on the saved task_type
-    $('#task_type').trigger('change');
-
     // =========================================================================
     // 2. AUTO-GENERATE TITLE
     // Format: {topic}_{ClassShorthand}_{SubjectAbbr}_{TaskAbbr}_{date}
     // Example: solar_3_IPC_prj_2026-04-22
     // Title is readonly — only topic + dropdowns drive it.
+    //
+    // IMPORTANT: taskAbbr MUST be declared BEFORE trigger('change') below.
     // =========================================================================
     var taskAbbr = {
         'homework':   'hw',
@@ -380,7 +379,6 @@ $(document).ready(function () {
         if (!cls  || cls.toLowerCase().includes('select'))  cls  = '';
         if (!subj || subj.toLowerCase().includes('select')) subj = '';
 
-        // Strip "GRADE-" / "Grade " prefix, keep number/code only
         cls = cls.replace(/grade[\s\-]*/i, '').trim();
 
         var abbr  = taskAbbr[task] || task;
@@ -388,7 +386,22 @@ $(document).ready(function () {
         $('#hw_title').val(parts.length > 0 ? parts.join('_') : '');
     }
 
-    $('#hw_topic, #getSections, #subject, #task_type, #hw_date').on('change input', generateTitle);
+    // Now safe to trigger — taskAbbr and generateTitle are defined above
+    $('#task_type').trigger('change');
+
+    // Direct listeners for non-AJAX fields
+    $('#hw_topic, #hw_date').on('input change', generateTitle);
+    $('#task_type').on('change', generateTitle);
+
+    // Body-level delegation for NiceSelect AJAX dropdowns
+    $('body').on('change', '#getSections, #getSubjects, #subject', generateTitle);
+
+    // Polling fallback (600 ms) for when NiceSelect AJAX updates value silently
+    var _lastSnap = '';
+    setInterval(function () {
+        var snap = [$('#getSections').val(), $('#subject').val(), $('#task_type').val(), $('#hw_date').val(), $('#hw_topic').val()].join('|');
+        if (snap !== _lastSnap) { _lastSnap = snap; generateTitle(); }
+    }, 600);
 
 });
 </script>

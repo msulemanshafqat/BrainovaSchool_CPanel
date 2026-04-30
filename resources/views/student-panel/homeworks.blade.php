@@ -1,298 +1,658 @@
 @extends('student-panel.partials.master')
+@section('title') My Homework @endsection
 
-@section('title')
-    {{ @$data['title'] }}
-@endsection
+@push('style')
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* Only layout/typography here — all visible borders/backgrounds are inline to beat LMS theme */
+.sp-portal { font-family: 'DM Sans', sans-serif; }
+.stab       { display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s; }
+.stab.active{ background:#2563eb;color:#fff;border:2px solid #2563eb; }
+.stab:not(.active){ background:#fff;color:#64748b;border:2px solid #e2e8f0; }
+.stab .cnt  { border-radius:10px;padding:0 6px;font-size:10.5px; }
+.stab.active .cnt { background:rgba(255,255,255,.25);color:#fff; }
+.stab:not(.active) .cnt { background:#f1f5f9;color:#64748b; }
+.status-hdr { transition:background .15s; }
+.status-hdr:hover { background:#f1f5f9 !important; }
+.hw-card-hover { transition:transform .15s,box-shadow .15s; }
+.hw-card-hover:hover { transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.10) !important; }
+.tbg { display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em; }
+.tq  { background:#dbeafe;color:#1e40af; }
+.tbg-hw { background:#d1fae5;color:#065f46; }
+.tp  { background:#fce7f3;color:#9d174d; }
+.ta  { background:#ede9fe;color:#5b21b6; }
+.tg  { background:#fef3c7;color:#92400e; }
+.ts  { background:#e0f2fe;color:#075985; }
+.sp-ok   { background:#d1fae5;color:#065f46;border-radius:20px;padding:2px 9px;font-size:11.5px;font-weight:700;display:inline-block; }
+.sp-wait { background:#f1f5f9;color:#64748b;border-radius:20px;padding:2px 9px;font-size:11.5px;display:inline-block; }
+.od-badge{ background:#fee2e2;color:#dc2626;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;display:inline-block; }
+.cc-t { font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:700;margin-bottom:14px; }
+</style>
+@endpush
 
 @section('content')
-<div class="page-content">
+<div class="page-content sp-portal">
 
-    {{-- BREADCRUMB --}}
-    <div class="page-header">
-        <div class="row">
-            <div class="col-sm-6">
-                <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h4>
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a>
-                    </li>
-                    <li class="breadcrumb-item">{{ $data['title'] }}</li>
-                </ol>
-            </div>
+@php
+  $homeworks  = $data['homeworks'] ?? collect();
+  $grouped    = $homeworks->groupBy('subject_id');
+  $totalCount = $homeworks->count();
+  $doneCount  = $homeworks->filter(fn($h) => $h->check_submitted)->count();
+  $pendCount  = $totalCount - $doneCount;
+  $overCount  = $homeworks->filter(fn($h) =>
+      !$h->check_submitted && $h->submission_date &&
+      \Carbon\Carbon::parse($h->submission_date)->isPast()
+  )->count();
+  $student = Auth::user()->student ?? null;
+  $sName   = $student ? trim($student->first_name.' '.$student->last_name) : 'Student';
+  $pct     = $totalCount > 0 ? round(($doneCount / $totalCount) * 100) : 0;
+
+  // Sections for collapsible groups
+  $hwOverdue  = $homeworks->filter(fn($h) => !$h->check_submitted && $h->submission_date && \Carbon\Carbon::parse($h->submission_date)->isPast());
+  $hwPending  = $homeworks->filter(fn($h) => !$h->check_submitted && (!$h->submission_date || \Carbon\Carbon::parse($h->submission_date)->isFuture()));
+  $hwDone     = $homeworks->filter(fn($h) => $h->check_submitted);
+
+  // ── Chart data ────────────────────────────────────────────────────────────
+  // Line chart: per-subject average score earned vs total marks available
+  // Donut chart: completion slice per subject (each subject gets its own colour)
+  $chartPalette = ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899','#14b8a6'];
+  $cLabels=[];$cAvgScore=[];$cMaxScore=[];$cDone=[];$cTotal=[];$cColors=[];
+  $ci = 0;
+  foreach($grouped as $sid => $items){
+    $subName = $items->first()->subject->name ?? 'S';
+    $cLabels[] = $subName;
+    $cTotal[]  = $items->count();
+    $cColors[] = $chartPalette[$ci % count($chartPalette)];
+    $d=0; foreach($items as $h){ if($h->check_submitted) $d++; } $cDone[]=$d;
+    // Average score: mean of marks earned across graded submissions
+    $scored = $items->filter(fn($h)=>$h->check_submitted && $h->check_submitted->marks !== null);
+    $cAvgScore[] = $scored->count() > 0
+        ? round($scored->map(fn($h)=>$h->check_submitted->marks)->avg(), 1)
+        : null;  // null = no graded submissions yet for this subject
+    // Max possible: average of homework->marks for this subject
+    $cMaxScore[] = round($items->avg('marks') ?? 0, 1);
+    $ci++;
+  }
+@endphp
+
+{{-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 1 — HERO / OVERVIEW
+     Shows student name, 4 quick-stat pills, completion %, upcoming count.
+     Inline styles used throughout so LMS theme cannot override visibility.
+═══════════════════════════════════════════════════════════════════════════ --}}
+<div style="background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#3b82f6 100%);border-radius:14px;padding:24px 28px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden">
+  {{-- Decorative circles --}}
+  <div style="position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none"></div>
+  <div style="position:absolute;bottom:-80px;right:80px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none"></div>
+
+  <div class="row align-items-center position-relative">
+    <div class="col-md-5 mb-3 mb-md-0">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px">
+        Hello, {{ $sName }}! &#128075;
+      </div>
+      <div style="opacity:.78;font-size:13.5px">Your homework overview for this term.</div>
+
+      {{-- Completion progress bar --}}
+      <div style="margin-top:14px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.8;margin-bottom:4px">
+          <span>Overall Completion</span><span>{{ $pct }}%</span>
         </div>
+        <div style="background:rgba(255,255,255,.2);border-radius:6px;height:8px">
+          <div style="background:#10b981;height:100%;width:{{ $pct }}%;border-radius:6px;transition:width .6s"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="table-content table-basic mt-20">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">{{ $data['title'] }}</h4>
-            </div>
+    <div class="col-md-7">
+      {{-- Stat pills row --}}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
 
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered role-table">
-                        <thead class="thead">
-                            <tr>
-                                <th class="serial">{{ ___('common.sr_no') }}</th>
-                                <th>{{ ___('academic.subject') }}</th>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Type</th>
-                                <th>{{ ___('academic.date') }}</th>
-                                <th>{{ ___('academic.submission_date') }}</th>
-                                <th>Total Marks</th>
-                                <th>Status / Score</th>
-                                <th class="action">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="tbody">
-                            @forelse ($data['homeworks'] as $key => $row)
-                            <tr id="row_{{ $row->id }}">
-                                <td class="serial">{{ $loop->iteration }}</td>
-                                <td>{{ $row->subject->name }}</td>
-
-                                {{-- Title --}}
-                                <td><strong>{{ $row->title ?? '—' }}</strong></td>
-
-                                {{-- Description --}}
-                                <td>
-                                    @if ($row->description)
-                                        <span title="{{ $row->description }}">
-                                            {{ \Str::limit($row->description, 60) }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
-
-                                {{-- Task type badge --}}
-                                <td>
-                                    @if ($row->task_type === 'quiz')
-                                        <span class="badge bg-info text-white">Quiz</span>
-                                    @elseif ($row->task_type)
-                                        <span class="badge bg-secondary text-white">{{ ucfirst($row->task_type) }}</span>
-                                    @endif
-                                </td>
-
-                                <td>{{ $row->date }}</td>
-                                <td>{{ $row->submission_date ?? '—' }}</td>
-
-                                {{-- Total marks set by teacher --}}
-                                <td>{{ $row->marks ?? '—' }}</td>
-
-                                {{-- Status / Score column --}}
-                                <td>
-                                    @if ($row->task_type === 'quiz')
-                                        @if ($row->check_submitted)
-                                            <span class="badge-basic-success-text">Completed</span><br>
-                                            {{-- Show earned marks to student --}}
-                                            @if ($row->check_submitted->marks !== null)
-                                                <strong class="text-success">
-                                                    Score: {{ $row->check_submitted->marks }} / {{ $row->marks }}
-                                                </strong>
-                                            @endif
-                                        @else
-                                            <span class="badge-basic-danger-text">Not Submitted Yet</span>
-                                        @endif
-                                    @else
-                                        {{-- Standard homework --}}
-                                        @if ($row->check_submitted)
-                                            <span class="badge-basic-success-text">{{ ___('online-examination.Submitted') }}</span>
-
-                                            {{-- Show document link only for non-quiz submissions --}}
-                                            @if ($row->check_submitted->homeworkUpload)
-                                                <a class="btn btn-sm ot-btn-primary radius_30px ms-1"
-                                                   href="{{ globalAsset($row->check_submitted->homeworkUpload->path, '') }}"
-                                                   target="_blank">
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </a>
-                                            @endif
-
-                                            {{-- Show evaluated marks if teacher has graded --}}
-                                            @if ($row->check_submitted->marks)
-                                                <br><strong class="text-success">
-                                                    Marks: {{ $row->check_submitted->marks }} / {{ $row->marks }}
-                                                </strong>
-                                            @endif
-                                        @else
-                                            <span class="badge-basic-danger-text">Not Submitted Yet</span>
-                                        @endif
-                                    @endif
-                                </td>
-
-                                {{-- Action column --}}
-                                <td class="action">
-                                    @if ($row->task_type === 'quiz')
-
-                                        @if ($row->check_submitted)
-                                            {{-- Already submitted: review only, no reattempt --}}
-                                            <a href="{{ route('student-panel-homework.take-quiz', $row->id) }}"
-                                               class="btn btn-sm btn-outline-secondary">
-                                                <i class="fa-solid fa-rotate-left"></i> Review Quiz
-                                            </a>
-                                        @else
-                                            <a href="{{ route('student-panel-homework.take-quiz', $row->id) }}"
-                                               class="btn btn-sm ot-btn-primary">
-                                                <i class="fa-solid fa-play"></i> Take Quiz
-                                            </a>
-                                        @endif
-
-                                    @else
-
-                                        {{-- Standard homework: show attachment document (teacher uploaded) if any --}}
-                                        @if ($row->upload)
-                                            <a class="btn btn-sm ot-btn-primary radius_30px mb-1"
-                                               href="{{ globalAsset($row->upload->path, '') }}"
-                                               target="_blank">
-                                                <i class="fa-solid fa-eye"></i> View
-                                            </a>
-                                        @endif
-
-                                        {{-- Submit button if not yet submitted --}}
-                                        @if (!$row->check_submitted)
-                                            <button class="btn btn-sm ot-btn-primary"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#modalSubmitHomework"
-                                                    onclick="openHomeworkModal({{ $row->id }})">
-                                                <i class="fa-solid fa-upload"></i> Submit
-                                            </button>
-                                        @endif
-
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="100%" class="text-center gray-color">
-                                    <img src="{{ asset('images/no_data.svg') }}" alt="" class="mb-primary" width="100">
-                                    <p class="mb-0">{{ ___('common.no_data_available') }}</p>
-                                    <p class="mb-0 text-secondary font-size-90">
-                                        {{ ___('common.please_add_new_entity_regarding_this_table') }}
-                                    </p>
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="ot-pagination pagination-content d-flex justify-content-end align-content-center py-3">
-                    <nav>
-                        <ul class="pagination justify-content-between">
-                            {!! $data['homeworks']->appends(\Request::capture()->except('page'))->links() !!}
-                        </ul>
-                    </nav>
-                </div>
-            </div>
+        <div style="background:rgba(255,255,255,.14);border-radius:10px;padding:12px 18px;text-align:center;min-width:68px">
+          <div style="font-size:28px;font-weight:800;line-height:1">{{ $totalCount }}</div>
+          <div style="font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Total</div>
         </div>
+
+        <div style="background:rgba(16,185,129,.22);border-radius:10px;padding:12px 18px;text-align:center;min-width:68px">
+          <div style="font-size:28px;font-weight:800;line-height:1">{{ $doneCount }}</div>
+          <div style="font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Done</div>
+        </div>
+
+        <div style="background:rgba(245,158,11,.22);border-radius:10px;padding:12px 18px;text-align:center;min-width:68px">
+          <div style="font-size:28px;font-weight:800;line-height:1">{{ $pendCount }}</div>
+          <div style="font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Pending</div>
+        </div>
+
+        @if($overCount > 0)
+        <div style="background:rgba(239,68,68,.28);border-radius:10px;padding:12px 18px;text-align:center;min-width:68px">
+          <div style="font-size:28px;font-weight:800;line-height:1">{{ $overCount }}</div>
+          <div style="font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Overdue</div>
+        </div>
+        @endif
+
+      </div>
     </div>
+  </div>
 </div>
 
-{{-- STANDARD HOMEWORK FILE SUBMISSION MODAL --}}
-<div class="modal fade" id="modalSubmitHomework" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <div class="modal-header modal-header-image">
-                <h5 class="modal-title">{{ ___('common.Homework') }}</h5>
-                <button type="button"
-                        class="m-0 btn-close d-flex justify-content-center align-items-center"
-                        data-bs-dismiss="modal" aria-label="Close">
-                    <i class="fa fa-times text-white"></i>
-                </button>
-            </div>
-            <form action="{{ url('student/panel/homework/submit') }}"
-                  enctype="multipart/form-data"
-                  method="post"
-                  id="homework-submit-form">
-                @csrf
-                <input type="hidden" name="homework_id" id="homework_id">
-                <div class="modal-body p-5">
-                    <div class="col-md-12">
-                        <label class="form-label">
-                            {{ ___('common.homework') }} <span class="fillable">*</span>
-                        </label>
-                        <div class="ot_fileUploader left-side mb-1">
-                            <input class="form-control" type="text"
-                                   placeholder="{{ ___('common.image') }}"
-                                   readonly id="hw_file_placeholder">
-                            <button class="primary-btn-small-input" type="button">
-                                <label class="btn btn-lg ot-btn-primary" for="hw_fileBrouse">
-                                    {{ ___('common.browse') }}
-                                </label>
-                                <input type="file"
-                                       class="d-none form-control"
-                                       name="homework"
-                                       id="hw_fileBrouse"
-                                       accept="image/*,.pdf,.doc,.docx">
-                            </button>
-                        </div>
-                        <span id="homework_error" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button"
-                            class="btn btn-outline-secondary py-2 px-4"
-                            data-bs-dismiss="modal">{{ ___('ui_element.cancel') }}</button>
-                    <button type="button"
-                            class="btn ot-btn-primary"
-                            id="hw_confirm_btn"
-                            onclick="homeworkSubmit(event)">
-                        {{ ___('ui_element.confirm') }}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+{{-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 2 — STICKY SUBJECT TABS
+     Filters cards client-side without page reload.
+═══════════════════════════════════════════════════════════════════════════ --}}
+<div style="position:sticky;top:0;z-index:15;background:#f8fafc;padding:8px 0 10px;border-bottom:1px solid #e2e8f0;margin-bottom:14px">
+  <div style="display:flex;gap:7px;flex-wrap:wrap">
+    <button class="stab active" data-sub="all">
+      All <span class="cnt">{{ $totalCount }}</span>
+    </button>
+    @foreach($grouped as $sid => $items)
+      <button class="stab" data-sub="{{ $sid }}">
+        {{ $items->first()->subject->name ?? 'Subject' }}
+        <span class="cnt">{{ $items->count() }}</span>
+      </button>
+    @endforeach
+  </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 3 — MAIN CONTENT + SIDEBAR
+═══════════════════════════════════════════════════════════════════════════ --}}
+<div class="row g-3">
+
+  {{-- LEFT: Collapsible homework sections --}}
+  <div class="col-lg-8">
+
+    @php
+    $sections = [
+      ['key'=>'overdue','label'=>'Overdue',         'color'=>'#dc2626','icon'=>'circle-exclamation','items'=>$hwOverdue,'open'=>true],
+      ['key'=>'pending','label'=>'Active / Pending', 'color'=>'#f59e0b','icon'=>'hourglass-half',   'items'=>$hwPending,'open'=>true],
+      ['key'=>'done',   'label'=>'Completed',        'color'=>'#059669','icon'=>'check-circle',     'items'=>$hwDone,   'open'=>false],
+    ];
+    @endphp
+
+    @foreach($sections as $sec)
+    @if($sec['items']->count() > 0)
+
+    {{-- Section header — inline styles so theme cannot flatten it --}}
+    <div class="status-hdr {{ !$sec['open'] ? 'collapsed' : '' }}"
+         onclick="toggleSect('s-{{$sec['key']}}', this)"
+         style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;cursor:pointer;margin-bottom:8px;user-select:none;border:1.5px solid #d1d9e6;background:#f8fafc;color:{{$sec['color']}}">
+      <i class="fa-solid fa-{{$sec['icon']}}"></i>
+      <span style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em">
+        {{ $sec['label'] }}
+      </span>
+      <span style="margin-left:auto;font-size:11px;font-weight:600;background:#fff;border-radius:10px;padding:1px 9px;border:1px solid #d1d9e6;color:#64748b">
+        {{ $sec['items']->count() }}
+      </span>
+      <i class="fa-solid fa-chevron-down caret" style="font-size:9px;transition:transform .2s;margin-left:4px"></i>
+    </div>
+
+    <div class="status-body" id="s-{{$sec['key']}}" style="{{ $sec['open'] ? '' : 'max-height:0px;overflow:hidden' }}">
+
+    @foreach($sec['items'] as $row)
+    @php
+      $sub  = $row->check_submitted;
+      $isOv = !$sub && $row->submission_date && \Carbon\Carbon::parse($row->submission_date)->isPast();
+      $cc   = $sub ? 'c-done' : ($isOv ? 'c-over' : ($row->task_type==='quiz' ? 'c-quiz' : 'c-pending'));
+      $stripeColors = ['c-done'=>'#10b981','c-pending'=>'#f59e0b','c-over'=>'#ef4444','c-quiz'=>'#2563eb'];
+      $stripeColor  = $stripeColors[$cc] ?? '#94a3b8';
+      $tMap = ['quiz'=>'tq','homework'=>'tbg-hw','project'=>'tp','activity'=>'ta','game'=>'tg','assignment'=>'ts'];
+      $tc   = $tMap[$row->task_type ?? 'homework'] ?? 'tbg-hw';
+    @endphp
+
+    <div class="hw-card-hover" data-sub="{{ $row->subject_id }}"
+         style="background:#fff;border-radius:12px;border:1.5px solid #d1d9e6;padding:0;margin-bottom:10px;position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+
+      {{-- Left colour stripe (real div — ::before is overridden by LMS theme) --}}
+      <div style="position:absolute;top:0;left:0;width:5px;height:100%;background:{{$stripeColor}}"></div>
+
+      {{-- Card body --}}
+      <div style="padding:13px 15px 13px 20px">
+
+        {{-- Row 1: Type badge + Subject + Score/Status pill --}}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:7px">
+            <span class="tbg {{ $tc }}">{{ $row->task_type ?? 'hw' }}</span>
+            <span style="font-size:11.5px;color:#64748b">{{ $row->subject->name ?? '' }}</span>
+          </div>
+          <div style="flex-shrink:0">
+            @if($sub)
+              @if($sub->marks !== null)
+                <span class="sp-ok"><i class="fa-solid fa-star" style="font-size:9px;margin-right:3px"></i>{{ $sub->marks }} / {{ $row->marks }}</span>
+              @else
+                <span class="sp-wait">Awaiting result</span>
+              @endif
+            @elseif($isOv)
+              <span class="od-badge"><i class="fa-solid fa-circle-exclamation" style="margin-right:3px"></i>Overdue</span>
+            @endif
+          </div>
+        </div>
+
+        {{-- Row 2: Title --}}
+        <div style="font-weight:700;font-size:13.5px;color:#0f172a;margin-bottom:5px;line-height:1.3">
+          {{ $row->title ?? '—' }}
+        </div>
+
+        {{-- Meta row: submission date + marks only.
+             Assignment date removed — already encoded in the title string.
+             Description removed — free-text field used inconsistently by teachers. --}}
+        <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:#64748b;margin-bottom:8px">
+          <span><i class="fa-solid fa-clock" style="margin-right:3px"></i>Due: <strong style="color:#334155">{{ $row->submission_date ?? '—' }}</strong></span>
+          @if($row->marks)
+          <span><i class="fa-solid fa-bullseye" style="margin-right:3px"></i>Marks: <strong style="color:#334155">{{ $row->marks }}</strong></span>
+          @endif
+        </div>
+
+        {{-- Row 5: Teacher feedback (Tier 2 Feature F) --}}
+        @if($sub && $sub->feedback)
+        <div style="font-size:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:6px 10px;margin-bottom:8px">
+          <i class="fa-solid fa-comment-dots" style="color:#059669;margin-right:4px"></i>
+          <strong style="color:#065f46">Feedback:</strong>
+          <span style="color:#166534">{{ $sub->feedback }}</span>
+        </div>
+        @endif
+
+        {{-- Row 6: Action buttons --}}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          @if($row->task_type === 'quiz')
+            @if($sub)
+              <a href="{{ route('student-panel-homework.take-quiz', $row->id) }}"
+                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:7px;font-size:12.5px;font-weight:600;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;text-decoration:none">
+                <i class="fa-solid fa-rotate-left"></i> Review Quiz
+              </a>
+            @else
+              <a href="{{ route('student-panel-homework.take-quiz', $row->id) }}"
+                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;font-size:12.5px;font-weight:600;background:#2563eb;color:#fff;text-decoration:none">
+                <i class="fa-solid fa-play"></i> Take Quiz
+              </a>
+            @endif
+          @else
+            @if($row->upload && $row->upload->path)
+              <a href="{{ url($row->upload->path) }}" target="_blank"
+                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:7px;font-size:12.5px;font-weight:600;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;text-decoration:none">
+                <i class="fa-solid fa-eye"></i> View Task
+              </a>
+            @endif
+            @if(!$sub)
+              <button onclick="openSub({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#mSub"
+                      style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;font-size:12.5px;font-weight:600;background:#2563eb;color:#fff;border:none;cursor:pointer">
+                <i class="fa-solid fa-upload"></i> Submit
+              </button>
+            @else
+              <span style="font-size:12px;color:#059669;font-weight:600">
+                <i class="fa-solid fa-check-circle" style="margin-right:3px"></i>Submitted
+              </span>
+              @if($sub->homeworkUpload && $sub->homeworkUpload->path)
+                <a href="{{ url($sub->homeworkUpload->path) }}" target="_blank"
+                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:7px;font-size:11.5px;font-weight:600;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;text-decoration:none">
+                  <i class="fa-solid fa-eye"></i> Your Work
+                </a>
+              @endif
+            @endif
+          @endif
+        </div>
+
+      </div>{{-- end card body --}}
+    </div>{{-- end hw-card-hover --}}
+
+    @endforeach
+    </div>{{-- end status-body --}}
+    @endif
+    @endforeach
+
+    @if($homeworks->isEmpty())
+    <div style="text-align:center;padding:48px 20px;color:#94a3b8">
+      <i class="fa-solid fa-inbox" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:12px"></i>
+      <p style="margin:0;font-size:14px">No homework assigned yet.</p>
+    </div>
+    @endif
+
+  </div>{{-- end col-lg-8 --}}
+
+  {{-- ═══════════════════════════════════════════════════════════════════════
+       RIGHT SIDEBAR — Charts + Deadlines
+  ═══════════════════════════════════════════════════════════════════════ --}}
+  <div class="col-lg-4 d-flex flex-column gap-3">
+
+    {{-- LINE CHART: Per-subject average score vs maximum possible marks.
+         Gives the student a clear view of which subjects they're scoring well in
+         and where they need to improve. Null values = not yet graded, shown as gaps. --}}
+    <div style="background:#fff;border:1.5px solid #d1d9e6;border-radius:12px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+      <div class="cc-t"><i class="fa-solid fa-chart-line" style="margin-right:5px"></i>Score Progress by Subject</div>
+      {{--<div style="font-size:10.5px;color:#94a3b8;margin-bottom:10px;margin-top:-10px">Your average score vs maximum marks per subject</div>--}}
+      @if(count($cLabels) > 0)
+        <canvas id="pC" height="210"></canvas>
+      @else
+        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">No data yet — submit some work to see your progress.</p>
+      @endif
+    </div>
+
+    {{-- SUBJECT-COLOURED DONUT: Each subject gets its own colour slice showing
+         how many tasks are completed vs total. Gives an instant visual of which
+         subjects have pending work.
+         Falls back to a simple done/pending ring if only one subject. --}}
+    <div style="background:#fff;border:1.5px solid #d1d9e6;border-radius:12px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+      <div class="cc-t"><i class="fa-solid fa-circle-check" style="margin-right:5px"></i>Completion by Subject</div>
+      @if($totalCount > 0)
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="position:relative;flex-shrink:0">
+          <canvas id="cC" width="110" height="110"></canvas>
+          {{-- Centre label --}}
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
+            <div style="font-size:18px;font-weight:800;color:#2563eb;line-height:1">{{ $pct }}%</div>
+            <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em">done</div>
+          </div>
+        </div>
+        {{-- Subject legend --}}
+        <div style="flex:1;min-width:0">
+          @foreach($cLabels as $ci => $lbl)
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11.5px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="width:10px;height:10px;border-radius:50%;background:{{ $cColors[$ci] }};flex-shrink:0;display:inline-block"></span>
+              <span style="color:#334155;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px">{{ $lbl }}</span>
+            </div>
+            <span style="color:#64748b;font-size:10.5px;white-space:nowrap">{{ $cDone[$ci] }}/{{ $cTotal[$ci] }}</span>
+          </div>
+          @endforeach
+          @if($overCount > 0)
+          <div style="margin-top:8px;font-size:11px;color:#dc2626;font-weight:600">
+            <i class="fa-solid fa-triangle-exclamation" style="margin-right:3px"></i>{{ $overCount }} overdue
+          </div>
+          @endif
+        </div>
+      </div>
+      @else
+      <p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">No tasks assigned yet.</p>
+      @endif
+    </div>
+
+    {{-- Upcoming deadlines --}}
+    @php
+    $upcoming = $homeworks
+      ->filter(fn($h) => !$h->check_submitted && $h->submission_date && \Carbon\Carbon::parse($h->submission_date)->isFuture())
+      ->sortBy('submission_date')
+      ->take(5);
+    @endphp
+    @if($upcoming->count() > 0)
+    <div style="background:#fff;border:1.5px solid #d1d9e6;border-radius:12px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+      <div class="cc-t"><i class="fa-solid fa-calendar-clock" style="margin-right:5px"></i>Upcoming Deadlines</div>
+      @foreach($upcoming as $u)
+      @php $days = (int) round(now()->diffInDays(\Carbon\Carbon::parse($u->submission_date), false)); @endphp
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#0f172a">{{ \Str::limit($u->title ?? $u->subject->name ?? '', 26) }}</div>
+          <div style="font-size:11px;color:#64748b">{{ $u->subject->name ?? '' }}</div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:{{ $days<=1?'#dc2626':($days<=3?'#f59e0b':'#059669') }};white-space:nowrap">
+          {{ $days<=0?'Today':($days===1?'Tomorrow':$days.' days') }}
+        </span>
+      </div>
+      @endforeach
+    </div>
+    @endif
+
+  </div>{{-- end col-lg-4 --}}
+
+</div>{{-- end row --}}
+</div>{{-- end sp-portal --}}
+
+{{-- ═══════════════════════════════════════════════════════════════════════════
+     SUBMIT MODAL
+═══════════════════════════════════════════════════════════════════════════ --}}
+<div class="modal fade" id="mSub" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md"><div class="modal-content">
+    <div class="modal-header modal-header-image">
+      <h5 class="modal-title">Submit Homework</h5>
+      <button type="button" class="m-0 btn-close d-flex justify-content-center align-items-center" data-bs-dismiss="modal">
+        <i class="fa fa-times text-white"></i>
+      </button>
+    </div>
+    <form action="{{ route('student-panel.homework.submit') }}" enctype="multipart/form-data" method="post" id="sf">
+      @csrf
+      <input type="hidden" name="homework_id" id="sid">
+      <div class="modal-body p-4">
+        <label class="form-label fw-semibold">Upload your work <span class="fillable">*</span></label>
+        <div class="ot_fileUploader left-side mb-1">
+          <input class="form-control" type="text" placeholder="Choose file..." readonly id="sph">
+          <button class="primary-btn-small-input" type="button">
+            <label class="btn btn-lg ot-btn-primary" for="sfl">Browse</label>
+            <input type="file" class="d-none" name="homework" id="sfl" accept="image/*,.pdf,.doc,.docx">
+          </button>
+        </div>
+        {{-- File preview bar --}}
+        <div id="fprev" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:7px 12px;font-size:12px;color:#1d4ed8;margin-top:6px">
+          <i class="fa-solid fa-file" style="margin-right:6px"></i>
+          <span id="fprev-name"></span>
+          <span id="fprev-size" style="color:#64748b;margin-left:6px"></span>
+        </div>
+        <span id="serr" class="text-danger" style="font-size:12px"></span>
+        <div style="margin-top:8px;font-size:11.5px;color:#94a3b8">
+          <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
+          Accepted: Images, PDF, Word documents (max 10 MB)
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn ot-btn-primary" id="sbtn" onclick="doSub()">
+          <i class="fa-solid fa-upload" style="margin-right:5px"></i>Submit
+        </button>
+      </div>
+    </form>
+  </div></div>
+</div>
 @endsection
 
 @push('script')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    function openHomeworkModal(homeworkId) {
-        $('#homework_id').val(homeworkId);
-        $('#hw_file_placeholder').val('');
-        $('#hw_fileBrouse').val('');
-        $('#homework_error').text('');
-    }
-
-    // Show filename in placeholder when file is selected
-    $('#hw_fileBrouse').on('change', function () {
-        $('#hw_file_placeholder').val($(this).val().split('\\').pop());
+// ── SUBJECT TABS ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.stab').forEach(function(t) {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('.stab').forEach(function(x){ x.classList.remove('active'); });
+    this.classList.add('active');
+    var s = this.dataset.sub;
+    document.querySelectorAll('.hw-card-hover').forEach(function(c){
+      c.style.display = (s === 'all' || c.dataset.sub === s) ? '' : 'none';
     });
+    // Re-open visible sections so collapsed height is recalculated
+    document.querySelectorAll('.status-body').forEach(function(b){
+      if (b.style.maxHeight && b.style.maxHeight !== '0px') {
+        b.style.maxHeight = b.scrollHeight + 'px';
+      }
+    });
+  });
+});
 
-    function homeworkSubmit(event) {
-        event.preventDefault();
+// ── COLLAPSIBLE SECTIONS ──────────────────────────────────────────────────────
+function toggleSect(id, hdr) {
+  var body   = document.getElementById(id);
+  var caret  = hdr.querySelector('.caret');
+  var isOpen = body.style.maxHeight && body.style.maxHeight !== '0px';
+  if (isOpen) {
+    body.style.maxHeight  = '0px';
+    body.style.overflow   = 'hidden';
+    if (caret) caret.style.transform = 'rotate(-90deg)';
+    hdr.classList.add('collapsed');
+  } else {
+    body.style.overflow   = 'hidden';
+    body.style.maxHeight  = body.scrollHeight + 'px';
+    if (caret) caret.style.transform = '';
+    hdr.classList.remove('collapsed');
+  }
+}
+// Init: open sections that have open:true (no max-height set)
+document.querySelectorAll('.status-body').forEach(function(b) {
+  if (!b.style.maxHeight || b.style.maxHeight !== '0px') {
+    b.style.maxHeight = b.scrollHeight + 'px';
+  }
+});
 
-        var file = $('#hw_fileBrouse')[0].files[0];
-        if (!file) {
-            $('#homework_error').text('Please select a file before submitting.');
-            return;
+// ── CHART 1: Line chart — per-subject score progress ─────────────────────────
+// Shows average earned marks vs average max marks per subject.
+// Null data points (no graded submissions yet) appear as gaps in the line.
+@if(count($cLabels) > 0)
+new Chart(document.getElementById('pC'), {
+  type: 'line',
+  data: {
+    labels: @json($cLabels),
+    datasets: [
+      {
+        label: 'Avg Score Earned',
+        data:  @json($cAvgScore),
+        borderColor:     '#2563eb',
+        backgroundColor: 'rgba(37,99,235,.10)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#2563eb',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        tension: 0.35,
+        spanGaps: false,   // gaps where no graded data exists
+      },
+      {
+        label: 'Max Possible',
+        data:  @json($cMaxScore),
+        borderColor:     '#d1d5db',
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointBackgroundColor: '#d1d5db',
+        pointRadius: 3,
+        fill: false,
+        tension: 0.35,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { font: { size: 10 } },
+        grid:  { color: '#f1f5f9' }
+      },
+      x: {
+        ticks: { font: { size: 10 } },
+        grid:  { display: false }
+      }
+    },
+    plugins: {
+      legend: { labels: { font: { size: 10 }, padding: 8, usePointStyle: true } },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            return ctx.raw === null
+              ? ' Not graded yet'
+              : ' ' + ctx.dataset.label + ': ' + ctx.raw;
+          }
         }
-
-        var submitBtn = $('#hw_confirm_btn');
-        var form      = $('#homework-submit-form');
-        var formData  = new FormData(form[0]);
-
-        submitBtn.html('<i class="fa-solid fa-spinner fa-spin"></i> Uploading...').prop('disabled', true);
-        $('#homework_error').text('');
-
-        $.ajax({
-            url:         form.attr('action'),
-            type:        'POST',
-            data:        formData,
-            processData: false,
-            contentType: false,
-            headers:     { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            success: function () {
-                window.location.reload();
-            },
-            error: function (xhr) {
-                console.error(xhr.responseText);
-                $('#homework_error').text('Upload failed. Please check the file and try again.');
-                submitBtn.html("{{ ___('ui_element.confirm') }}").prop('disabled', false);
-            }
-        });
+      }
     }
+  }
+});
+@endif
+
+// ── CHART 2: Subject-coloured donut — completion by subject ──────────────────
+// Each slice = number of completed tasks in that subject.
+// Remaining arc = pending/overdue tasks for that subject.
+// Each subject has a unique colour matching the legend dots beside the chart.
+@if($totalCount > 0)
+(function() {
+  var labels   = @json($cLabels);
+  var done     = @json($cDone);
+  var total    = @json($cTotal);
+  var colors   = @json($cColors);
+  var pending  = total.map(function(t, i){ return t - done[i]; });
+
+  // Build interleaved data: [done_subj1, pending_subj1, done_subj2, pending_subj2...]
+  // Pending slices use a faded version of the subject colour (30% opacity via hex)
+  var chartData   = [];
+  var chartColors = [];
+  var chartLabels = [];
+  for (var i = 0; i < labels.length; i++) {
+    chartData.push(done[i]);
+    chartColors.push(colors[i]);
+    chartLabels.push(labels[i] + ' done');
+    chartData.push(pending[i]);
+    chartColors.push(colors[i] + '40');   // hex alpha 40 = 25% opacity
+    chartLabels.push(labels[i] + ' pending');
+  }
+
+  new Chart(document.getElementById('cC'), {
+    type: 'doughnut',
+    data: {
+      labels:   chartLabels,
+      datasets: [{
+        data:            chartData,
+        backgroundColor: chartColors,
+        borderWidth:     2,
+        borderColor:     '#fff',
+        hoverOffset:     5,
+      }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var raw   = ctx.raw;
+              var label = ctx.label || '';
+              return ' ' + label + ': ' + raw + ' task' + (raw !== 1 ? 's' : '');
+            }
+          }
+        }
+      }
+    }
+  });
+})();
+@endif
+
+// ── SUBMIT FLOW ───────────────────────────────────────────────────────────────
+function openSub(id) {
+  document.getElementById('sid').value  = id;
+  document.getElementById('sph').value  = '';
+  document.getElementById('sfl').value  = '';
+  document.getElementById('serr').textContent = '';
+  document.getElementById('fprev').style.display = 'none';
+}
+
+document.getElementById('sfl').addEventListener('change', function() {
+  var f = this.files[0];
+  if (!f) return;
+  document.getElementById('sph').value = f.name;
+  var kb  = Math.round(f.size / 1024);
+  var sz  = kb > 1024 ? (kb/1024).toFixed(1)+' MB' : kb+' KB';
+  document.getElementById('fprev-name').textContent = f.name;
+  document.getElementById('fprev-size').textContent = '('+sz+')';
+  document.getElementById('fprev').style.display = 'block';
+  if (f.size > 10*1024*1024) {
+    document.getElementById('serr').textContent = 'File exceeds 10 MB limit.';
+    document.getElementById('fprev').style.display = 'none';
+  } else {
+    document.getElementById('serr').textContent = '';
+  }
+});
+
+function doSub() {
+  var f = document.getElementById('sfl').files[0];
+  if (!f) { document.getElementById('serr').textContent = 'Please select a file.'; return; }
+  if (f.size > 10*1024*1024) { document.getElementById('serr').textContent = 'File exceeds 10 MB limit.'; return; }
+  var btn = document.getElementById('sbtn');
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:5px"></i>Uploading...';
+  btn.disabled  = true;
+  document.getElementById('serr').textContent = '';
+  var fd = new FormData(document.getElementById('sf'));
+  fetch(document.getElementById('sf').action, {
+    method:'POST', body:fd,
+    headers:{ 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+  })
+  .then(function(r){ if(r.ok||r.redirected){ window.location.reload(); } else { throw new Error(r.status); } })
+  .catch(function(e){
+    document.getElementById('serr').textContent = 'Upload failed. Please try again.';
+    btn.innerHTML = '<i class="fa-solid fa-upload" style="margin-right:5px"></i>Submit';
+    btn.disabled  = false;
+  });
+}
 </script>
 @endpush

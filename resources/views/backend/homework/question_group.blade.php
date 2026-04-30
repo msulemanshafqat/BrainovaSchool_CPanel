@@ -1,193 +1,170 @@
 @extends('backend.master')
-@section('title')
-    {{ @$data['title'] }}
-@endsection
+@section('title') {{ @$data['title'] }} @endsection
+
 @section('content')
-    <div class="page-content">
+<div class="page-content">
 
-        {{-- bradecrumb Area S t a r t --}}
-        <div class="page-header">
-            <div class="row">
-                <div class="col-sm-6">
-                    <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h1>
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a></li>
-                            <li class="breadcrumb-item"><a
-                                    href="">{{ ___('examination.homework') }}</a></li>
-                            <li class="breadcrumb-item">{{ $data['title'] }}</li>
-                        </ol>
+  {{-- BREADCRUMB --}}
+  <div class="page-header">
+    <div class="row">
+      <div class="col-sm-6">
+        <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h4>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{{ route('homework.index') }}">Homework</a></li>
+          <li class="breadcrumb-item active">{{ $data['title'] }}</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-content table-basic mt-20">
+    <div class="row">
+
+      {{-- LEFT: Add new group form --}}
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="mb-0">Add New Group</h4>
+          </div>
+          <div class="card-body">
+            {{--
+              Submits to the existing question-group.store route.
+              is_homework=1 ensures this group is scoped to homework only
+              and does NOT appear in the online-exam question group list.
+            --}}
+            <form action="{{ route('question-group.store') }}" enctype="multipart/form-data" method="post">
+              @csrf
+              <input type="hidden" name="is_homework" value="1" />
+
+              <div class="col-md-12 mb-3">
+                <label class="form-label">
+                  Group Name <span class="fillable">*</span>
+                </label>
+                <input class="form-control ot-input @error('name') is-invalid @enderror"
+                       name="name"
+                       placeholder="e.g. Weekly Homework, Science Project"
+                       value="{{ old('name') }}">
+                @error('name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-12 mb-3">
+                <label class="form-label">
+                  Status <span class="fillable">*</span>
+                </label>
+                <select class="nice-select niceSelect bordered_style wide @error('status') is-invalid @enderror"
+                        name="status">
+                  <option value="{{ App\Enums\Status::ACTIVE }}">{{ ___('common.active') }}</option>
+                  <option value="{{ App\Enums\Status::INACTIVE }}">{{ ___('common.inactive') }}</option>
+                </select>
+                @error('status')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-12 mt-3">
+                <div class="text-end">
+                  <button class="btn btn-lg ot-btn-primary" type="submit">
+                    <i class="fa-solid fa-save me-1"></i>Save Group
+                  </button>
                 </div>
-            </div>
+              </div>
+            </form>
+          </div>
         </div>
-        {{-- bradecrumb Area E n d --}}
+      </div>
 
-        <!--  table content start -->
-        <div class="table-content table-basic mt-20">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">{{ ___('common.add') }} {{ $data['title'] }}</h4>
-                        </div>
-                        <div class="card-body">
-                            <form action="{{ route('question-group.store') }}" enctype="multipart/form-data" method="post"
-                                id="visitForm">
-                                @csrf
-                                <div class="row mb-3">
-                                    <div class="col-lg-12">
-                                        <div class="row">
-                                            <div class="col-md-12 mb-3">
-                                                <label for="exampleDataList" class="form-label ">{{ ___('common.name') }}
-                                                    <span class="fillable">*</span></label>
-                                                <input class="form-control ot-input @error('name') is-invalid @enderror"
-                                                    name="name" list="datalistOptions" id="exampleDataList"
-                                                    placeholder="{{ ___('common.enter_name') }}"
-                                                    value="{{ old('name') }}">
-                                                @error('name')
-                                                    <div id="validationServer04Feedback" class="invalid-feedback">
-                                                        {{ $message }}
-                                                    </div>
-                                                @enderror
-                                            </div>
-                                            <div class="col-md-12">
-                                                <input type="hidden" name="is_homework" value="1" />
-                                                <label for="validationServer04"
-                                                    class="form-label">{{ ___('common.status') }} <span
-                                                        class="fillable">*</span></label>
-                                                <select
-                                                    class="nice-select niceSelect bordered_style wide @error('status') is-invalid @enderror"
-                                                    name="status" id="validationServer04"
-                                                    aria-describedby="validationServer04Feedback">
-                                                    <option value="{{ App\Enums\Status::ACTIVE }}">
-                                                        {{ ___('common.active') }}</option>
-                                                    <option value="{{ App\Enums\Status::INACTIVE }}">
-                                                        {{ ___('common.inactive') }}
-                                                    </option>
-                                                </select>
-
-                                                @error('status')
-                                                    <div id="validationServer04Feedback" class="invalid-feedback">
-                                                        {{ $message }}
-                                                    </div>
-                                                @enderror
-
-                                            </div>
-                                            <div class="col-md-12 mt-24">
-                                                <div class="text-end">
-                                                    <button class="btn btn-lg ot-btn-primary"><span><i
-                                                                class="fa-solid fa-save"></i>
-                                                        </span>{{ ___('common.submit') }}</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-9">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">{{ $data['title'] }}</h4>
-
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered class-table">
-                                    <thead class="thead">
-                                        <tr>
-                                            <th class="serial">{{ ___('common.sr_no') }}</th>
-                                            <th class="purchase">{{ ___('common.name') }}</th>
-                                            <th class="purchase">{{ ___('common.status') }}</th>
-                                            @if (hasPermission('question_group_update') || hasPermission('question_group_delete'))
-                                                <th class="action">{{ ___('common.action') }}</th>
-                                            @endif
-                                        </tr>
-                                    </thead>
-                                    <tbody class="tbody">
-                                        @forelse ($data['question_groups'] as $key => $row)
-                                            <tr id="row_{{ $row->id }}">
-                                                <td class="serial">{{ ++$key }}</td>
-                                                <td>{{ $row->name }}</td>
-                                                <td>
-                                                    @if ($row->status == App\Enums\Status::ACTIVE)
-                                                        <span
-                                                            class="badge-basic-success-text">{{ ___('common.active') }}</span>
-                                                    @else
-                                                        <span
-                                                            class="badge-basic-danger-text">{{ ___('common.inactive') }}</span>
-                                                    @endif
-                                                </td>
-                                                @if (hasPermission('question_group_update') || hasPermission('question_group_delete'))
-                                                    <td class="action">
-                                                        <div class="dropdown dropdown-action">
-                                                            <button type="button" class="btn-dropdown"
-                                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                                <i class="fa-solid fa-ellipsis"></i>
-                                                            </button>
-                                                            <ul class="dropdown-menu dropdown-menu-end ">
-                                                                @if (hasPermission('question_group_update'))
-                                                                    <li>
-                                                                        <a class="dropdown-item"
-                                                                            href="{{ route('question-group.edit', $row->id) }}"><span
-                                                                                class="icon mr-8"><i
-                                                                                    class="fa-solid fa-pen-to-square"></i></span>
-                                                                            {{ ___('common.edit') }}</a>
-                                                                    </li>
-                                                                @endif
-                                                                @if (hasPermission('question_group_delete'))
-                                                                    <li>
-                                                                        <a class="dropdown-item" href="javascript:void(0);"
-                                                                            onclick="delete_row('question-group/delete', {{ $row->id }})">
-                                                                            <span class="icon mr-8"><i
-                                                                                    class="fa-solid fa-trash-can"></i></span>
-                                                                            <span>{{ ___('common.delete') }}</span>
-                                                                        </a>
-                                                                    </li>
-                                                                @endif
-                                                            </ul>
-                                                        </div>
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="100%" class="text-center gray-color">
-                                                    <img src="{{ asset('images/no_data.svg') }}" alt=""
-                                                        class="mb-primary" width="100">
-                                                    <p class="mb-0 text-center">{{ ___('common.no_data_available') }}</p>
-                                                    <p class="mb-0 text-center text-secondary font-size-90">
-                                                        {{ ___('common.please_add_new_entity_regarding_this_table') }}</p>
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!--  table end -->
-                            <!--  pagination start -->
-
-                            <div
-                                class="ot-pagination pagination-content d-flex justify-content-end align-content-center py-3">
-                                <nav aria-label="Page navigation example">
-                                    <ul class="pagination justify-content-between">
-                                        {!! $data['question_groups']->links() !!}
-                                    </ul>
-                                </nav>
-                            </div>
-
-                            <!--  pagination end -->
-                        </div>
-                    </div>
-                </div>
+      {{-- RIGHT: Existing groups table --}}
+      <div class="col-md-9">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ $data['title'] }}</h4>
+            <span class="text-muted" style="font-size:12.5px">
+              Teachers select these groups when creating homework tasks.
+            </span>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              {{-- Inline borders to beat LMS theme overrides --}}
+              <table style="width:100%;border-collapse:collapse;font-size:13px">
+                <thead>
+                  <tr style="background:#eef2f9">
+                    <th style="padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4a5568;border-bottom:2px solid #b8c5d6;border-right:1px solid #c7d2e0;width:40px">#</th>
+                    <th style="padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4a5568;border-bottom:2px solid #b8c5d6;border-right:1px solid #c7d2e0">Group Name</th>
+                    <th style="padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4a5568;border-bottom:2px solid #b8c5d6;border-right:1px solid #c7d2e0;width:90px">Status</th>
+                    @if(hasPermission('question_group_update') || hasPermission('question_group_delete'))
+                    <th style="padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4a5568;border-bottom:2px solid #b8c5d6;width:60px">Action</th>
+                    @endif
+                  </tr>
+                </thead>
+                <tbody>
+                  @forelse($data['question_groups'] as $key => $row)
+                  @php $bg = $loop->even ? '#fafbff' : '#fff'; @endphp
+                  <tr style="background:{{$bg}}" id="row_{{ $row->id }}"
+                      onmouseover="this.style.background='#eef4ff'" onmouseout="this.style.background='{{$bg}}'">
+                    <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e8edf5;font-size:11px;color:#94a3b8;text-align:center">{{ ++$key }}</td>
+                    <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e8edf5;font-weight:600;font-size:13px;color:#0f172a">{{ $row->name }}</td>
+                    <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e8edf5">
+                      @if($row->status == App\Enums\Status::ACTIVE)
+                        <span class="badge-basic-success-text">Active</span>
+                      @else
+                        <span class="badge-basic-danger-text">Inactive</span>
+                      @endif
+                    </td>
+                    @if(hasPermission('question_group_update') || hasPermission('question_group_delete'))
+                    <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0">
+                      <div class="dropdown dropdown-action">
+                        <button type="button" class="btn-dropdown" data-bs-toggle="dropdown">
+                          <i class="fa-solid fa-ellipsis"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:13px">
+                          @if(hasPermission('question_group_update'))
+                          <li>
+                            <a class="dropdown-item" href="{{ route('question-group.edit', $row->id) }}">
+                              <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Edit
+                            </a>
+                          </li>
+                          @endif
+                          @if(hasPermission('question_group_delete'))
+                          <li>
+                            <a class="dropdown-item text-danger" href="javascript:void(0);"
+                               onclick="delete_row('question-group/delete', {{ $row->id }})">
+                              <i class="fa-solid fa-trash-can me-2"></i>Delete
+                            </a>
+                          </li>
+                          @endif
+                        </ul>
+                      </div>
+                    </td>
+                    @endif
+                  </tr>
+                  @empty
+                  <tr>
+                    <td colspan="4" style="text-align:center;padding:40px;color:#94a3b8">
+                      <i class="fa-solid fa-folder-open" style="font-size:2rem;opacity:.2;display:block;margin-bottom:10px"></i>
+                      No homework groups yet. Add your first group using the form on the left.
+                    </td>
+                  </tr>
+                  @endforelse
+                </tbody>
+              </table>
             </div>
+
+            {{-- Pagination --}}
+            <div class="d-flex justify-content-end p-3">
+              {!! $data['question_groups']->links() !!}
+            </div>
+          </div>
         </div>
-        <!--  table content end -->
+      </div>
 
     </div>
+  </div>
+</div>
 @endsection
 
 @push('script')
-    @include('backend.partials.delete-ajax')
+  @include('backend.partials.delete-ajax')
 @endpush
