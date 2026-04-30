@@ -5,7 +5,7 @@
      ============================================================ --}}
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
-echo "hello"
+
 {{-- ============================================================
      PAGE-SPECIFIC CSS (pushed into the <head> via @stack('style'))
      Everything below is scoped to this page only.
@@ -227,7 +227,7 @@ echo "hello"
      ============================================================ --}}
 @section('content')
 <div class="page-content hw-portal">
-
+echo " index"
 {{-- Hidden input stores the app's base URL so JavaScript can
      build AJAX endpoint URLs without hard-coding the domain. --}}
 <input type="hidden" id="url" value="{{ url('/') }}">

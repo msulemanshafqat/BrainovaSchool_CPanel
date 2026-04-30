@@ -5,6 +5,7 @@
 @endsection
 
 @section('content')
+echo " create"
     <input type="hidden" id="url" value="{{ url('/') }}">
 
     <div class="page-content">
