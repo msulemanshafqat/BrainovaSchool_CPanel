@@ -227,7 +227,7 @@
      ============================================================ --}}
 @section('content')
 <div class="page-content hw-portal">
-echo " index"
+
 {{-- Hidden input stores the app's base URL so JavaScript can
      build AJAX endpoint URLs without hard-coding the domain. --}}
 <input type="hidden" id="url" value="{{ url('/') }}">
@@ -276,10 +276,23 @@ echo " index"
   $lineLabels  = array_map(fn($i) => '#'.$i, range(1, $maxHw));
   $lineDatasets = [];
   $lci = 0;
+
+  // ── Per-class donut data ──
+  // Each class slice = sum of marks across all its tasks.
+  // This gives a relative picture of "score weight" per class.
+  $classDonutLabels = [];
+  $classDonutData   = [];
+  $classDonutColors = [];
+
   foreach($classGroups as $className => $items){
     $marks = $items->values()->map(fn($h) => $h->marks)->toArray();
     while(count($marks) < $maxHw) $marks[] = null;
     $lineDatasets[] = ['label'=>$className, 'data'=>$marks, 'color'=>$lineColors[$lci % count($lineColors)]];
+
+    // Donut: total marks assigned to this class (tasks * marks each)
+    $classDonutLabels[] = $className;
+    $classDonutData[]   = $items->sum('marks') ?: 0;
+    $classDonutColors[] = $lineColors[$lci % count($lineColors)];
     $lci++;
   }
 @endphp
@@ -360,7 +373,7 @@ echo " index"
         {{-- Each wrapper is 1/4 of the bar width. No flex-wrap so all 4 stay on one line.
              min-width:0 prevents flex children from overflowing their container. --}}
         <div style="flex:1;min-width:0">
-          <select name="class" id="getSections" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:12px" onchange="this.form.submit()">
+          <select name="class" id="getSections" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:12px">
             <option value="">All Classes</option>
             @foreach($data['classes']??[] as $item)
               @if(!empty($item->class))
@@ -370,12 +383,18 @@ echo " index"
           </select>
         </div>
         <div style="flex:1;min-width:0">
-          <select name="section" id="getSubjects" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:12px" onchange="this.form.submit()">
+          {{-- Section options are populated via AJAX on page-load (if class already selected)
+               and whenever the class dropdown changes. --}}
+          <select name="section" id="getSubjects" class="nice-select niceSelect sections bordered_style" style="width:100%;font-size:12px">
             <option value="">All Sections</option>
+            {{-- Pre-render the currently selected section so it survives a hard reload --}}
+            @if(request('section') && request('class'))
+              {{-- Options will be re-injected by JS; blade just holds the selected value --}}
+            @endif
           </select>
         </div>
         <div style="flex:1;min-width:0">
-          <select name="subject" id="subject" class="nice-select niceSelect subjects bordered_style" style="width:100%;font-size:12px" onchange="this.form.submit()">
+          <select name="subject" id="subject" class="nice-select niceSelect subjects bordered_style" style="width:100%;font-size:12px">
             <option value="">All Subjects</option>
           </select>
         </div>
@@ -544,8 +563,9 @@ echo " index"
   --}}
   <div class="col-lg-4 d-flex flex-column gap-3">
     <div class="cc">
-      <h6><i class="fa-solid fa-chart-pie me-1"></i>Tasks by Type</h6>
-      @if($total>0)<canvas id="tC" height="190"></canvas>
+      <h6><i class="fa-solid fa-chart-pie me-1"></i>Scores by Class</h6>
+      <div style="font-size:10px;color:#94a3b8;margin-bottom:10px;margin-top:-8px">Total marks allocated per class</div>
+      @if($classGroups->count() > 0)<canvas id="tC" height="200"></canvas>
       @else<p class="text-center text-muted py-4" style="font-size:13px">No data yet</p>@endif
     </div>
     {{-- ── Per-Class Score Line Chart ── --}}
@@ -629,14 +649,53 @@ echo " index"
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 
-{{-- ── Donut Chart (Tasks by Type) ──
-     Only rendered when there is at least one task ($byType is non-empty).
-     Labels = ucfirst task type names; data = counts per type.
-     Custom colour array maps to the same order as $byType keys.
-     cutout:'65%' creates the donut hole; legend sits below the chart.
+{{-- ── Donut Chart (Scores by Class) ──
+     Each slice represents one class.
+     Slice size = total marks allocated across all tasks in that class.
+     Tooltip shows class name + marks total + % of overall total.
 --}}
-@if(!empty($byType))
-new Chart(document.getElementById('tC'),{type:'doughnut',data:{labels:@json(array_map('ucfirst',array_keys($byType))),datasets:[{data:@json(array_values($byType)),backgroundColor:['#1d4ed8','#f59e0b','#10b981','#8b5cf6','#ef4444','#06b6d4'],borderWidth:0,hoverOffset:5}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10}}}}});
+@if($classGroups->count() > 0)
+(function(){
+  var donutCtx = document.getElementById('tC');
+  if(!donutCtx) return;
+  var donutLabels = @json($classDonutLabels);
+  var donutData   = @json($classDonutData);
+  var donutColors = @json($classDonutColors);
+  var donutTotal  = donutData.reduce(function(a,b){ return a + b; }, 0);
+  new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: donutLabels,
+      datasets: [{
+        data:            donutData,
+        backgroundColor: donutColors,
+        borderWidth:     2,
+        borderColor:     '#fff',
+        hoverOffset:     6
+      }]
+    },
+    options: {
+      cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 10 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 }
+        },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) {
+              var pct = donutTotal > 0 ? Math.round((ctx.parsed / donutTotal) * 100) : 0;
+              return '  ' + ctx.label + ': ' + ctx.parsed + ' pts (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+})();
 @endif
 
 // ── Per-Class Score Line Chart ──
@@ -777,49 +836,106 @@ new Chart(document.getElementById('tC'),{type:'doughnut',data:{labels:@json(arra
 // nice-select triggers jQuery's 'change' event on the original hidden <select>,
 // so $(document).on('change') correctly catches it.
 $(document).ready(function(){
+
+  // ── Type-filter pills ──
   $(document).on('change', '#typeFilter', function(){
     const ft = $(this).val();
     $('.hw-tbl-section tbody tr[data-ft]').each(function(){
       $(this).toggleClass('hh', ft !== 'all' && $(this).data('ft') !== ft);
     });
   });
-});
 
-// ── Section dropdown population via AJAX ──
-// When a class is selected, fetch its sections and rebuild the section dropdown.
-// When a section is selected, fetch its subjects and rebuild the subject dropdown.
-// These use the same AJAX routes the rest of the app uses for niceSelect.
-$(document).on('change','#getSections', function(){
-  var classId = $(this).val();
-  var url     = $('#url').val() + '/get-sections';
-  $('#getSubjects').empty().append('<option value="">All Sections</option>');
-  $('#subject').empty().append('<option value="">All Subjects</option>');
-  if(!classId) return;
-  $.post(url, {class_id: classId, _token: $('meta[name="csrf-token"]').attr('content')}, function(data){
-    $.each(data, function(i, item){
-      $('#getSubjects').append('<option value="'+ item.id +'">'+ item.name +'</option>');
+  // ── Cascade helpers ──
+  var baseUrl = $('#url').val();
+  var token   = $('meta[name="csrf-token"]').attr('content');
+
+  // Re-populate sections dropdown; pre-select `preselectSection` if provided.
+  // Calls onDone() when finished so subjects can chain off it.
+  function loadSections(classId, preselectSection, onDone) {
+    if (!classId) { if (onDone) onDone(); return; }
+    $.post(baseUrl + '/get-sections', { class_id: classId, _token: token }, function(data) {
+      $('#getSubjects').empty().append('<option value="">All Sections</option>');
+      $.each(data, function(i, item) {
+        var sel = (String(item.id) === String(preselectSection)) ? ' selected' : '';
+        $('#getSubjects').append('<option value="'+ item.id +'"'+ sel +'>'+ item.name +'</option>');
+      });
+      if (typeof $.fn.niceSelect === 'function') $('#getSubjects').niceSelect('update');
+      if (onDone) onDone();
     });
-    // Reinitialise nice-select so the new options show in the custom dropdown UI
-    if(typeof $.fn.niceSelect === 'function'){
+  }
+
+  // Re-populate subjects dropdown; pre-select `preselectSubject` if provided.
+  function loadSubjects(sectionId, preselectSubject) {
+    if (!sectionId) return;
+    $.post(baseUrl + '/get-subjects', { section_id: sectionId, _token: token }, function(data) {
+      $('#subject').empty().append('<option value="">All Subjects</option>');
+      $.each(data, function(i, item) {
+        var sel = (String(item.id) === String(preselectSubject)) ? ' selected' : '';
+        $('#subject').append('<option value="'+ item.id +'"'+ sel +'>'+ item.name +'</option>');
+      });
+      if (typeof $.fn.niceSelect === 'function') $('#subject').niceSelect('update');
+    });
+  }
+
+  // ── On page load: pre-populate child dropdowns from URL params ──
+  // This fixes the blank section/subject dropdowns after the page reloads
+  // due to a server-side filter having already been applied.
+  var preClass   = '{{ request("class") }}';
+  var preSection = '{{ request("section") }}';
+  var preSubject = '{{ request("subject") }}';
+
+  if (preClass) {
+    loadSections(preClass, preSection, function() {
+      if (preSection) loadSubjects(preSection, preSubject);
+    });
+  }
+
+  // ── Class changes → load its sections then submit to filter ──
+  // Removes the race condition caused by inline onchange="this.form.submit()"
+  // (which used to submit before AJAX could populate sections).
+  $(document).on('change', '#getSections', function() {
+    var classId = $(this).val();
+    // Clear child dropdowns immediately
+    $('#getSubjects').empty().append('<option value="">All Sections</option>');
+    $('#subject').empty().append('<option value="">All Subjects</option>');
+    if (typeof $.fn.niceSelect === 'function') {
       $('#getSubjects').niceSelect('update');
       $('#subject').niceSelect('update');
     }
+    // Submit the form; on the reloaded page the JS above will re-populate sections
+    $('#hf').submit();
   });
-});
 
-$(document).on('change','#getSubjects', function(){
-  var sectionId = $(this).val();
-  var url       = $('#url').val() + '/get-subjects';
-  $('#subject').empty().append('<option value="">All Subjects</option>');
-  if(!sectionId) return;
-  $.post(url, {section_id: sectionId, _token: $('meta[name="csrf-token"]').attr('content')}, function(data){
-    $.each(data, function(i, item){
-      $('#subject').append('<option value="'+ item.id +'">'+ item.name +'</option>');
-    });
-    if(typeof $.fn.niceSelect === 'function'){
-      $('#subject').niceSelect('update');
+  // ── Section changes → load its subjects, then submit to filter ──
+  $(document).on('change', '#getSubjects', function() {
+    var sectionId = $(this).val();
+    $('#subject').empty().append('<option value="">All Subjects</option>');
+    if (typeof $.fn.niceSelect === 'function') $('#subject').niceSelect('update');
+
+    if (!sectionId) {
+      // "All Sections" selected — submit without loading subjects
+      $('#hf').submit();
+      return;
     }
+
+    // Load subjects for this section, then submit so the table filters by section
+    $.post(baseUrl + '/get-subjects', { section_id: sectionId, _token: token }, function(data) {
+      $.each(data, function(i, item) {
+        $('#subject').append('<option value="'+ item.id +'">'+ item.name +'</option>');
+      });
+      if (typeof $.fn.niceSelect === 'function') $('#subject').niceSelect('update');
+      $('#hf').submit();
+    }).fail(function() {
+      // Even on AJAX failure, still submit so the section filter is applied
+      $('#hf').submit();
+    });
   });
+
+  // ── Subject changes → submit to filter ──
+  $(document).on('change', '#subject', function() {
+    $('#hf').submit();
+  });
+
 });
 
 // Collapsible sections
