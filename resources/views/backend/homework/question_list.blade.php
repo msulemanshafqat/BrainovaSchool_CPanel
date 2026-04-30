@@ -3,9 +3,7 @@
     {{ @$data['title'] }}
 @endsection
 @section('content')
-echo "hello";
     <div class="page-content">
-        
 
         {{-- bradecrumb Area S t a r t --}}
         <div class="page-header">
