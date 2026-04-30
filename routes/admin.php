@@ -20,6 +20,7 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::get('homework-question-group/',  'questionGroup')->name('homework.question-group')->middleware('PermissionCheck:homework_read');
                     Route::get('homework-question-list/',  'questionList')->name('homework.question-list')->middleware('PermissionCheck:homework_read');
                     Route::get('homework-question-create/',  'questionCreate')->name('homework.question-create')->middleware('PermissionCheck:homework_read');
+                    Route::get('homework/quiz-analytics/{id}', 'quizAnalytics')->name('homework.quiz-analytics')->middleware('PermissionCheck:homework_read');
                     Route::get('homework/get-all-questions',  'getAllQuestions')->name('homework.get-all-questions')->middleware('PermissionCheck:homework_read');
                     Route::get('homework-download-sample', [HomeworkController::class, 'downloadSample'])->name('homework.download-sample');
                     
