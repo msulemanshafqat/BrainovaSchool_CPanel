@@ -204,11 +204,6 @@ Route::middleware(saasApiMiddleware())->group(function () {
 });
 
 
-// ==========================================
-// BRAINOVA UNIVERSAL SCORING BRIDGE
-// ==========================================
-Route::post('/sync-e6-points', [App\Http\Controllers\Api\BrainovaE6ScoreController::class, 'syncScore']);
-// ==========================================
 
 // ==========================================
 // BRAINOVA UNIVERSAL SCORING BRIDGE
@@ -219,7 +214,6 @@ Route::post('/sync-external-quiz', [App\Http\Controllers\Admin\HomeworkControlle
 Route::get('/get-lms-ids', [App\Http\Controllers\Admin\HomeworkController::class, 'getInventoryIds']);
 Route::post('/store-external-quiz', [App\Http\Controllers\Admin\HomeworkController::class, 'storeExternalQuiz']);
 // ==========================================
-Route::get('/get-lms-inventory', [App\Http\Controllers\Admin\HomeworkController::class, 'getInventoryIds']);
 
-Route::post('/sync-external-quiz', [App\Http\Controllers\Admin\HomeworkController::class, 'syncExternalQuiz']);
+
 
