@@ -1,6 +1,6 @@
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
-echo "quiz"
+
 @push('style')
 <style>
 :root{--bp:#1d4ed8;--br:#dc2626;--brl:#fee2e2;--bg:#059669;--bgl:#d1fae5;--bs:#64748b;--bb:#e2e8f0;--rr:12px}
@@ -58,6 +58,7 @@ echo "quiz"
 @endpush
 
 @section('content')
+echo "quiz"
 <div class="page-content">
 <input type="hidden" id="url" value="{{ url('/') }}">
 
