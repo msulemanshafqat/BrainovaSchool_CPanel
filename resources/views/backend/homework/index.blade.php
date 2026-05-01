@@ -739,6 +739,8 @@ $(document).ready(function () {
     loadSubjectsBySection(classId, sectionId);
   });
 
+  $('#filter-class').niceSelect(); 
+
   /* ── Proceed button ─────────────────────────────────────────── */
   $('#proceed-btn').on('click', function () {
     getFilteredReport();
