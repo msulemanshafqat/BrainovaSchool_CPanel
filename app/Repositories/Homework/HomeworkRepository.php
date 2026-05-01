@@ -521,6 +521,238 @@ class HomeworkRepository implements HomeworkInterface
     }
 
     // =========================================================================
+    // DASHBOARD REPORTING (for admin/teacher filtered dashboard)
+    // =========================================================================
+
+    /**
+     * Returns global stats for all classes (admin-level view).
+     * Fetches: Total Tasks, Submitted, Pending Eval, Cumulative Score (E6 Points conversion).
+     */
+    public function getGlobalStats(): array
+    {
+        $sessionId = setting('session');
+
+        // Total homework tasks assigned
+        $totalTasks = $this->model::where('session_id', $sessionId)->count();
+
+        // Total submissions (students who submitted something)
+        $totalSubmitted = DB::table('homework_students')
+            ->whereIn('homework_id', $this->model::where('session_id', $sessionId)->pluck('id'))
+            ->count();
+
+        // Pending evaluations (submitted but no marks yet)
+        $pendingEval = DB::table('homework_students')
+            ->whereIn('homework_id', $this->model::where('session_id', $sessionId)->pluck('id'))
+            ->whereNull('marks')
+            ->count();
+
+        // Cumulative score in E6 Points (sum of all student scores converted to points)
+        $totalMarks = DB::table('homework_students')
+            ->whereIn('homework_id', $this->model::where('session_id', $sessionId)->pluck('id'))
+            ->sum('marks');
+        $e6Points = $totalMarks * config('brainova.e6_points_per_mark', 10);
+
+        return [
+            'total_tasks_assigned' => $totalTasks,
+            'total_submitted'      => $totalSubmitted,
+            'pending_evaluations'  => $pendingEval,
+            'cumulative_score_e6'  => $e6Points,
+        ];
+    }
+
+    /**
+     * Returns filtered homework report data for charts and table.
+     * Respects teacher permissions (if not admin, only returns assigned classes/sections).
+     * Returns: table_html, chart_data (donut + line), statistics.
+     */
+    public function getFilteredHomeworkReport($filters): array
+    {
+        $sessionId = setting('session');
+        
+        $query = $this->model::with(['class', 'section', 'subject', 'upload'])
+            ->where('session_id', $sessionId);
+
+        // Apply filters
+        if (!empty($filters['class'])) {
+            $query->where('classes_id', $filters['class']);
+        }
+        if (!empty($filters['section'])) {
+            $query->where('section_id', $filters['section']);
+        }
+        if (!empty($filters['subject'])) {
+            $query->where('subject_id', $filters['subject']);
+        }
+        if (!empty($filters['task_type']) && $filters['task_type'] !== 'all') {
+            $query->where('task_type', $filters['task_type']);
+        }
+
+        // Apply teacher permission scope if not admin
+        if (!auth()->user() || auth()->user()->role_id != 1) { // role_id 1 = Admin
+            $query->whereIn('subject_id', teacherSubjects());
+        }
+
+        $homeworks = $query->orderByDesc('id')->get();
+
+        // Build task status donut data
+        $donutData = $this->getTaskStatisticsForFilters($homeworks);
+
+        // Build score trend line data
+        $trendData = $this->getScoreTrendForFilters($homeworks);
+
+        // Build table rows HTML
+        $tableHtml = view('backend.homework.partials.filtered-table', [
+            'homeworks' => $homeworks,
+        ])->render();
+
+        return [
+            'success'        => true,
+            'table_html'     => $tableHtml,
+            'donut_data'     => $donutData,
+            'trend_data'     => $trendData,
+            'total_records'  => $homeworks->count(),
+        ];
+    }
+
+    /**
+     * Helper: Calculates task status breakdown (Submitted vs Pending vs Overdue).
+     * Used by the filtered report donut chart.
+     */
+    private function getTaskStatisticsForFilters($homeworks): array
+    {
+        $submitted = 0;
+        $pending   = 0;
+        $overdue   = 0;
+
+        foreach ($homeworks as $hw) {
+            // Count submissions for this homework
+            $submissionCount = DB::table('homework_students')
+                ->where('homework_id', $hw->id)
+                ->count();
+
+            // Count submissions without marks (pending eval)
+            $withoutMarks = DB::table('homework_students')
+                ->where('homework_id', $hw->id)
+                ->whereNull('marks')
+                ->count();
+
+            if ($submissionCount > 0) {
+                $submitted += $submissionCount;
+            }
+
+            if ($withoutMarks > 0) {
+                $pending += $withoutMarks;
+            }
+
+            // Check if overdue
+            if ($hw->submission_date && \Carbon\Carbon::parse($hw->submission_date)->isPast()) {
+                $overdue += 1;
+            }
+        }
+
+        return [
+            'labels' => ['Submitted', 'Pending', 'Overdue'],
+            'data'   => [$submitted, $pending, $overdue],
+            'colors' => ['#10b981', '#f59e0b', '#dc2626'],
+        ];
+    }
+
+    /**
+     * Helper: Calculates score trend over time (average score per task).
+     * Used by the filtered report line chart.
+     */
+    private function getScoreTrendForFilters($homeworks): array
+    {
+        $labels = [];
+        $datasets = [];
+
+        // Group by class for multiple lines (each class = one line)
+        $groupedByClass = $homeworks->groupBy(fn($h) => $h->class->name ?? 'Unknown');
+
+        $colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316'];
+        $colorIndex = 0;
+
+        foreach ($groupedByClass as $className => $classHomeworks) {
+            $data = [];
+            foreach ($classHomeworks as $hw) {
+                $avgScore = DB::table('homework_students')
+                    ->where('homework_id', $hw->id)
+                    ->avg('marks') ?? 0;
+                $data[] = round($avgScore, 2);
+            }
+
+            // Pad shorter arrays with null for chart alignment
+            $maxLen = $groupedByClass->max(fn($g) => $g->count()) ?: 1;
+            while (count($data) < $maxLen) {
+                $data[] = null;
+            }
+
+            $datasets[] = [
+                'label'      => $className,
+                'data'       => $data,
+                'borderColor' => $colors[$colorIndex % count($colors)],
+                'backgroundColor' => 'rgba(' . implode(',', array_slice(sscanf($colors[$colorIndex % count($colors)], '#%02x%02x%02x'), 0, 3)) . ',0.1)',
+                'borderWidth' => 2,
+                'tension'    => 0.4,
+            ];
+
+            $colorIndex++;
+        }
+
+        // Build labels as task numbers (#1, #2, #3…)
+        $maxLen = $groupedByClass->max(fn($g) => $g->count()) ?: 1;
+        for ($i = 1; $i <= $maxLen; $i++) {
+            $labels[] = '#' . $i;
+        }
+
+        return [
+            'labels'   => $labels,
+            'datasets' => $datasets,
+        ];
+    }
+
+    /**
+     * Returns sections for a given class (used by dependent dropdown).
+     */
+    public function getSectionsByClass(int $classId): array
+    {
+        $sections = DB::table('class_sections')
+            ->where('classes_id', $classId)
+            ->get(['id', 'name']);
+
+        return $sections->toArray();
+    }
+
+    /**
+     * Returns subjects for a given class/section combo (used by dependent dropdown).
+     */
+    public function getSubjectsByClassSection(int $classId, int $sectionId): array
+    {
+        $subjects = DB::table('subject_assigns')
+            ->join('subjects', 'subjects.id', '=', 'subject_assigns.subject_id')
+            ->where('subject_assigns.classes_id', $classId)
+            ->where('subject_assigns.section_id', $sectionId)
+            ->distinct()
+            ->get(['subjects.id', 'subjects.name']);
+
+        return $subjects->toArray();
+    }
+
+    /**
+     * Returns all unique task types used in this session.
+     */
+    public function getTaskTypes(): array
+    {
+        $types = DB::table('homework')
+            ->where('session_id', setting('session'))
+            ->distinct()
+            ->pluck('task_type')
+            ->filter()
+            ->toArray();
+
+        return $types;
+    }
+
+    // =========================================================================
     // PRIVATE HELPERS
     // =========================================================================
 

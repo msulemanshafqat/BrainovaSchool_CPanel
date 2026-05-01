@@ -311,6 +311,73 @@ class HomeworkController extends Controller
     }
 
     // =========================================================================
+    // FILTERED REPORTING (AJAX endpoints for dashboard refactor)
+    // =========================================================================
+
+    /**
+     * AJAX endpoint: Returns the 4 global stat cards data.
+     * Response: JSON with totals for all classes.
+     */
+    public function getGlobalStats()
+    {
+        $stats = $this->repo->getGlobalStats();
+        return response()->json(['success' => true, 'data' => $stats]);
+    }
+
+    /**
+     * AJAX endpoint: Returns filtered report data (chart + table).
+     * Accepts filters: class, section, subject, task_type.
+     * Response: JSON with donut_data, trend_data, table_html.
+     */
+    public function getFilteredReport(Request $request)
+    {
+        $filters = [
+            'class'     => $request->class,
+            'section'   => $request->section,
+            'subject'   => $request->subject,
+            'task_type' => $request->task_type,
+        ];
+
+        $result = $this->repo->getFilteredHomeworkReport($filters);
+        return response()->json($result);
+    }
+
+    /**
+     * AJAX endpoint: Returns sections for a given class.
+     * Used by the Class → Section dependent dropdown.
+     * Query param: ?class_id=123
+     */
+    public function getSectionsByClass(Request $request)
+    {
+        $classId = $request->query('class_id');
+
+        if (!$classId) {
+            return response()->json(['error' => 'class_id is required'], 400);
+        }
+
+        $sections = $this->repo->getSectionsByClass((int) $classId);
+        return response()->json(['success' => true, 'data' => $sections]);
+    }
+
+    /**
+     * AJAX endpoint: Returns subjects for a given class/section combo.
+     * Used by the Section → Subject dependent dropdown.
+     * Query params: ?class_id=123&section_id=456
+     */
+    public function getSubjectsBySection(Request $request)
+    {
+        $classId = $request->query('class_id');
+        $sectionId = $request->query('section_id');
+
+        if (!$classId || !$sectionId) {
+            return response()->json(['error' => 'class_id and section_id are required'], 400);
+        }
+
+        $subjects = $this->repo->getSubjectsByClassSection((int) $classId, (int) $sectionId);
+        return response()->json(['success' => true, 'data' => $subjects]);
+    }
+
+    // =========================================================================
     // EXTERNAL API  (authenticated via X-Brainova-Token header)
     // =========================================================================
 

@@ -25,6 +25,12 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::get('homework/get-all-questions',  'getAllQuestions')->name('homework.get-all-questions')->middleware('PermissionCheck:homework_read');
                     Route::get('homework-download-sample', [HomeworkController::class, 'downloadSample'])->name('homework.download-sample');
                     
+                    // AJAX endpoints for filtered reporting dashboard
+                    Route::get('homework/ajax/global-stats',      'getGlobalStats')->name('homework.ajax.global-stats');
+                    Route::post('homework/ajax/filtered-report',   'getFilteredReport')->name('homework.ajax.filtered-report');
+                    Route::get('homework/ajax/sections-by-class',  'getSectionsByClass')->name('homework.ajax.sections-by-class');
+                    Route::get('homework/ajax/subjects-by-section', 'getSubjectsBySection')->name('homework.ajax.subjects-by-section');
+                    
                     // Remove the middleware temporarily for a quick test
                     //Route::get('homework/get-all-questions', 'getAllQuestions')->name('homework.get-all-questions');
                     
