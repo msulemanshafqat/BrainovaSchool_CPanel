@@ -697,21 +697,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-
-/* ─── Chart instance references (lifecycle management) ─────── */
 let donutChartInstance = null;
 let lineChartInstance  = null;
 
-/* ─── DOM Ready ──────────────────────────────────────────────── */
 $(document).ready(function () {
 
-  /* Load the four global stat cards immediately on page load */
   loadGlobalStats();
 
-/* ── Initialize niceSelect FIRST (before any .on() bindings) ── */
-/* ── new section added ───────────────────── */
-/* ── Bind events FIRST, then init niceSelect ── */
-
+  /* ── Bind events FIRST ── */
   $('#filter-class').on('change', function () {
     const classId = $(this).val();
 
@@ -735,311 +728,174 @@ $(document).ready(function () {
     loadSubjectsBySection(classId, sectionId);
   });
 
-  /* ── Init niceSelect AFTER events are bound ── */
+  /* ── Init niceSelect AFTER events ── */
   $('#filter-class').niceSelect();
   $('#filter-section').niceSelect();
   $('#filter-subject').niceSelect();
   $('#filter-task-type').niceSelect();
 
-/* ── Dependent Dropdown: Class → Section ───────────────────── */
-$('#filter-class').on('change', function () {
-  const classId = $(this).val();
+  /* ── Proceed button ── */
+  $('#proceed-btn').on('click', function () {
+    getFilteredReport();
+  });
 
-  $('#filter-section')
-    .val('')
-    .empty()
-    .append('<option value="">All Sections</option>')
-    .niceSelect('update');
-  $('#filter-subject')
-    .val('')
-    .empty()
-    .append('<option value="">All Subjects</option>')
-    .niceSelect('update');
+  /* ── Reset button ── */
+  $('#reset-filters-btn').on('click', function () {
+    $('#filter-class').val('').niceSelect('update');
+    $('#filter-section').empty().append('<option value="">All Sections</option>').niceSelect('update');
+    $('#filter-subject').empty().append('<option value="">All Subjects</option>').niceSelect('update');
+    $('#filter-task-type').val('all').niceSelect('update');
+    $('#results-container').fadeOut(300);
+  });
 
-  if (!classId) return;
+  /* ── Functions ── */
 
-  loadSectionsByClass(classId);
-});
-
-/* ── Dependent Dropdown: Section → Subject ──────────────────── */
-$('#filter-section').on('change', function () {
-  const classId   = $('#filter-class').val();
-  const sectionId = $(this).val();
-
-  $('#filter-subject')
-    .val('')
-    .empty()
-    .append('<option value="">All Subjects</option>')
-    .niceSelect('update');
-
-  if (!classId || !sectionId) return;
-
-  loadSubjectsBySection(classId, sectionId);
-});
-
-/* ── Proceed button ─────────────────────────────────────────── */
-$('#proceed-btn').on('click', function () {
-  getFilteredReport();
-});
-
-/* ── Reset button ───────────────────────────────────────────── */
-$('#reset-filters-btn').on('click', function () {
-  $('#filter-class').val('').niceSelect('update');
-  $('#filter-section').empty().append('<option value="">All Sections</option>').niceSelect('update');
-  $('#filter-subject').empty().append('<option value="">All Subjects</option>').niceSelect('update');
-  $('#filter-task-type').val('all').niceSelect('update');
-
-  $('#results-container').fadeOut(300);
-});
-
-
-/* ─── Load Global Stats ──────────────────────────────────────── */
-/* Uses the global-stats AJAX route; stats include E6 score
-   calculated server-side via config('brainova.e6_multiplier') */
-function loadGlobalStats() {
-  $.ajax({
-    url:      '{{ route("homework.ajax.global-stats") }}',
-    method:   'GET',
-    dataType: 'json',
-    success: function (response) {
-      if (response.success && response.data) {
-        const s = response.data;
-        $('#stat-total-tasks').text(s.total_tasks_assigned  ?? '—');
-        $('#stat-submitted'  ).text(s.total_submitted       ?? '—');
-        $('#stat-pending'    ).text(s.pending_evaluations   ?? '—');
-        $('#stat-score'      ).text(s.cumulative_score_e6   ?? '—');
-
-        /* Update table-count badge if global data includes total count */
-        if (s.total_tasks_assigned) {
-          $('#table-count-badge').text(s.total_tasks_assigned + ' records');
+  function loadGlobalStats() {
+    $.ajax({
+      url: '{{ route("homework.ajax.global-stats") }}',
+      method: 'GET',
+      dataType: 'json',
+      success: function (response) {
+        if (response.success && response.data) {
+          const s = response.data;
+          $('#stat-total-tasks').text(s.total_tasks_assigned ?? '—');
+          $('#stat-submitted'  ).text(s.total_submitted      ?? '—');
+          $('#stat-pending'    ).text(s.pending_evaluations  ?? '—');
+          $('#stat-score'      ).text(s.cumulative_score_e6  ?? '—');
+          if (s.total_tasks_assigned) {
+            $('#table-count-badge').text(s.total_tasks_assigned + ' records');
+          }
         }
+      },
+      error: function () {
+        ['#stat-total-tasks','#stat-submitted','#stat-pending','#stat-score']
+          .forEach(function (sel) { $(sel).text('—'); });
       }
-    },
-    error: function () {
-      /* Graceful degradation — show dashes instead of crash */
-      ['#stat-total-tasks','#stat-submitted','#stat-pending','#stat-score']
-        .forEach(function (sel) { $(sel).text('—'); });
-      console.error('Failed to load global stats');
-    }
-  });
-}
+    });
+  }
 
-
-/* ─── Load Sections by Class ─────────────────────────────────── */
-/* Teacher-permission aware: route only returns sections
-   that the authenticated teacher is assigned to */
-function loadSectionsByClass(classId) {
-  $.ajax({
-    url:      '{{ route("homework.ajax.sections-by-class") }}',
-    method:   'GET',
-    data:     { class_id: classId },
-    dataType: 'json',
-    success: function (response) {
-      if (response.success && response.data) {
-        const $sel = $('#filter-section').empty().append('<option value="">All Sections</option>');
-        response.data.forEach(function (section) {
-          $sel.append('<option value="' + section.id + '">' + section.name + '</option>');
-        });
-        $sel.niceSelect('update');
-      }
-    },
-    error: function () {
-      console.error('Failed to load sections');
-    }
-  });
-}
-
-
-/* ─── Load Subjects by Section ───────────────────────────────── */
-/* Teacher-permission aware: route only returns subjects
-   that the authenticated teacher is assigned to */
-function loadSubjectsBySection(classId, sectionId) {
-  $.ajax({
-    url:      '{{ route("homework.ajax.subjects-by-section") }}',
-    method:   'GET',
-    data:     { class_id: classId, section_id: sectionId },
-    dataType: 'json',
-    success: function (response) {
-      if (response.success && response.data) {
-        const $sel = $('#filter-subject').empty().append('<option value="">All Subjects</option>');
-        response.data.forEach(function (subject) {
-          $sel.append('<option value="' + subject.id + '">' + subject.name + '</option>');
-        });
-        $sel.niceSelect('update');
-      }
-    },
-    error: function () {
-      console.error('Failed to load subjects');
-    }
-  });
-}
-
-
-/* ─── Get Filtered Report (Proceed action) ───────────────────── */
-function getFilteredReport() {
-  /* Show a loading state on the button while request is in-flight */
-  const $btn = $('#proceed-btn');
-  $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> Loading…').prop('disabled', true);
-
-  const filters = {
-    class:     $('#filter-class'    ).val(),
-    section:   $('#filter-section'  ).val(),
-    subject:   $('#filter-subject'  ).val(),
-    task_type: $('#filter-task-type').val(),
-  };
-
-  $.ajax({
-    url:      '{{ route("homework.ajax.filtered-report") }}',
-    method:   'POST',
-    data:     Object.assign(filters, { _token: '{{ csrf_token() }}' }),
-    dataType: 'json',
-
-    success: function (response) {
-      if (response.success) {
-
-        /* ── Update table HTML ──────────────────────────────── */
-        $('#filtered-table-body').html(response.table_html);
-
-        /* Update record count badge */
-        const rowCount = $('#filtered-table-body tr:not(.hh)').length;
-        $('#table-count-badge').text(rowCount + ' record' + (rowCount !== 1 ? 's' : ''));
-
-        /* ── Destroy stale chart instances ──────────────────── */
-        if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
-        if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
-
-        /* ── Donut Chart: Overall Task Status ───────────────── */
-        const donutCtx = document.getElementById('donut-chart-filtered');
-        if (donutCtx && response.donut_data) {
-          donutChartInstance = new Chart(donutCtx, {
-            type: 'doughnut',
-            data: {
-              labels:   response.donut_data.labels,
-              datasets: [{
-                data:            response.donut_data.data,
-                backgroundColor: response.donut_data.colors,
-                borderWidth:     3,
-                borderColor:     '#fff',
-                hoverOffset:     8
-              }]
-            },
-            options: {
-              cutout:     '65%',
-              responsive: true,
-              plugins: {
-                legend: {
-                  position: 'bottom',
-                  labels: { font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true }
-                },
-                tooltip: {
-                  backgroundColor: '#0f172a',
-                  padding:         12,
-                  cornerRadius:    10,
-                  titleFont:       { family: 'Plus Jakarta Sans' },
-                  bodyFont:        { family: 'Plus Jakarta Sans' }
-                }
-              }
-            }
+  function loadSectionsByClass(classId) {
+    $.ajax({
+      url:      '{{ route("homework.ajax.sections-by-class") }}',
+      method:   'GET',
+      data:     { class_id: classId },
+      dataType: 'json',
+      success: function (response) {
+        if (response.success && response.data) {
+          const $sel = $('#filter-section').empty().append('<option value="">All Sections</option>');
+          response.data.forEach(function (section) {
+            $sel.append('<option value="' + section.id + '">' + section.name + '</option>');
           });
+          $sel.niceSelect('update');
         }
+      },
+      error: function () { console.error('Failed to load sections'); }
+    });
+  }
 
-        /* ── Line Chart: Score Trend ────────────────────────── */
-        const lineCtx = document.getElementById('line-chart-filtered');
-        if (lineCtx && response.trend_data) {
-          lineChartInstance = new Chart(lineCtx, {
-            type: 'line',
-            data: {
-              labels:   response.trend_data.labels,
-              datasets: response.trend_data.datasets.map(function (ds) {
-                return {
-                  label:           ds.label,
-                  data:            ds.data,
-                  borderColor:     ds.borderColor     || '#1d4ed8',
-                  backgroundColor: ds.backgroundColor || 'rgba(29,78,216,0.08)',
-                  borderWidth:     2.5,
-                  tension:         0.4,
-                  fill:            true,
-                  pointRadius:     4,
-                  pointBackgroundColor: ds.borderColor || '#1d4ed8',
-                  pointHoverRadius: 6
-                };
-              })
-            },
-            options: {
-              responsive: true,
-              interaction: { mode: 'index', intersect: false },
-              plugins: {
-                legend: {
-                  position: 'bottom',
-                  labels: { font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 12, usePointStyle: true }
-                },
-                tooltip: {
-                  backgroundColor: '#0f172a',
-                  padding:         12,
-                  cornerRadius:    10,
-                  titleFont:       { family: 'Plus Jakarta Sans' },
-                  bodyFont:        { family: 'Plus Jakarta Sans' }
-                }
+  function loadSubjectsBySection(classId, sectionId) {
+    $.ajax({
+      url:      '{{ route("homework.ajax.subjects-by-section") }}',
+      method:   'GET',
+      data:     { class_id: classId, section_id: sectionId },
+      dataType: 'json',
+      success: function (response) {
+        if (response.success && response.data) {
+          const $sel = $('#filter-subject').empty().append('<option value="">All Subjects</option>');
+          response.data.forEach(function (subject) {
+            $sel.append('<option value="' + subject.id + '">' + subject.name + '</option>');
+          });
+          $sel.niceSelect('update');
+        }
+      },
+      error: function () { console.error('Failed to load subjects'); }
+    });
+  }
+
+  function getFilteredReport() {
+    const $btn = $('#proceed-btn');
+    $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> Loading…').prop('disabled', true);
+
+    const filters = {
+      class:     $('#filter-class'    ).val(),
+      section:   $('#filter-section'  ).val(),
+      subject:   $('#filter-subject'  ).val(),
+      task_type: $('#filter-task-type').val(),
+    };
+
+    $.ajax({
+      url:      '{{ route("homework.ajax.filtered-report") }}',
+      method:   'POST',
+      data:     Object.assign(filters, { _token: '{{ csrf_token() }}' }),
+      dataType: 'json',
+      success: function (response) {
+        if (response.success) {
+          $('#filtered-table-body').html(response.table_html);
+          const rowCount = $('#filtered-table-body tr:not(.hh)').length;
+          $('#table-count-badge').text(rowCount + ' record' + (rowCount !== 1 ? 's' : ''));
+
+          if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
+          if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
+
+          const donutCtx = document.getElementById('donut-chart-filtered');
+          if (donutCtx && response.donut_data) {
+            donutChartInstance = new Chart(donutCtx, {
+              type: 'doughnut',
+              data: {
+                labels:   response.donut_data.labels,
+                datasets: [{ data: response.donut_data.data, backgroundColor: response.donut_data.colors, borderWidth: 3, borderColor: '#fff', hoverOffset: 8 }]
               },
-              scales: {
-                x: {
-                  grid:    { display: false },
-                  ticks:   { font: { family: 'Plus Jakarta Sans', size: 10 } }
-                },
-                y: {
-                  beginAtZero: true,
-                  grid:        { color: '#f1f5f9' },
-                  ticks:       { font: { family: 'Plus Jakarta Sans', size: 10 } }
-                }
-              }
-            }
-          });
+              options: { cutout: '65%', responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true } } } }
+            });
+          }
+
+          const lineCtx = document.getElementById('line-chart-filtered');
+          if (lineCtx && response.trend_data) {
+            lineChartInstance = new Chart(lineCtx, {
+              type: 'line',
+              data: {
+                labels:   response.trend_data.labels,
+                datasets: response.trend_data.datasets.map(function (ds) {
+                  return { label: ds.label, data: ds.data, borderColor: ds.borderColor || '#1d4ed8', backgroundColor: ds.backgroundColor || 'rgba(29,78,216,0.08)', borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: ds.borderColor || '#1d4ed8', pointHoverRadius: 6 };
+                })
+              },
+              options: { responsive: true, interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9' } } } }
+            });
+          }
+
+          $('#results-container').fadeIn(400);
         }
-
-        /* ── Smooth reveal of the entire Results Area ───────── */
-        $('#results-container').fadeIn(400);
-
+      },
+      error: function (xhr) {
+        console.error('Failed to load filtered report:', xhr);
+        alert('Error loading report. Please check your filters and try again.');
+      },
+      complete: function () {
+        $btn.html('<i class="fa-solid fa-arrow-right"></i> Proceed').prop('disabled', false);
       }
-    },
+    });
+  }
 
-    error: function (xhr) {
-      console.error('Failed to load filtered report:', xhr);
-      alert('Error loading report. Please check your filters and try again.');
-    },
-
-    complete: function () {
-      /* Restore button regardless of success / error */
-      $btn.html('<i class="fa-solid fa-arrow-right"></i> Proceed').prop('disabled', false);
-    }
-  });
-}
+}); // ← closes $(document).ready — THIS WAS MISSING
 
 
-/* ─── Open Evaluation Modal ──────────────────────────────────── */
+/* ── These stay outside document.ready (called from HTML onclick) ── */
 function openEval(id) {
   $('#hw_id').val(id);
-  $('#ev-body').html(
-    '<div class="text-center py-5"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>'
-  );
+  $('#ev-body').html('<div class="text-center py-5"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>');
   $.post(
     $('#url').val() + '/homework/students',
     { homework_id: id, _token: $('meta[name="csrf-token"]').attr('content') },
     function (d) { $('#ev-body').html(d.view); }
-  ).fail(function () {
-    $('#ev-body').html('<p class="text-danger p-3">Failed to load.</p>');
-  });
+  ).fail(function () { $('#ev-body').html('<p class="text-danger p-3">Failed to load.</p>'); });
 }
 
-
-/* ─── View Quiz Questions ────────────────────────────────────── */
 function vQ(id) {
   $.ajax({
-    type:     'GET',
-    dataType: 'html',
-    data:     { id: id },
-    headers:  { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-    url:      $('#url').val() + '/homework/view-questions',
-    success:  function (d) { $('#mQ .modal-dialog').html(d); }
+    type: 'GET', dataType: 'html', data: { id: id },
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    url: $('#url').val() + '/homework/view-questions',
+    success: function (d) { $('#mQ .modal-dialog').html(d); }
   });
 }
 
