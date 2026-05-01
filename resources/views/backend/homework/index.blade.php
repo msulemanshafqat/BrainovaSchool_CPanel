@@ -703,69 +703,61 @@ $(document).ready(function () {
   /* Load the four global stat cards immediately on page load */
   loadGlobalStats();
 
-  /* ── Dependent Dropdown: Class → Section ───────────────────── */
-  $('#filter-class').on('change', function () {
-    const classId = $(this).val();
+/* ── Initialize niceSelect FIRST (before any .on() bindings) ── */
+$('#filter-class').niceSelect();
+$('#filter-section').niceSelect();
+$('#filter-subject').niceSelect();
+$('#filter-task-type').niceSelect();
 
-    /* Reset downstream selects */
-    $('#filter-section')
-      .empty()
-      .append('<option value="">All Sections</option>')
-      .niceSelect('update');
-    $('#filter-subject')
-      .empty()
-      .append('<option value="">All Subjects</option>')
-      .niceSelect('update');
+/* ── Dependent Dropdown: Class → Section ───────────────────── */
+$('#filter-class').on('change', function () {
+  const classId = $(this).val();
 
-    if (!classId) return;
+  $('#filter-section')
+    .val('')
+    .empty()
+    .append('<option value="">All Sections</option>')
+    .niceSelect('update');
+  $('#filter-subject')
+    .val('')
+    .empty()
+    .append('<option value="">All Subjects</option>')
+    .niceSelect('update');
 
-    /* Respects teacher permissions — route returns only assigned data */
-    loadSectionsByClass(classId);
-  });
+  if (!classId) return;
 
-  /* ── Dependent Dropdown: Section → Subject ──────────────────── */
-  $('#filter-section').on('change', function () {
-    const classId   = $('#filter-class').val();
-    const sectionId = $(this).val();
+  loadSectionsByClass(classId);
+});
 
-    $('#filter-subject')
-      .empty()
-      .append('<option value="">All Subjects</option>')
-      .niceSelect('update');
+/* ── Dependent Dropdown: Section → Subject ──────────────────── */
+$('#filter-section').on('change', function () {
+  const classId   = $('#filter-class').val();
+  const sectionId = $(this).val();
 
-    if (!classId || !sectionId) return;
+  $('#filter-subject')
+    .val('')
+    .empty()
+    .append('<option value="">All Subjects</option>')
+    .niceSelect('update');
 
-    /* Respects teacher permissions — route returns only assigned data */
-    loadSubjectsBySection(classId, sectionId);
-  });
+  if (!classId || !sectionId) return;
 
-  $('#filter-class').niceSelect(); 
+  loadSubjectsBySection(classId, sectionId);
+});
 
-  /* ── Proceed button ─────────────────────────────────────────── */
-  $('#proceed-btn').on('click', function () {
-    getFilteredReport();
-  });
+/* ── Proceed button ─────────────────────────────────────────── */
+$('#proceed-btn').on('click', function () {
+  getFilteredReport();
+});
 
-  /* ── Reset button ───────────────────────────────────────────── */
-  $('#reset-filters-btn').on('click', function () {
-    $('#filter-class')
-      .val('')
-      .niceSelect('update');
-    $('#filter-section')
-      .empty()
-      .append('<option value="">All Sections</option>')
-      .niceSelect('update');
-    $('#filter-subject')
-      .empty()
-      .append('<option value="">All Subjects</option>')
-      .niceSelect('update');
-    $('#filter-task-type')
-      .val('all')
-      .niceSelect('update');
+/* ── Reset button ───────────────────────────────────────────── */
+$('#reset-filters-btn').on('click', function () {
+  $('#filter-class').val('').niceSelect('update');
+  $('#filter-section').empty().append('<option value="">All Sections</option>').niceSelect('update');
+  $('#filter-subject').empty().append('<option value="">All Subjects</option>').niceSelect('update');
+  $('#filter-task-type').val('all').niceSelect('update');
 
-    $('#results-container').fadeOut(300);
-  });
-
+  $('#results-container').fadeOut(300);
 });
 
 
