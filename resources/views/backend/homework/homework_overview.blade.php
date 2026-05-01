@@ -170,7 +170,7 @@
         class="fb-select"        
             
             
-          onchange="ovFilterSubmit()"
+          onchange="ovFilterSubmit()">
       <option value="">All Classes</option>
       @foreach($data['classes'] ?? [] as $item)
         @if(!empty($item->class))
@@ -403,7 +403,19 @@ $(document).ready(function () {
     window.ovRestoringFilters = false;
   }
 });
-
+// Chain: Class → Section
+$('#getSections').on('change', function () {
+  var classId = $(this).val();
+  $('#getSubjects').empty().append('<option value="">All Sections</option>');
+  if (!classId) return;
+  $.get('{{ route("homework.ajax.sections-by-class") }}', { class_id: classId }, function (r) {
+    if (r.success && r.data) {
+      $.each(r.data, function (i, s) {
+        $('#getSubjects').append('<option value="' + s.id + '">' + s.name + '</option>');
+      });
+    }
+  });
+});
 // Shared submit function — all four selects call this
 // It does nothing while the flag is true (during restore)
 function ovFilterSubmit() {

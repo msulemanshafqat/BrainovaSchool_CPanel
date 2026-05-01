@@ -47,4 +47,13 @@ interface HomeworkInterface
      * Handles both quiz (auto-graded) and standard (teacher-graded) task types.
      */
     public function exportResultsCsv(int $homeworkId);
+
+
+    public function getGlobalStats(): array;
+
+public function getFilteredHomeworkReport(array $filters): array;
+
+public function getSectionsByClass(int $classId): array;
+
+public function getSubjectsByClassSection(int $classId, int $sectionId): array;
 }
