@@ -36,7 +36,7 @@
   z-index: 50;
 }
 
-/* Each niceSelect wrapper gets equal share of the row 
+/* Each niceSelect wrapper gets equal share of the row*/
 .filter-bar .nice-select {
   float: none !important;
   flex: 1 1 0 !important;
@@ -45,7 +45,7 @@
   height: 38px;
   line-height: 36px;
   font-size: 12px;
-}*/
+}
 
 /* The dropdown popup list must escape the container */
 /* Filter bar */
