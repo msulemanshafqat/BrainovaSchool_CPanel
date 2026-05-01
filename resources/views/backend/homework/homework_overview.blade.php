@@ -58,7 +58,7 @@
 @endpush
 
 @section('content')
-echo "quiz"
+
 <div class="page-content">
 <input type="hidden" id="url" value="{{ url('/') }}">
 
