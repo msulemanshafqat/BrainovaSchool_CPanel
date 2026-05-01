@@ -709,6 +709,7 @@ $(document).ready(function () {
   loadGlobalStats();
 
 /* ── Initialize niceSelect FIRST (before any .on() bindings) ── */
+/* ── new section added ───────────────────── */
 /* ── Bind events FIRST, then init niceSelect ── */
 
   $('#filter-class').on('change', function () {
