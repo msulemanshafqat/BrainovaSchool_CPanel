@@ -130,7 +130,7 @@
   margin-bottom:  8px;
   display:        block;
 }
-.hw-filter-bar .nice-select {
+.hw-filter-bar .niceSelect {
   width:      100% !important;
   min-width:  0   !important;
   box-sizing: border-box;
@@ -140,10 +140,10 @@
   height: 40px !important;
   line-height: 40px !important;
 }
-.hw-filter-bar .nice-select.open,
-.hw-filter-bar .nice-select:hover { border-color: var(--bp) !important; }
-.hw-filter-bar .nice-select .list { width: 100% !important; border-radius: 10px !important; }
-.hw-filter-bar .nice-select .list li.option { font-size: 12.5px !important; }
+.hw-filter-bar .niceSelect.open,
+.hw-filter-bar .niceSelect:hover { border-color: var(--bp) !important; }
+.hw-filter-bar .niceSelect .list { width: 100% !important; border-radius: 10px !important; }
+.hw-filter-bar .niceSelect .list li.option { font-size: 12.5px !important; }
 
 /* ─── Proceed / Reset Buttons ────────────────────────────────── */
 .btn-proceed {
@@ -482,7 +482,8 @@
           <label class="filter-label" for="filter-class">
             <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
           </label>
-          <select id="filter-class" class="nice-select niceSelect bordered_style">
+          
+          <select id="filter-class" class="niceSelect bordered_style">
             <option value="">All Classes</option>
             @foreach($data['classes'] ?? [] as $item)
               @if(!empty($item->class))
@@ -497,7 +498,8 @@
           <label class="filter-label" for="filter-section">
             <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
           </label>
-          <select id="filter-section" class="nice-select niceSelect bordered_style">
+          
+          <select id="filter-section" class="niceSelect bordered_style">  
             <option value="">All Sections</option>
           </select>
         </div>
@@ -507,7 +509,9 @@
           <label class="filter-label" for="filter-subject">
             <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
           </label>
-          <select id="filter-subject" class="nice-select niceSelect bordered_style">
+          
+          <select id="filter-subject" class="niceSelect bordered_style">
+
             <option value="">All Subjects</option>
           </select>
         </div>
@@ -517,8 +521,9 @@
           <label class="filter-label" for="filter-task-type">
             <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
           </label>
-          <select id="filter-task-type" class="nice-select niceSelect bordered_style">
-            <option value="all">All Types</option>
+          
+           <select id="filter-task-type" class="niceSelect bordered_style"> 
+          <option value="all">All Types</option>
             <option value="quiz">Quiz</option>
             <option value="homework">Homework</option>
             <option value="project">Project</option>
@@ -704,10 +709,36 @@ $(document).ready(function () {
   loadGlobalStats();
 
 /* ── Initialize niceSelect FIRST (before any .on() bindings) ── */
-$('#filter-class').niceSelect();
-$('#filter-section').niceSelect();
-$('#filter-subject').niceSelect();
-$('#filter-task-type').niceSelect();
+/* ── Bind events FIRST, then init niceSelect ── */
+
+  $('#filter-class').on('change', function () {
+    const classId = $(this).val();
+
+    $('#filter-section').val('').empty()
+      .append('<option value="">All Sections</option>').niceSelect('update');
+    $('#filter-subject').val('').empty()
+      .append('<option value="">All Subjects</option>').niceSelect('update');
+
+    if (!classId) return;
+    loadSectionsByClass(classId);
+  });
+
+  $('#filter-section').on('change', function () {
+    const classId   = $('#filter-class').val();
+    const sectionId = $(this).val();
+
+    $('#filter-subject').val('').empty()
+      .append('<option value="">All Subjects</option>').niceSelect('update');
+
+    if (!classId || !sectionId) return;
+    loadSubjectsBySection(classId, sectionId);
+  });
+
+  /* ── Init niceSelect AFTER events are bound ── */
+  $('#filter-class').niceSelect();
+  $('#filter-section').niceSelect();
+  $('#filter-subject').niceSelect();
+  $('#filter-task-type').niceSelect();
 
 /* ── Dependent Dropdown: Class → Section ───────────────────── */
 $('#filter-class').on('change', function () {
