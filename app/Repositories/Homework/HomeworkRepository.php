@@ -725,10 +725,12 @@ class HomeworkRepository implements HomeworkInterface
         */
  public function getSectionsByClass(int $classId): array
 {
-    $sections = DB::table('class_setups')
-        ->join('sections', 'sections.id', '=', 'class_setups.section_id')
-        ->where('class_setups.classes_id', $classId)
-        ->where('class_setups.session_id', setting('session'))
+    $sections = DB::table('subject_assigns as sa')
+        ->join('sections', 'sections.id', '=', 'sa.section_id')
+        ->where('sa.classes_id', $classId)
+        ->where('sa.session_id', setting('session'))
+        ->where('sections.status', 1)
+        ->distinct()
         ->get(['sections.id', 'sections.name']);
 
     return $sections->toArray();
