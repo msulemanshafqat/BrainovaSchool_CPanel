@@ -705,34 +705,37 @@ $(document).ready(function () {
   loadGlobalStats();
 
   /* ── Bind events FIRST ── */
-  $('#filter-class').on('change', function () {
+/* ── Init niceSelect FIRST, then bind events ── */
+$('#filter-class').niceSelect();
+$('#filter-section').niceSelect();
+$('#filter-subject').niceSelect();
+$('#filter-task-type').niceSelect();
+
+/* ── Bind events AFTER niceSelect init ── */
+/* Use $('body').on() delegation — NiceSelect's fake UI fires on the
+   underlying <select> but delegation ensures the handler always catches it */
+$('body').on('change', '#filter-class', function () {
     const classId = $(this).val();
 
     $('#filter-section').val('').empty()
-      .append('<option value="">All Sections</option>').niceSelect('update');
+        .append('<option value="">All Sections</option>').niceSelect('update');
     $('#filter-subject').val('').empty()
-      .append('<option value="">All Subjects</option>').niceSelect('update');
+        .append('<option value="">All Subjects</option>').niceSelect('update');
 
     if (!classId) return;
     loadSectionsByClass(classId);
-  });
+});
 
-  $('#filter-section').on('change', function () {
+$('body').on('change', '#filter-section', function () {
     const classId   = $('#filter-class').val();
     const sectionId = $(this).val();
 
     $('#filter-subject').val('').empty()
-      .append('<option value="">All Subjects</option>').niceSelect('update');
+        .append('<option value="">All Subjects</option>').niceSelect('update');
 
     if (!classId || !sectionId) return;
     loadSubjectsBySection(classId, sectionId);
-  });
-
-  /* ── Init niceSelect AFTER events ── */
-  $('#filter-class').niceSelect();
-  $('#filter-section').niceSelect();
-  $('#filter-subject').niceSelect();
-  $('#filter-task-type').niceSelect();
+});
 
   /* ── Proceed button ── */
   $('#proceed-btn').on('click', function () {
