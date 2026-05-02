@@ -742,7 +742,7 @@ $('body').on('change', '#filter-section', function () {
     getFilteredReport();
   });
 
-  /* ── Reset button ── */
+  /* ── Reset button naz ── */
   $('#reset-filters-btn').on('click', function () {
     $('#filter-class').val('').niceSelect('update');
     $('#filter-section').empty().append('<option value="">All Sections</option>').niceSelect('update');
