@@ -713,64 +713,58 @@ class HomeworkRepository implements HomeworkInterface
     /**
      * Returns sections for a given class (used by dependent dropdown).
      */
-    
-    public function getSectionsByClass(int $classId): array
-    {
-        $sections = DB::table('class_sections')
-            ->where('classes_id', $classId)
-            ->get(['id', 'name']);
-
-        return $sections->toArray();
-    }
-       
     /**
- *public function getSectionsByClass(int $classId): array
-*{
-   * $sections = DB::table('subject_assigns as sa')
-    *    ->join('sections', 'sections.id', '=', 'sa.section_id')
-    *    ->where('sa.classes_id', $classId)
-      *  ->where('sa.session_id', setting('session'))
-      *  ->where('sections.status', 1)
-      *  ->distinct()
-     *   ->get(['sections.id', 'sections.name']);
+    *public function getSectionsByClass(int $classId): array
+    *{
+    *    $sections = DB::table('class_sections')
+     *       ->where('classes_id', $classId)
+     *       ->get(['id', 'name']);
 
-   * return $sections->toArray();
-*}
- */
+     *   return $sections->toArray();
+    *}
+        */
+ public function getSectionsByClass(int $classId): array
+{
+    $sections = DB::table('subject_assigns as sa')
+        ->join('sections', 'sections.id', '=', 'sa.section_id')
+        ->where('sa.classes_id', $classId)
+        ->where('sa.session_id', setting('session'))
+        ->where('sections.status', 1)
+        ->distinct()
+        ->get(['sections.id', 'sections.name']);
+
+    return $sections->toArray();
+}
 
     /**
      * Returns subjects for a given class/section combo (used by dependent dropdown).
      */
-    
+    /**
+    *public function getSubjectsByClassSection(int $classId, int $sectionId): array
+   * {
+      *  $subjects = DB::table('subject_assigns')
+       *     ->join('subjects', 'subjects.id', '=', 'subject_assigns.subject_id')
+       *     ->where('subject_assigns.classes_id', $classId)
+       *     ->where('subject_assigns.section_id', $sectionId)
+      *      ->distinct()
+       *     ->get(['subjects.id', 'subjects.name']);
+
+      *  return $subjects->toArray();
+   * }
+ */
 public function getSubjectsByClassSection(int $classId, int $sectionId): array
 {
     $subjects = DB::table('subject_assigns as sa')
         ->join('subject_assign_children as sac', 'sac.subject_assign_id', '=', 'sa.id')
-        ->join('subjects as sub', 'sub.id', '=', 'sac.subject_id')
-        ->where('sa.session_id', setting('session'))
+        ->join('subjects', 'subjects.id', '=', 'sac.subject_id')
         ->where('sa.classes_id', $classId)
         ->where('sa.section_id', $sectionId)
+        ->where('sa.session_id', setting('session'))
         ->distinct()
-        ->get(['sub.id', 'sub.name']);
+        ->get(['subjects.id', 'subjects.name']);
 
     return $subjects->toArray();
 }
- 
-/**
-*public function getSubjectsByClassSection(int $classId, int $sectionId): array
-*{
-    *$subjects = DB::table('subject_assigns as sa')
-    *    ->join('subject_assign_children as sac', 'sac.subject_assign_id', '=', 'sa.id')
-    *    ->join('subjects', 'subjects.id', '=', 'sac.subject_id')
-    *    ->where('sa.classes_id', $classId)
-    *    ->where('sa.section_id', $sectionId)
-    *    ->where('sa.session_id', setting('session'))
-    *    ->distinct()
-    *    ->get(['subjects.id', 'subjects.name']);
-
-   * return $subjects->toArray();
-*}
-*/
 
 
 
