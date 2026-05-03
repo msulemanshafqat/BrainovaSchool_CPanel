@@ -1,6 +1,7 @@
 @extends('backend.master')
 @section('title')
     {{ @$data['title'] }}
+    echo "naz"
 @endsection
 @section('content')
     <div class="page-content">
