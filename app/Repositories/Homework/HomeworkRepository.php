@@ -755,7 +755,7 @@ class HomeworkRepository implements HomeworkInterface
 public function getSubjectsByClassSection(int $classId, int $sectionId): array
 {
     $subjects = DB::table('subject_assigns as sa')
-        ->join('subject_assign_children as sac', 'sac.subject_assign_id', '=', 'sa.id')
+        ->join('subject_assign_childrens as sac', 'sac.subject_assign_id', '=', 'sa.id')
         ->join('subjects', 'subjects.id', '=', 'sac.subject_id')
         ->where('sa.classes_id', $classId)
         ->where('sa.section_id', $sectionId)
