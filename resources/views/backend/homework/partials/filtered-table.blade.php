@@ -27,8 +27,15 @@
     @endif
   </td>
   <td style="font-weight:700;font-size:13px;color:#1d4ed8;text-align:center">{{ $row->marks ?? '—' }}</td>
-  <td style="text-align:center">
-    <button class="ab" title="Evaluate" onclick="openEval({{ $row->id }})">
+  <td class="hw-act-cell">
+    @if(hasPermission('homework_update'))
+      <a href="{{ route('homework.edit', $row->id) }}"
+         class="ab"
+         title="{{ ___('common.edit') }}">
+        <i class="fa-solid fa-pencil" style="font-size:11px"></i>
+      </a>
+    @endif
+    <button type="button" class="ab" title="Evaluate submissions" onclick="openEval({{ $row->id }})">
       <i class="fa-solid fa-pen-to-square" style="font-size:11px"></i>
     </button>
   </td>

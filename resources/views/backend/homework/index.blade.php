@@ -345,6 +345,17 @@
   color:        var(--bp);
   background:   var(--bpl);
 }
+a.ab {
+  text-decoration: none;
+  color: inherit;
+}
+.hw-act-cell {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
 
 /* ─── Accordion / Collapse fix ────────────────────────────────── */
 .sect-body {
@@ -581,7 +592,6 @@
             <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
             Overall Task Status
           </div>
-          <div class="cc-sub text-muted">Turned in &middot; not yet due &middot; overdue (missing)</div>
           <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-filtered"></canvas></div>
         </div>
       </div>
@@ -627,7 +637,7 @@
               <th style="white-space:nowrap">Type</th>
               <th style="white-space:nowrap">Due Date</th>
               <th style="white-space:nowrap;width:60px">Marks</th>
-              <th style="white-space:nowrap;width:48px">Act.</th>
+              <th style="white-space:nowrap;min-width:88px">Act.</th>
             </tr>
           </thead>
           <tbody id="filtered-table-body">
