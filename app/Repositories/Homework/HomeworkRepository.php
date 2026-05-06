@@ -672,15 +672,76 @@ class HomeworkRepository implements HomeworkInterface
     }
 
     /**
-     * Helper: Score trend — one series, chronological by assignment date.
-     * Uses average of graded submissions only; values are % of homework max marks
-     * when every assignment has a positive numeric max, otherwise raw average marks.
+     * Positive numeric max marks from homework row (column may be string in DB).
+     */
+    private function homeworkNumericMaxMarks($hw): ?float
+    {
+        $m = $hw->marks ?? null;
+        if ($m === null || $m === '') {
+            return null;
+        }
+
+        $str = trim((string) $m);
+
+        return is_numeric($str) && (float) $str > 0 ? (float) $str : null;
+    }
+
+    /**
+     * Fallback when homework_students.avg(marks) is empty but quiz answer rows exist.
+     */
+    private function averageQuizMarksFromAnswers(int $homeworkId, ?float $maxMarks): ?float
+    {
+        if ($maxMarks === null || $maxMarks <= 0) {
+            return null;
+        }
+
+        try {
+            $qCount = DB::table('homework_quiz_questions')->where('homework_id', $homeworkId)->count();
+            if ($qCount < 1) {
+                return null;
+            }
+
+            $perStudent = DB::table('homework_quiz_answers')
+                ->where('homework_id', $homeworkId)
+                ->groupBy('student_id')
+                ->select('student_id')
+                ->selectRaw('SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as correct_n')
+                ->get();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if ($perStudent->isEmpty()) {
+            return null;
+        }
+
+        $sum = 0.0;
+        foreach ($perStudent as $row) {
+            $sum += ((int) $row->correct_n / $qCount) * $maxMarks;
+        }
+
+        return $sum / $perStudent->count();
+    }
+
+    /**
+     * Score trend — chronological by assignment date.
+     * Series A: average graded score (% of max when every task has numeric max, else raw marks).
+     * Series B: % of enrolled students (class/section) who submitted — always populated when roster exists.
      */
     private function getScoreTrendForFilters($homeworks): array
     {
         if ($homeworks->isEmpty()) {
-            return ['labels' => [], 'datasets' => []];
+            return [
+                'labels' => [],
+                'datasets' => [],
+                'dual_axis' => false,
+                'y_left_title' => '',
+                'y_right_title' => '',
+                'y_suggested_max' => null,
+            ];
         }
+
+        $sessionId = setting('session');
 
         $sorted = $homeworks->sortBy(function ($h) {
             $ts = $h->date
@@ -690,56 +751,103 @@ class HomeworkRepository implements HomeworkInterface
             return [$ts, (int) $h->id];
         })->values();
 
-        $usePercent = $sorted->every(function ($h) {
-            return is_numeric($h->marks ?? null) && (float) $h->marks > 0;
-        });
+        $hwIds = $sorted->pluck('id')->all();
+
+        $gradedStats = DB::table('homework_students')
+            ->whereIn('homework_id', $hwIds)
+            ->groupBy('homework_id')
+            ->select('homework_id')
+            ->selectRaw('AVG(CASE WHEN marks IS NOT NULL THEN marks END) as avg_graded')
+            ->selectRaw('COUNT(DISTINCT student_id) as submitters')
+            ->get()
+            ->keyBy('homework_id');
+
+        $usePercent = $sorted->every(fn ($h) => $this->homeworkNumericMaxMarks($h) !== null);
 
         $labels = [];
-        $points = [];
+        $scorePoints = [];
+        $submitPoints = [];
 
         foreach ($sorted as $hw) {
             $labels[] = $hw->date
                 ? \Carbon\Carbon::parse($hw->date)->format('M j')
                 : '#' . $hw->id;
 
-            $avgMarks = DB::table('homework_students')
-                ->where('homework_id', $hw->id)
-                ->whereNotNull('marks')
-                ->avg('marks');
+            $stat = $gradedStats[$hw->id] ?? null;
 
-            if ($avgMarks === null) {
-                $points[] = null;
-
-                continue;
+            $avgGraded = null;
+            if ($stat && $stat->avg_graded !== null && $stat->avg_graded !== '') {
+                $avgGraded = (float) $stat->avg_graded;
             }
 
-            $avgMarks = (float) $avgMarks;
+            $maxMarks = $this->homeworkNumericMaxMarks($hw);
 
-            if ($usePercent) {
-                $max = (float) $hw->marks;
+            if ($avgGraded === null && ($hw->task_type ?? '') === 'quiz') {
+                $avgGraded = $this->averageQuizMarksFromAnswers((int) $hw->id, $maxMarks);
+            }
 
-                $points[] = $max > 0 ? round($avgMarks / $max * 100, 1) : null;
+            if ($avgGraded !== null && $usePercent && $maxMarks !== null) {
+                $scorePoints[] = round($avgGraded / $maxMarks * 100, 1);
+            } elseif ($avgGraded !== null) {
+                $scorePoints[] = round($avgGraded, 2);
             } else {
-                $points[] = round($avgMarks, 2);
+                $scorePoints[] = null;
+            }
+
+            $eligible = (int) DB::table('session_class_students')
+                ->where('session_id', $sessionId)
+                ->where('classes_id', $hw->classes_id)
+                ->where('section_id', $hw->section_id)
+                ->selectRaw('COUNT(DISTINCT student_id) as c')
+                ->value('c');
+
+            $submitters = $stat ? (int) $stat->submitters : 0;
+
+            if ($eligible > 0) {
+                $submitPoints[] = round(min(100, ($submitters / $eligible) * 100), 1);
+            } else {
+                $submitPoints[] = $submitters > 0 ? 100.0 : 0.0;
             }
         }
 
         $hex = '#2563eb';
-        $rgb = sscanf($hex, '#%02x%02x%02x');
-        $rgbaFill = sprintf('rgba(%d,%d,%d,0.12)', $rgb[0], $rgb[1], $rgb[2]);
+        $rgb = sscanf($hex, '#%02x%02x%02x') ?: [37, 99, 235];
+        $rgbaFill = sprintf('rgba(%d,%d,%d,0.12)', (int) $rgb[0], (int) $rgb[1], (int) $rgb[2]);
+
+        $grayHex = '#64748b';
+        $rgbG = sscanf($grayHex, '#%02x%02x%02x') ?: [100, 116, 139];
+        $rgbaFillG = sprintf('rgba(%d,%d,%d,0.08)', (int) $rgbG[0], (int) $rgbG[1], (int) $rgbG[2]);
 
         return [
-            'labels'            => $labels,
-            'datasets'          => [[
-                'label'           => $usePercent ? 'Avg score (% of max marks)' : 'Avg marks (graded)',
-                'data'            => $points,
-                'borderColor'     => $hex,
-                'backgroundColor' => $rgbaFill,
-                'borderWidth'     => 2,
-                'tension'         => 0.35,
-                'spanGaps'        => false,
-            ]],
-            'y_suggested_max'   => $usePercent ? 100 : null,
+            'labels'   => $labels,
+            'datasets' => [
+                [
+                    'label'           => $usePercent ? 'Avg score (% of max)' : 'Avg marks (graded)',
+                    'data'            => $scorePoints,
+                    'y_axis_id'       => 'y',
+                    'borderColor'     => $hex,
+                    'backgroundColor' => $rgbaFill,
+                    'borderWidth'     => 2,
+                    'tension'         => 0.35,
+                    'spanGaps'        => true,
+                    'fill'            => true,
+                ],
+                [
+                    'label'           => 'Class submission rate',
+                    'data'            => $submitPoints,
+                    'y_axis_id'       => 'y1',
+                    'borderColor'     => $grayHex,
+                    'backgroundColor' => $rgbaFillG,
+                    'borderWidth'     => 2,
+                    'tension'         => 0.35,
+                    'spanGaps'        => false,
+                    'fill'            => false,
+                ],
+            ],
+            'dual_axis'       => true,
+            'y_left_title'    => $usePercent ? 'Avg score %' : 'Avg marks',
+            'y_right_title'   => 'Submitted % (class)',
+            'y_suggested_max' => $usePercent ? 100 : null,
         ];
     }
 

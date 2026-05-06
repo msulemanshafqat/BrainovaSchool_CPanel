@@ -227,6 +227,13 @@
   margin-bottom: 18px;
 }
 
+/* Fixed height so Chart.js can measure while parent is visibility-hidden during init */
+.hw-chart-canvas-wrap {
+  position: relative;
+  width:    100%;
+  height:   220px;
+}
+
 /* ─── Section Label (inside Results) ─────────────────────────── */
 .results-section-label {
   font-size:      10.5px;
@@ -574,8 +581,8 @@
             <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
             Overall Task Status
           </div>
-          <div class="cc-sub">Student slots: turned in · not yet due · missing after deadline</div>
-          <canvas id="donut-chart-filtered" height="220"></canvas>
+          <div class="cc-sub text-muted">Turned in &middot; not yet due &middot; overdue (missing)</div>
+          <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-filtered"></canvas></div>
         </div>
       </div>
 
@@ -586,8 +593,8 @@
             <i class="fa-solid fa-chart-line me-1" style="color:var(--bp)"></i>
             Score Trend
           </div>
-          <div class="cc-sub">Graded average by assignment date (% of max marks when set on all tasks)</div>
-          <canvas id="line-chart-filtered" height="220"></canvas>
+          <div class="cc-sub text-muted">Blue = graded average score · Gray = % of class roster submitted</div>
+          <div class="hw-chart-canvas-wrap"><canvas id="line-chart-filtered"></canvas></div>
         </div>
       </div>
 
@@ -745,7 +752,11 @@ $(document).ready(function () {
     $('#filter-section').empty().append('<option value="">All Sections</option>').niceSelect('update');
     $('#filter-subject').empty().append('<option value="">All Subjects</option>').niceSelect('update');
     $('#filter-task-type').val('all').niceSelect('update');
-    $('#results-container').fadeOut(300);
+    if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
+    if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
+    $('#results-container').stop(true, true).fadeOut(300, function () {
+      $(this).css({ visibility: '', opacity: '' });
+    });
   });
 
   /* ── Functions ── */
@@ -837,56 +848,47 @@ $(document).ready(function () {
           if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
           if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
 
+          /* Chart.js reads canvas parent size; display:none gives 0×0 and charts disappear */
+          var $results = $('#results-container');
+          $results.css({ display: 'block', visibility: 'hidden', opacity: 0 });
+
           const donutCtx = document.getElementById('donut-chart-filtered');
-          if (donutCtx && response.donut_data) {
+          if (donutCtx && response.donut_data && Array.isArray(response.donut_data.data)) {
+            var donutVals = response.donut_data.data.map(function (v) { return Number(v) || 0; });
+            var donutLabels = response.donut_data.labels ? response.donut_data.labels.slice() : [];
+            var donutColors = response.donut_data.colors ? response.donut_data.colors.slice() : [];
+            var donutSum = donutVals.reduce(function (a, b) { return a + b; }, 0);
+            if (donutSum === 0) {
+              donutLabels = ['No activity yet'];
+              donutVals = [1];
+              donutColors = ['#e2e8f0'];
+            }
             donutChartInstance = new Chart(donutCtx, {
               type: 'doughnut',
               data: {
-                labels:   response.donut_data.labels,
-                datasets: [{ data: response.donut_data.data, backgroundColor: response.donut_data.colors, borderWidth: 3, borderColor: '#fff', hoverOffset: 8 }]
-              },
-              options: { cutout: '65%', responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true } } } }
-            });
-          }
-
-          const lineCtx = document.getElementById('line-chart-filtered');
-          if (lineCtx && response.trend_data && response.trend_data.datasets && response.trend_data.datasets.length) {
-            var yScale = { beginAtZero: true, grid: { color: '#f1f5f9' } };
-            if (response.trend_data.y_suggested_max) {
-              yScale.suggestedMax = response.trend_data.y_suggested_max;
-            }
-            lineChartInstance = new Chart(lineCtx, {
-              type: 'line',
-              data: {
-                labels:   response.trend_data.labels,
-                datasets: response.trend_data.datasets.map(function (ds) {
-                  return {
-                    label: ds.label,
-                    data: ds.data,
-                    borderColor: ds.borderColor || '#1d4ed8',
-                    backgroundColor: ds.backgroundColor || 'rgba(29,78,216,0.08)',
-                    borderWidth: 2.5,
-                    tension: typeof ds.tension === 'number' ? ds.tension : 0.4,
-                    fill: true,
-                    spanGaps: ds.spanGaps === true,
-                    pointRadius: 4,
-                    pointBackgroundColor: ds.borderColor || '#1d4ed8',
-                    pointHoverRadius: 6
-                  };
-                })
+                labels: donutLabels,
+                datasets: [{
+                  data: donutVals,
+                  backgroundColor: donutColors.length >= donutVals.length ? donutColors : ['#10b981', '#f59e0b', '#dc2626'],
+                  borderWidth: 3,
+                  borderColor: '#fff',
+                  hoverOffset: 8
+                }]
               },
               options: {
+                cutout: '65%',
                 responsive: true,
-                interaction: { mode: 'index', intersect: false },
-                scales: { x: { grid: { display: false } }, y: yScale },
+                maintainAspectRatio: false,
                 plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: { font: { size: 11, family: 'Plus Jakarta Sans' }, padding: 14, usePointStyle: true }
+                  },
                   tooltip: {
+                    enabled: donutSum > 0,
                     callbacks: {
                       label: function (ctx) {
-                        var v = ctx.raw;
-                        if (v === null || v === undefined) return ' No graded submissions yet';
-                        var lbl = ctx.dataset.label || '';
-                        return ' ' + lbl + ': ' + v + (response.trend_data.y_suggested_max ? '%' : '');
+                        return ' ' + (ctx.label || '') + ': ' + ctx.raw;
                       }
                     }
                   }
@@ -895,7 +897,104 @@ $(document).ready(function () {
             });
           }
 
-          $('#results-container').fadeIn(400);
+          const lineCtx = document.getElementById('line-chart-filtered');
+          if (lineCtx && response.trend_data && response.trend_data.datasets && response.trend_data.datasets.length) {
+            var td = response.trend_data;
+            var scales = {
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: { font: { size: 10 } },
+                title: {
+                  display: true,
+                  font: { size: 10, weight: '600' },
+                  text: td.y_left_title || 'Score',
+                  color: '#64748b'
+                }
+              }
+            };
+            if (td.y_suggested_max) {
+              scales.y.suggestedMax = td.y_suggested_max;
+            }
+            if (td.dual_axis) {
+              scales.y1 = {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                max: 100,
+                grid: { drawOnChartArea: false },
+                ticks: { font: { size: 10 } },
+                title: {
+                  display: true,
+                  font: { size: 10, weight: '600' },
+                  text: td.y_right_title || '% submitted',
+                  color: '#64748b'
+                }
+              };
+            }
+
+            lineChartInstance = new Chart(lineCtx, {
+              type: 'line',
+              data: {
+                labels: td.labels,
+                datasets: td.datasets.map(function (ds) {
+                  var bc = ds.borderColor || '#1d4ed8';
+                  return {
+                    label: ds.label,
+                    data: ds.data,
+                    yAxisID: ds.y_axis_id || 'y',
+                    borderColor: bc,
+                    backgroundColor: ds.backgroundColor || 'rgba(29,78,216,0.08)',
+                    borderWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : 2.5,
+                    tension: typeof ds.tension === 'number' ? ds.tension : 0.35,
+                    fill: ds.fill !== false,
+                    spanGaps: ds.spanGaps === true,
+                    pointRadius: 4,
+                    pointBackgroundColor: bc,
+                    pointHoverRadius: 6
+                  };
+                })
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: scales,
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: function (ctx) {
+                        var v = ctx.raw;
+                        var lbl = ctx.dataset.label || '';
+                        if (v === null || v === undefined) {
+                          return ' ' + lbl + ': —';
+                        }
+                        var sfx = '';
+                        if (ctx.dataset.yAxisID === 'y1') {
+                          sfx = '%';
+                        } else if (td.y_suggested_max && ctx.dataset.yAxisID === 'y') {
+                          sfx = '%';
+                        }
+                        return ' ' + lbl + ': ' + v + sfx;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+
+          $results.css({ visibility: 'visible' });
+          window.requestAnimationFrame(function () {
+            if (donutChartInstance && typeof donutChartInstance.resize === 'function') donutChartInstance.resize();
+            if (lineChartInstance && typeof lineChartInstance.resize === 'function') lineChartInstance.resize();
+            $results.animate({ opacity: 1 }, 400);
+          });
         }
       },
       error: function (xhr) {
