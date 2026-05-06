@@ -17,8 +17,9 @@
 /* ─── Reset & Base ──────────────────────────────────────────── */
 .hw-portal {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  background: #f8f9fa;         /* Very-light-grey page canvas */
+  background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 48%, #f1f5f9 100%);
   min-height: 100vh;
+  padding-bottom: 3rem;
 }
 
 /* ─── CSS Custom Properties ─────────────────────────────────── */
@@ -35,76 +36,157 @@
   --bs:    #64748b;
   --bb:    #e2e8f0;
   --bt:    #0f172a;
-  --rr:    20px;        /* Soft-card border radius */
-  --shadow-soft: 0 10px 30px rgba(0,0,0,0.04);
-  --shadow-hover: 0 16px 40px rgba(29,78,216,0.12);
+  --rr:    16px;
+  --rr-lg: 20px;
+  --shadow-soft: 0 1px 3px rgba(15,23,42,0.06), 0 12px 40px rgba(15,23,42,0.04);
+  --shadow-hover: 0 8px 28px rgba(29,78,216,0.12);
+  --hw-border: 1px solid rgba(226, 232, 240, 0.9);
 
   /* Table chrome */
   --tb-outer: #c7d2e0;
-  --tb-head:  #b8c5d6;
-  --tb-row:   #e2e8f0;
-  --tb-col:   #e8edf5;
+  --tb-head:  #e2e8f0;
+  --tb-row:   #f1f5f9;
+  --tb-col:   transparent;
 }
 
-/* ─── Section Spacing (4 rem between each major section) ─────── */
+/* ─── Page hero (title zone — reads first, not cramped) ─────── */
+.hw-page-hero {
+  background: #fff;
+  border: var(--hw-border);
+  border-radius: var(--rr-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+}
+.hw-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--bp);
+  margin: 0 0 .5rem;
+}
+.hw-page-title {
+  font-size: clamp(1.35rem, 2.5vw, 1.65rem);
+  font-weight: 800;
+  color: var(--bt);
+  letter-spacing: -0.03em;
+  margin: 0 0 .5rem;
+  line-height: 1.2;
+}
+.hw-page-lead {
+  font-size: .9375rem;
+  color: var(--bs);
+  line-height: 1.55;
+  max-width: 42rem;
+  margin: 0 0 .75rem;
+}
+.hw-page-hero .breadcrumb {
+  margin-bottom: 0;
+  padding: 0;
+  font-size: 13px;
+  background: transparent;
+}
+
+/* ─── Panel sections (group content so it isn’t one flat wall) ─ */
+.hw-panel {
+  background: #fff;
+  border: var(--hw-border);
+  border-radius: var(--rr-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 1.75rem 2rem 2rem;
+  margin-bottom: 2rem;
+}
+.hw-panel-head {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.hw-filter-intro {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.hw-results-panel .hw-table-card {
+  margin-top: 1.75rem;
+}
+.hw-panel-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--bt);
+  letter-spacing: -0.02em;
+  margin: .35rem 0 0;
+  line-height: 1.3;
+}
+.hw-panel-desc {
+  font-size: .8125rem;
+  color: var(--bs);
+  margin: .5rem 0 0;
+  line-height: 1.5;
+  max-width: 48rem;
+}
+
+/* ─── Section spacing between major stacks ─────── */
 .hw-section {
-  margin-bottom: 4rem;   /* ≈ 3 cm — gives the UI room to breathe */
+  margin-bottom: 0;
+}
+.hw-section + .hw-section {
+  margin-top: 0;
 }
 
 /* ─── Soft Cards ─────────────────────────────────────────────── */
 .soft-card {
   background:    #fff;
-  border:        none;
+  border:        var(--hw-border);
   border-radius: var(--rr);
-  box-shadow:    var(--shadow-soft);
+  box-shadow:    none;
   padding:       24px;
-  transition:    transform .2s, box-shadow .2s;
+  transition:    box-shadow .2s;
 }
 .soft-card:hover {
-  transform:  translateY(-2px);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-soft);
 }
 
-/* ─── Stat Cards ─────────────────────────────────────────────── */
+/* ─── Stat Cards (calmer — less “busy”, clearer labels) ──────── */
 .sc {
-  background:    #fff;
-  border:        none;
+  background:    #fafbfc;
+  border:        1px solid #eef2f7;
   border-radius: var(--rr);
-  box-shadow:    var(--shadow-soft);
-  padding:       22px 24px;
+  box-shadow:    none;
+  padding:       1.125rem 1.25rem;
   display:       flex;
   align-items:   center;
-  gap:           16px;
-  transition:    transform .2s, box-shadow .2s;
+  gap:           14px;
+  transition:    border-color .2s, box-shadow .2s;
+  height:        100%;
 }
 .sc:hover {
-  transform:  translateY(-3px);
-  box-shadow: var(--shadow-hover);
+  border-color: #dbeafe;
+  box-shadow:   0 4px 16px rgba(29,78,216,0.06);
 }
 .si {
-  width:          52px;
-  height:         52px;
-  border-radius:  14px;
+  width:          44px;
+  height:         44px;
+  border-radius:  12px;
   flex-shrink:    0;
   display:        flex;
   align-items:    center;
   justify-content: center;
-  font-size:      20px;
+  font-size:      18px;
 }
 .sv {
-  font-size:   28px;
+  font-size:   clamp(1.35rem, 3vw, 1.65rem);
   font-weight: 800;
   line-height: 1;
   color:       var(--bt);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03em;
 }
 .sl {
-  font-size:      11px;
+  font-size:      12px;
   color:          var(--bs);
   font-weight:    600;
-  margin-top:     4px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  margin-top:     6px;
+  letter-spacing: .01em;
 }
 .sc-trend {
   font-size:   10px;
@@ -115,20 +197,26 @@
 
 /* ─── Filter Bar ─────────────────────────────────────────────── */
 .hw-filter-bar {
-  background:    #fff;
+  background:    transparent;
   border:        none;
-  border-radius: var(--rr);
-  box-shadow:    var(--shadow-soft);
-  padding:       24px 28px;
+  border-radius: 0;
+  box-shadow:    none;
+  padding:       0;
+}
+.hw-panel .hw-filter-bar {
+  padding: 0;
 }
 .hw-filter-bar .filter-label {
-  font-size:      10.5px;
-  font-weight:    700;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  color:          var(--bs);
-  margin-bottom:  8px;
+  font-size:      12px;
+  font-weight:    600;
+  text-transform: none;
+  letter-spacing: 0;
+  color:          var(--bt);
+  margin-bottom:  10px;
   display:        block;
+}
+.hw-filter-bar .filter-label i {
+  opacity: .85;
 }
 /* Target the visible widget (.nice-select), not only the hidden <select> class */
 .hw-filter-bar .nice-select,
@@ -174,35 +262,25 @@
   color:         #fff;
   border:        none;
   border-radius: 10px;
-  padding:       0 24px;
+  padding:       0 22px;
   height:        40px;
   font-size:     13px;
   font-weight:   700;
-  letter-spacing: .03em;
+  letter-spacing: .02em;
   display:       inline-flex;
   align-items:   center;
   gap:           8px;
   cursor:        pointer;
-  position:      relative;
-  overflow:      hidden;
   transition:    background .2s, box-shadow .2s, transform .15s;
-  /* Glow ring */
-  box-shadow: 0 0 0 0 rgba(29,78,216,0.4);
-  animation: proceedPulse 2.4s infinite;
+  box-shadow:    0 2px 8px rgba(29,78,216,0.25);
 }
 .btn-proceed:hover {
   background:  var(--bpd);
   transform:   translateY(-1px);
-  box-shadow:  0 8px 24px rgba(29,78,216,0.35);
-  animation:   none;
+  box-shadow:  0 6px 20px rgba(29,78,216,0.35);
   color:       #fff;
 }
 .btn-proceed:active { transform: translateY(0); }
-@keyframes proceedPulse {
-  0%   { box-shadow: 0 0 0 0   rgba(29,78,216,0.45); }
-  60%  { box-shadow: 0 0 0 10px rgba(29,78,216,0); }
-  100% { box-shadow: 0 0 0 0   rgba(29,78,216,0); }
-}
 
 .btn-reset {
   background:    transparent;
@@ -230,60 +308,84 @@
 
 /* ─── Chart Cards ─────────────────────────────────────────────── */
 .cc {
-  background:    #fff;
-  border:        none;
-  border-radius: var(--rr);
-  box-shadow:    var(--shadow-soft);
-  padding:       24px;
+  background:    #fafbfc;
+  border:        1px solid #eef2f7;
+  border-radius: var(--rr-lg);
+  box-shadow:    none;
+  padding:       1.35rem 1.5rem 1.5rem;
+  height:        100%;
 }
 .cc-title {
-  font-size:      11px;
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  color:          var(--bs);
+  font-size:      1rem;
   font-weight:    700;
-  margin-bottom:  4px;
+  color:          var(--bt);
+  letter-spacing: -0.02em;
+  margin-bottom:  6px;
+  display:        flex;
+  align-items:    center;
+  gap:            8px;
 }
 .cc-sub {
-  font-size:    10px;
-  color:        #94a3b8;
-  margin-bottom: 18px;
+  font-size:    12px;
+  color:        var(--bs);
+  line-height:  1.45;
+  margin-bottom: 16px;
 }
 
 /* Fixed height so Chart.js can measure while parent is visibility-hidden during init */
 .hw-chart-canvas-wrap {
   position: relative;
   width:    100%;
-  height:   220px;
+  height:   236px;
 }
 
-/* ─── Section Label (inside Results) ─────────────────────────── */
+/* ─── Block headings inside results (no noisy full-width rules) ─ */
+.hw-block-head {
+  margin-bottom: 1.25rem;
+}
+.hw-block-head .hw-eyebrow {
+  margin-bottom: .35rem;
+}
+.hw-block-title {
+  font-size:   1.2rem;
+  font-weight: 800;
+  color:       var(--bt);
+  letter-spacing: -0.03em;
+  margin:      0;
+  line-height: 1.25;
+}
+.hw-block-desc {
+  font-size:   .875rem;
+  color:       var(--bs);
+  margin:      .4rem 0 0;
+  max-width:   40rem;
+  line-height: 1.5;
+}
+
+/* Legacy: table toolbar still uses results-section-label — restyle */
 .results-section-label {
-  font-size:      10.5px;
+  font-size:      1rem;
   font-weight:    700;
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  color:          var(--bs);
-  margin-bottom:  14px;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  color:          var(--bt);
+  margin-bottom:  0;
   display:        flex;
   align-items:    center;
-  gap:            8px;
+  gap:            10px;
 }
 .results-section-label::after {
-  content:    '';
-  flex:       1;
-  height:     1px;
-  background: var(--bb);
+  display: none;
 }
 
 /* ─── Homework Table ─────────────────────────────────────────── */
 .hw-table-card {
   background:    #fff;
-  border:        none;
-  border-radius: var(--rr);
+  border:        var(--hw-border);
+  border-radius: var(--rr-lg);
   box-shadow:    var(--shadow-soft);
   overflow:      hidden;
-  margin-top:    3rem;   /* 3 rem gap above table as specified */
+  margin-top:    2rem;
 }
 
 .ht {
@@ -295,23 +397,23 @@
 
 .ht thead th {
   background:     #f8fafc;
-  padding:        12px 14px;
-  font-size:      10px;
+  padding:        14px 16px;
+  font-size:      11px;
   font-weight:    700;
   text-transform: uppercase;
-  letter-spacing: .07em;
-  color:          var(--bs);
-  border-bottom:  2px solid var(--tb-head);
-  border-right:   1px solid var(--tb-col);
+  letter-spacing: .06em;
+  color:          #475569;
+  border-bottom:  1px solid var(--tb-head);
+  border-right:   none;
   white-space:    nowrap;
 }
 .ht thead th:last-child { border-right: none; }
 
 .ht tbody td {
-  padding:        12px 14px;
+  padding:        14px 16px;
   border-bottom:  1px solid var(--tb-row);
-  border-right:   1px solid var(--tb-col);
-  vertical-align: middle;   /* spec: vertical-align middle */
+  border-right:   none;
+  vertical-align: middle;
   background:     #fff;
 }
 .ht tbody td:last-child { border-right: none; }
@@ -386,10 +488,6 @@ a.ab {
   transition: max-height 0.3s ease-in-out;
 }
 
-/* ─── Page-header tweak ───────────────────────────────────────── */
-.hw-portal .page-header {
-  margin-bottom: 2rem;
-}
 
 /* ─── Loading shimmer for stats ───────────────────────────────── */
 @keyframes shimmer {
@@ -406,6 +504,11 @@ a.ab {
   animation:           shimmer 1.2s infinite;
 }
 
+@media (max-width: 575.98px) {
+  .hw-page-hero { padding: 1.35rem 1.25rem; }
+  .hw-panel { padding: 1.35rem 1.25rem 1.5rem; }
+}
+
 </style>
 @endpush
 
@@ -418,39 +521,46 @@ a.ab {
   {{-- Hidden base URL for JS --}}
   <input type="hidden" id="url" value="{{ url('/') }}">
 
-  {{-- ── Page Header (quick launch: new task + quiz CSV template) ── --}}
-  <div class="page-header">
-    <div class="row align-items-center">
-      <div class="col-sm-6">
-        <h4 class="bradecrumb-title mb-1">Homework &amp; Tasks</h4>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-          <li class="breadcrumb-item active">Homework &amp; Tasks</li>
-        </ol>
+  {{-- ── Hero: primary heading + short context (not buried in breadcrumb-only UI) ── --}}
+  <header class="hw-page-hero">
+    <div class="row align-items-start align-items-lg-center g-3">
+      <div class="col-lg">
+        <p class="hw-eyebrow">Teaching workspace</p>
+        <h1 class="hw-page-title">Homework &amp; tasks</h1>
+        <p class="hw-page-lead">
+          See workload at a glance, filter by class and subject, then open analytics or grade submissions.
+        </p>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Homework &amp; tasks</li>
+          </ol>
+        </nav>
       </div>
       @if(hasPermission('homework_create'))
-      <div class="col-sm-6 text-end mt-3 mt-sm-0">
-        <div class="d-inline-flex flex-wrap align-items-center justify-content-end gap-2">
+      <div class="col-lg-auto">
+        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
           <a href="{{ route('homework.download-sample') }}"
-             class="btn btn-outline-secondary btn-sm">
+             class="btn btn-outline-secondary btn-sm px-3">
             <i class="fa-solid fa-download me-1"></i>CSV template
           </a>
-          <a href="{{ route('homework.create') }}" class="btn ot-btn-primary btn-sm">
+          <a href="{{ route('homework.create') }}" class="btn ot-btn-primary btn-sm px-3">
             <i class="fa-solid fa-plus me-1"></i>New task
           </a>
         </div>
       </div>
       @endif
     </div>
-  </div>
+  </header>
 
-  {{-- =================================================================
-       SECTION 1 · GLOBAL STATS CARDS
-       4 soft cards: Assigned Tasks · Submitted · Pending · E6 Score
-       margin-bottom: 4rem — the "breathe" gap
-  ================================================================= --}}
-  <div class="hw-section" id="stats-cards-container">
-    <div class="row g-3">
+  {{-- SECTION 1 · Overview metrics — grouped panel -------------------------------- --}}
+  <section class="hw-panel hw-section" id="stats-cards-container">
+    <header class="hw-panel-head">
+      <p class="hw-eyebrow">Overview</p>
+      <h2 class="hw-panel-title">School-wide snapshot</h2>
+      <p class="hw-panel-desc">Current session totals. These update when the page loads.</p>
+    </header>
+    <div class="row g-3 g-lg-4">
 
       {{-- Card 1 · Assigned Tasks --}}
       <div class="col-md-6 col-lg-3">
@@ -505,28 +615,17 @@ a.ab {
       </div>
 
     </div>
-  </div>{{-- /SECTION 1 --}}
+  </section>
 
 
-  {{-- =================================================================
-       SECTION 2 · FILTER BAR
-       Rigid col-md-2 columns + align-items-end row so every label
-       and control sits on the same baseline.
-       margin-bottom: 4rem
-  ================================================================= --}}
-  <div class="hw-section">
+  {{-- SECTION 2 · Filters — same visual weight as overview -------------------------------- --}}
+  <section class="hw-panel hw-section">
     <div class="hw-filter-bar">
-
-      {{-- Filter heading --}}
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <div style="width:32px;height:32px;border-radius:8px;background:var(--bpl);display:flex;align-items:center;justify-content:center">
-          <i class="fa-solid fa-sliders" style="color:var(--bp);font-size:13px"></i>
-        </div>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--bt)">Filter Report</div>
-          <div style="font-size:10.5px;color:var(--bs)">Narrow down by class, section, subject and task type</div>
-        </div>
-      </div>
+      <header class="hw-filter-intro">
+        <p class="hw-eyebrow">Report builder</p>
+        <h2 class="hw-panel-title">Filter your data</h2>
+        <p class="hw-panel-desc mb-0">Choose class, section, and subject, then run the report. Task type is optional.</p>
+      </header>
 
       {{-- Dropdown row: labels share one baseline; controls share one baseline (mt-auto per column) --}}
       <div class="row g-2 align-items-stretch">
@@ -621,7 +720,7 @@ a.ab {
 
       </div>{{-- /row --}}
     </div>{{-- /hw-filter-bar --}}
-  </div>{{-- /SECTION 2 --}}
+  </section>
 
 
   {{-- =================================================================
@@ -631,13 +730,15 @@ a.ab {
   ================================================================= --}}
   <div class="hw-section" id="results-container" style="display:none">
 
-    {{-- ── Charts Row ──────────────────────────────────────────── --}}
-    <div class="results-section-label">
-      <i class="fa-solid fa-chart-column" style="color:var(--bp)"></i>
-      Analytics Overview
+    <section class="hw-panel hw-results-panel">
+
+    <div class="hw-block-head mb-4">
+      <p class="hw-eyebrow">Results</p>
+      <h2 class="hw-block-title">Analytics &amp; task list</h2>
+      <p class="hw-block-desc">Charts reflect your filters. The table lists matching homework rows.</p>
     </div>
 
-    <div class="row g-3 mb-0">
+    <div class="row g-3 g-lg-4 mb-0">
 
       {{-- Donut Chart · col-md-6 --}}
       <div class="col-md-6">
@@ -664,18 +765,21 @@ a.ab {
 
     </div>{{-- /charts row --}}
 
-    {{-- ── Homework Table (full-width, 3 rem top margin) ────────── --}}
-    <div class="hw-table-card">{{-- margin-top: 3rem applied via class --}}
+    {{-- ── Homework Table ────────── --}}
+    <div class="hw-table-card">
 
-      {{-- Table card header --}}
-      <div class="d-flex align-items-center justify-content-between px-4 py-3"
-           style="border-bottom:1px solid var(--bb)">
-        <div class="results-section-label mb-0 flex-grow-1 me-3">
-          <i class="fa-solid fa-table-list" style="color:var(--bp)"></i>
-          Homework &amp; Tasks List
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3"
+           style="border-bottom:1px solid #f1f5f9;background:#fafbfc">
+        <div class="results-section-label mb-0 flex-grow-1 me-2">
+          <span class="d-inline-flex align-items-center justify-content-center rounded-2 me-2"
+                style="width:36px;height:36px;background:var(--bpl);color:var(--bp)">
+            <i class="fa-solid fa-table-list" style="font-size:14px"></i>
+          </span>
+          <span>Matching tasks</span>
         </div>
         <span id="table-count-badge"
-              style="background:var(--bpl);color:var(--bp);border-radius:20px;padding:3px 12px;font-size:10.5px;font-weight:700;white-space:nowrap">
+              class="badge rounded-pill px-3 py-2"
+              style="background:var(--bpl);color:var(--bp);font-size:11px;font-weight:700;white-space:nowrap;border:1px solid rgba(29,78,216,0.15)">
           — records
         </span>
       </div>
@@ -706,6 +810,8 @@ a.ab {
       </div>
 
     </div>{{-- /hw-table-card --}}
+
+    </section>
 
   </div>{{-- /SECTION 3 · results-container --}}
 
