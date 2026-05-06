@@ -614,38 +614,53 @@ class HomeworkRepository implements HomeworkInterface
     }
 
     /**
-     * Helper: Calculates task status breakdown (Submitted vs Pending vs Overdue).
-     * Used by the filtered report donut chart.
+     * Helper: Task status donut — disjoint student-assignment slots summed across
+     * filtered homework. Same units for every slice (no overlap).
+     *
+     * - Submitted: distinct students who have a homework_students row for that task.
+     * - Pending: enrolled students with no submission yet, deadline not passed (or no deadline).
+     * - Overdue: enrolled students with no submission, submission_date is past end of due day.
      */
     private function getTaskStatisticsForFilters($homeworks): array
     {
+        $sessionId = setting('session');
+
         $submitted = 0;
         $pending   = 0;
         $overdue   = 0;
 
         foreach ($homeworks as $hw) {
-            // Count submissions for this homework
-            $submissionCount = DB::table('homework_students')
+            $submittedHere = (int) DB::table('homework_students')
                 ->where('homework_id', $hw->id)
-                ->count();
+                ->selectRaw('COUNT(DISTINCT student_id) as c')
+                ->value('c');
 
-            // Count submissions without marks (pending eval)
-            $withoutMarks = DB::table('homework_students')
-                ->where('homework_id', $hw->id)
-                ->whereNull('marks')
-                ->count();
+            $eligible = (int) DB::table('session_class_students')
+                ->where('session_id', $sessionId)
+                ->where('classes_id', $hw->classes_id)
+                ->where('section_id', $hw->section_id)
+                ->selectRaw('COUNT(DISTINCT student_id) as c')
+                ->value('c');
 
-            if ($submissionCount > 0) {
-                $submitted += $submissionCount;
+            $submitted += $submittedHere;
+
+            if ($eligible < 1) {
+                continue;
             }
 
-            if ($withoutMarks > 0) {
-                $pending += $withoutMarks;
+            $missing = max(0, $eligible - $submittedHere);
+
+            if ($missing === 0) {
+                continue;
             }
 
-            // Check if overdue
-            if ($hw->submission_date && \Carbon\Carbon::parse($hw->submission_date)->isPast()) {
-                $overdue += 1;
+            $deadlinePassed = $hw->submission_date
+                && \Carbon\Carbon::parse($hw->submission_date)->endOfDay()->isPast();
+
+            if ($deadlinePassed) {
+                $overdue += $missing;
+            } else {
+                $pending += $missing;
             }
         }
 
@@ -657,56 +672,74 @@ class HomeworkRepository implements HomeworkInterface
     }
 
     /**
-     * Helper: Calculates score trend over time (average score per task).
-     * Used by the filtered report line chart.
+     * Helper: Score trend — one series, chronological by assignment date.
+     * Uses average of graded submissions only; values are % of homework max marks
+     * when every assignment has a positive numeric max, otherwise raw average marks.
      */
     private function getScoreTrendForFilters($homeworks): array
     {
+        if ($homeworks->isEmpty()) {
+            return ['labels' => [], 'datasets' => []];
+        }
+
+        $sorted = $homeworks->sortBy(function ($h) {
+            $ts = $h->date
+                ? \Carbon\Carbon::parse($h->date)->timestamp
+                : ($h->created_at ? \Carbon\Carbon::parse($h->created_at)->timestamp : (int) $h->id);
+
+            return [$ts, (int) $h->id];
+        })->values();
+
+        $usePercent = $sorted->every(function ($h) {
+            return is_numeric($h->marks ?? null) && (float) $h->marks > 0;
+        });
+
         $labels = [];
-        $datasets = [];
+        $points = [];
 
-        // Group by class for multiple lines (each class = one line)
-        $groupedByClass = $homeworks->groupBy(fn($h) => $h->class->name ?? 'Unknown');
+        foreach ($sorted as $hw) {
+            $labels[] = $hw->date
+                ? \Carbon\Carbon::parse($hw->date)->format('M j')
+                : '#' . $hw->id;
 
-        $colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316'];
-        $colorIndex = 0;
+            $avgMarks = DB::table('homework_students')
+                ->where('homework_id', $hw->id)
+                ->whereNotNull('marks')
+                ->avg('marks');
 
-        foreach ($groupedByClass as $className => $classHomeworks) {
-            $data = [];
-            foreach ($classHomeworks as $hw) {
-                $avgScore = DB::table('homework_students')
-                    ->where('homework_id', $hw->id)
-                    ->avg('marks') ?? 0;
-                $data[] = round($avgScore, 2);
+            if ($avgMarks === null) {
+                $points[] = null;
+
+                continue;
             }
 
-            // Pad shorter arrays with null for chart alignment
-            $maxLen = $groupedByClass->max(fn($g) => $g->count()) ?: 1;
-            while (count($data) < $maxLen) {
-                $data[] = null;
+            $avgMarks = (float) $avgMarks;
+
+            if ($usePercent) {
+                $max = (float) $hw->marks;
+
+                $points[] = $max > 0 ? round($avgMarks / $max * 100, 1) : null;
+            } else {
+                $points[] = round($avgMarks, 2);
             }
-
-            $datasets[] = [
-                'label'      => $className,
-                'data'       => $data,
-                'borderColor' => $colors[$colorIndex % count($colors)],
-                'backgroundColor' => 'rgba(' . implode(',', array_slice(sscanf($colors[$colorIndex % count($colors)], '#%02x%02x%02x'), 0, 3)) . ',0.1)',
-                'borderWidth' => 2,
-                'tension'    => 0.4,
-            ];
-
-            $colorIndex++;
         }
 
-        // Build labels as task numbers (#1, #2, #3…)
-        $maxLen = $groupedByClass->max(fn($g) => $g->count()) ?: 1;
-        for ($i = 1; $i <= $maxLen; $i++) {
-            $labels[] = '#' . $i;
-        }
+        $hex = '#2563eb';
+        $rgb = sscanf($hex, '#%02x%02x%02x');
+        $rgbaFill = sprintf('rgba(%d,%d,%d,0.12)', $rgb[0], $rgb[1], $rgb[2]);
 
         return [
-            'labels'   => $labels,
-            'datasets' => $datasets,
+            'labels'            => $labels,
+            'datasets'          => [[
+                'label'           => $usePercent ? 'Avg score (% of max marks)' : 'Avg marks (graded)',
+                'data'            => $points,
+                'borderColor'     => $hex,
+                'backgroundColor' => $rgbaFill,
+                'borderWidth'     => 2,
+                'tension'         => 0.35,
+                'spanGaps'        => false,
+            ]],
+            'y_suggested_max'   => $usePercent ? 100 : null,
         ];
     }
 

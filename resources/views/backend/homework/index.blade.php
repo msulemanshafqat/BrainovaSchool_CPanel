@@ -574,7 +574,7 @@
             <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
             Overall Task Status
           </div>
-          <div class="cc-sub">Submitted vs Pending vs Overdue</div>
+          <div class="cc-sub">Student slots: turned in · not yet due · missing after deadline</div>
           <canvas id="donut-chart-filtered" height="220"></canvas>
         </div>
       </div>
@@ -586,7 +586,7 @@
             <i class="fa-solid fa-chart-line me-1" style="color:var(--bp)"></i>
             Score Trend
           </div>
-          <div class="cc-sub">Average score per task over time</div>
+          <div class="cc-sub">Graded average by assignment date (% of max marks when set on all tasks)</div>
           <canvas id="line-chart-filtered" height="220"></canvas>
         </div>
       </div>
@@ -850,16 +850,48 @@ $(document).ready(function () {
           }
 
           const lineCtx = document.getElementById('line-chart-filtered');
-          if (lineCtx && response.trend_data) {
+          if (lineCtx && response.trend_data && response.trend_data.datasets && response.trend_data.datasets.length) {
+            var yScale = { beginAtZero: true, grid: { color: '#f1f5f9' } };
+            if (response.trend_data.y_suggested_max) {
+              yScale.suggestedMax = response.trend_data.y_suggested_max;
+            }
             lineChartInstance = new Chart(lineCtx, {
               type: 'line',
               data: {
                 labels:   response.trend_data.labels,
                 datasets: response.trend_data.datasets.map(function (ds) {
-                  return { label: ds.label, data: ds.data, borderColor: ds.borderColor || '#1d4ed8', backgroundColor: ds.backgroundColor || 'rgba(29,78,216,0.08)', borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: ds.borderColor || '#1d4ed8', pointHoverRadius: 6 };
+                  return {
+                    label: ds.label,
+                    data: ds.data,
+                    borderColor: ds.borderColor || '#1d4ed8',
+                    backgroundColor: ds.backgroundColor || 'rgba(29,78,216,0.08)',
+                    borderWidth: 2.5,
+                    tension: typeof ds.tension === 'number' ? ds.tension : 0.4,
+                    fill: true,
+                    spanGaps: ds.spanGaps === true,
+                    pointRadius: 4,
+                    pointBackgroundColor: ds.borderColor || '#1d4ed8',
+                    pointHoverRadius: 6
+                  };
                 })
               },
-              options: { responsive: true, interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9' } } } }
+              options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: { x: { grid: { display: false } }, y: yScale },
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: function (ctx) {
+                        var v = ctx.raw;
+                        if (v === null || v === undefined) return ' No graded submissions yet';
+                        var lbl = ctx.dataset.label || '';
+                        return ' ' + lbl + ': ' + v + (response.trend_data.y_suggested_max ? '%' : '');
+                      }
+                    }
+                  }
+                }
+              }
             });
           }
 
