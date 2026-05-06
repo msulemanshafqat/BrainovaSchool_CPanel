@@ -7,9 +7,9 @@
 @section('content')
     <div class="page-content">
 
-        {{-- BREADCRUMB --}}
+        {{-- BREADCRUMB + quick actions (same shortcuts as homework dashboard) --}}
         <div class="page-header">
-            <div class="row">
+            <div class="row align-items-center">
                 <div class="col-sm-6">
                     <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h4>
                     <ol class="breadcrumb">
@@ -22,6 +22,14 @@
                         <li class="breadcrumb-item active" aria-current="page">{{ ___('common.add_new') }}</li>
                     </ol>
                 </div>
+                @if(hasPermission('homework_create'))
+                <div class="col-sm-6 text-end mt-3 mt-sm-0">
+                    <a href="{{ route('homework.download-sample') }}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-download me-1"></i>CSV template
+                    </a>
+                </div>
+                @endif
             </div>
         </div>
         {{-- END BREADCRUMB --}}

@@ -395,7 +395,7 @@ a.ab {
   {{-- Hidden base URL for JS --}}
   <input type="hidden" id="url" value="{{ url('/') }}">
 
-  {{-- ── Page Header ──────────────────────────────────────────── --}}
+  {{-- ── Page Header (quick launch: new task + quiz CSV template) ── --}}
   <div class="page-header">
     <div class="row align-items-center">
       <div class="col-sm-6">
@@ -405,6 +405,19 @@ a.ab {
           <li class="breadcrumb-item active">Homework &amp; Tasks</li>
         </ol>
       </div>
+      @if(hasPermission('homework_create'))
+      <div class="col-sm-6 text-end mt-3 mt-sm-0">
+        <div class="d-inline-flex flex-wrap align-items-center justify-content-end gap-2">
+          <a href="{{ route('homework.download-sample') }}"
+             class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-download me-1"></i>CSV template
+          </a>
+          <a href="{{ route('homework.create') }}" class="btn ot-btn-primary btn-sm">
+            <i class="fa-solid fa-plus me-1"></i>New task
+          </a>
+        </div>
+      </div>
+      @endif
     </div>
   </div>
 
