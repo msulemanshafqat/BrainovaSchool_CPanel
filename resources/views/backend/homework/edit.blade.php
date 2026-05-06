@@ -5,8 +5,6 @@
 @endsection
 
 @section('content')
-    <input type="hidden" id="url" value="{{ url('/') }}">
-
     <div class="page-content">
 
         {{-- BREADCRUMB --}}
@@ -46,7 +44,7 @@
                                     <label class="form-label">
                                         {{ ___('student_info.class') }} <span class="fillable">*</span>
                                     </label>
-                                    <select id="getSections"
+                                    <select id="hw_class"
                                             class="nice-select niceSelect bordered_style wide class @error('class') is-invalid @enderror"
                                             name="class">
                                         <option value="">{{ ___('student_info.select_class') }}</option>
@@ -67,7 +65,7 @@
                                     <label class="form-label">
                                         {{ ___('student_info.section') }} <span class="fillable">*</span>
                                     </label>
-                                    <select id="getSubjects"
+                                    <select id="hw_section"
                                             class="nice-select niceSelect sections bordered_style wide section @error('section') is-invalid @enderror"
                                             name="section">
                                         <option value="">{{ ___('student_info.select_section') }}</option>
@@ -321,6 +319,65 @@
 <script>
 $(document).ready(function () {
 
+    var HW_SECTION_PH = @json(___('student_info.select_section'));
+    var HW_SUBJECT_PH = @json(___('examination.select_subject'));
+
+    function hwLoadSections(classId) {
+        var $sec = $('#hw_section').empty().append('<option value="">' + $('<div/>').text(HW_SECTION_PH).html() + '</option>');
+        $('#subject').empty().append('<option value="">' + $('<div/>').text(HW_SUBJECT_PH).html() + '</option>');
+        $sec.niceSelect('update');
+        $('#subject').niceSelect('update');
+
+        if (!classId) {
+            return;
+        }
+
+        $.ajax({
+            url:      '{{ route("homework.ajax.sections-by-class") }}',
+            method:   'GET',
+            data:     { class_id: classId },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success && response.data) {
+                    response.data.forEach(function (section) {
+                        $sec.append('<option value="' + section.id + '">' + $('<div/>').text(section.name).html() + '</option>');
+                    });
+                }
+                $sec.niceSelect('update');
+            },
+            error: function () {
+                console.error('Homework: failed to load sections');
+            }
+        });
+    }
+
+    function hwLoadSubjects(classId, sectionId) {
+        var $sub = $('#subject').empty().append('<option value="">' + $('<div/>').text(HW_SUBJECT_PH).html() + '</option>');
+        $sub.niceSelect('update');
+
+        if (!classId || !sectionId) {
+            return;
+        }
+
+        $.ajax({
+            url:      '{{ route("homework.ajax.subjects-by-section") }}',
+            method:   'GET',
+            data:     { class_id: classId, section_id: sectionId },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success && response.data) {
+                    response.data.forEach(function (subject) {
+                        $sub.append('<option value="' + subject.id + '">' + $('<div/>').text(subject.name).html() + '</option>');
+                    });
+                }
+                $sub.niceSelect('update');
+            },
+            error: function () {
+                console.error('Homework: failed to load subjects');
+            }
+        });
+    }
+
     // =========================================================================
     // 1. TASK TYPE TOGGLE — switches file input name/accept between quiz and non-quiz
     // This was the critical missing fix from the original edit.blade.php.
@@ -371,7 +428,7 @@ $(document).ready(function () {
 
     function generateTitle() {
         var topic = $('#hw_topic').val().trim();
-        var cls   = $('#getSections option:selected').text().trim();
+        var cls   = $('#hw_class option:selected').text().trim();
         var subj  = $('#subject option:selected').text().trim();
         var task  = $('#task_type').val();
         var date  = $('#hw_date').val();
@@ -389,17 +446,27 @@ $(document).ready(function () {
     // Now safe to trigger — taskAbbr and generateTitle are defined above
     $('#task_type').trigger('change');
 
+    $('#hw_class').on('change', function () {
+        hwLoadSections($(this).val());
+        generateTitle();
+    });
+
+    $('#hw_section').on('change', function () {
+        hwLoadSubjects($('#hw_class').val(), $(this).val());
+        generateTitle();
+    });
+
     // Direct listeners for non-AJAX fields
     $('#hw_topic, #hw_date').on('input change', generateTitle);
     $('#task_type').on('change', generateTitle);
 
     // Body-level delegation for NiceSelect AJAX dropdowns
-    $('body').on('change', '#getSections, #getSubjects, #subject', generateTitle);
+    $('body').on('change', '#hw_class, #hw_section, #subject', generateTitle);
 
     // Polling fallback (600 ms) for when NiceSelect AJAX updates value silently
     var _lastSnap = '';
     setInterval(function () {
-        var snap = [$('#getSections').val(), $('#subject').val(), $('#task_type').val(), $('#hw_date').val(), $('#hw_topic').val()].join('|');
+        var snap = [$('#hw_class').val(), $('#hw_section').val(), $('#subject').val(), $('#task_type').val(), $('#hw_date').val(), $('#hw_topic').val()].join('|');
         if (snap !== _lastSnap) { _lastSnap = snap; generateTitle(); }
     }, 600);
 
