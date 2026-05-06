@@ -662,7 +662,7 @@ a.ab {
      MODALS
      ============================================================ --}}
 
-{{-- ── Evaluation Modal (#mEv) ── --}}
+{{-- ── Evaluation Modal (#mEv): openEval() shows modal + POST homework/students loads evaluation.blade.php into #ev-body ── --}}
 <div class="modal fade" id="mEv" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
@@ -1024,11 +1024,27 @@ $(document).ready(function () {
 function openEval(id) {
   $('#hw_id').val(id);
   $('#ev-body').html('<div class="text-center py-5"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>');
+
+  var modalEl = document.getElementById('mEv');
+  if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  } else if (modalEl && typeof $ !== 'undefined' && $.fn.modal) {
+    $(modalEl).modal('show');
+  }
+
   $.post(
     $('#url').val() + '/homework/students',
     { homework_id: id, _token: $('meta[name="csrf-token"]').attr('content') },
-    function (d) { $('#ev-body').html(d.view); }
-  ).fail(function () { $('#ev-body').html('<p class="text-danger p-3">Failed to load.</p>'); });
+    function (d) {
+      if (d && d.view) {
+        $('#ev-body').html(d.view);
+      } else {
+        $('#ev-body').html('<p class="text-danger p-3">Unexpected response.</p>');
+      }
+    }
+  ).fail(function () {
+    $('#ev-body').html('<p class="text-danger p-3">Failed to load evaluation.</p>');
+  });
 }
 
 function vQ(id) {

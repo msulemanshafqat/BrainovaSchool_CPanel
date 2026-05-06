@@ -34,10 +34,13 @@
          title="{{ ___('common.edit') }}">
         <i class="fa-solid fa-pencil" style="font-size:11px"></i>
       </a>
+      <button type="button"
+              class="ab"
+              title="Evaluate submissions"
+              onclick="openEval({{ $row->id }})">
+        <i class="fa-solid fa-pen-to-square" style="font-size:11px"></i>
+      </button>
     @endif
-    <button type="button" class="ab" title="Evaluate submissions" onclick="openEval({{ $row->id }})">
-      <i class="fa-solid fa-pen-to-square" style="font-size:11px"></i>
-    </button>
   </td>
 </tr>
 @empty
