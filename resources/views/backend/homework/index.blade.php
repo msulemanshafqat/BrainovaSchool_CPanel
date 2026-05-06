@@ -558,7 +558,6 @@ a.ab {
     <header class="hw-panel-head">
       <p class="hw-eyebrow">Overview</p>
       <h2 class="hw-panel-title">School-wide snapshot</h2>
-      <p class="hw-panel-desc">Current session totals. These update when the page loads.</p>
     </header>
     <div class="row g-3 g-lg-4">
 
@@ -601,7 +600,7 @@ a.ab {
         </div>
       </div>
 
-      {{-- Card 4 · E6 Score  (uses config('brainova.e6_multiplier') server-side) --}}
+      {{-- Card 4 · cumulative score (uses config('brainova.e6_multiplier') server-side) --}}
       <div class="col-md-6 col-lg-3">
         <div class="sc">
           <div class="si" style="background: linear-gradient(135deg,#ede9fe,#ddd6fe);">
@@ -609,7 +608,7 @@ a.ab {
           </div>
           <div style="flex:1">
             <div class="sv" id="stat-score"><span class="stat-loading"></span></div>
-            <div class="sl">Total E6 Score</div>
+            <div class="sl">Total Score</div>
           </div>
         </div>
       </div>
@@ -622,7 +621,6 @@ a.ab {
   <section class="hw-panel hw-section">
     <div class="hw-filter-bar">
       <header class="hw-filter-intro">
-        <p class="hw-eyebrow">Report builder</p>
         <h2 class="hw-panel-title">Filter your data</h2>
         <p class="hw-panel-desc mb-0">Choose class, section, and subject, then run the report. Task type is optional.</p>
       </header>
@@ -775,7 +773,7 @@ a.ab {
                 style="width:36px;height:36px;background:var(--bpl);color:var(--bp)">
             <i class="fa-solid fa-table-list" style="font-size:14px"></i>
           </span>
-          <span>Matching tasks</span>
+          <span>Homework Evaluation</span>
         </div>
         <span id="table-count-badge"
               class="badge rounded-pill px-3 py-2"
