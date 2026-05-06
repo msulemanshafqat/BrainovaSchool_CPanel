@@ -130,20 +130,43 @@
   margin-bottom:  8px;
   display:        block;
 }
+/* Target the visible widget (.nice-select), not only the hidden <select> class */
+.hw-filter-bar .nice-select,
 .hw-filter-bar .niceSelect {
-  width:      100% !important;
-  min-width:  0   !important;
-  box-sizing: border-box;
-  font-size:  12.5px !important;
+  width:         100% !important;
+  min-width:     0 !important;
+  float:         none !important;
+  clear:         both !important;
+  display:       block !important;
+  box-sizing:    border-box;
+  font-size:     12.5px !important;
   border-radius: 10px !important;
-  border-color: var(--bb) !important;
-  height: 40px !important;
-  line-height: 40px !important;
+  border-color:  var(--bb) !important;
+  height:        40px !important;
+  line-height:   40px !important;
 }
+.hw-filter-bar .nice-select .current,
+.hw-filter-bar .niceSelect .current {
+  display:       block;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+  max-width:     100%;
+  padding-right: 4px;
+}
+.hw-filter-bar .nice-select.open,
+.hw-filter-bar .nice-select:hover,
 .hw-filter-bar .niceSelect.open,
 .hw-filter-bar .niceSelect:hover { border-color: var(--bp) !important; }
+.hw-filter-bar .nice-select .list,
 .hw-filter-bar .niceSelect .list { width: 100% !important; border-radius: 10px !important; }
+.hw-filter-bar .nice-select .list li.option,
 .hw-filter-bar .niceSelect .list li.option { font-size: 12.5px !important; }
+
+/* Keeps label row aligned; selects sit on one baseline via mt-auto wrappers */
+.hw-filter-bar .hw-filter-field {
+  min-height: 0;
+}
 
 /* ─── Proceed / Reset Buttons ────────────────────────────────── */
 .btn-proceed {
@@ -505,77 +528,95 @@ a.ab {
         </div>
       </div>
 
-      {{-- Dropdowns row — align-items-end keeps labels + selects flush --}}
-      <div class="row g-2 align-items-end">
+      {{-- Dropdown row: labels share one baseline; controls share one baseline (mt-auto per column) --}}
+      <div class="row g-2 align-items-stretch">
 
         {{-- Class (col-md-2) --}}
-        <div class="col-md-2 col-sm-6">
-          <label class="filter-label" for="filter-class">
-            <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
-          </label>
-          
-          <select id="filter-class" class="niceSelect bordered_style">
-            <option value="">All Classes</option>
-            @foreach($data['classes'] ?? [] as $item)
-              @if(!empty($item->class))
-                <option value="{{ $item->class->id }}">{{ $item->class->name }}</option>
-              @endif
-            @endforeach
-          </select>
+        <div class="col-md-2 col-sm-6 d-flex">
+          <div class="hw-filter-field d-flex flex-column w-100">
+            <label class="filter-label" for="filter-class">
+              <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
+            </label>
+            <div class="mt-auto pt-0">
+              <select id="filter-class" class="niceSelect bordered_style">
+                <option value="">All Classes</option>
+                @foreach($data['classes'] ?? [] as $item)
+                  @if(!empty($item->class))
+                    <option value="{{ $item->class->id }}">{{ $item->class->name }}</option>
+                  @endif
+                @endforeach
+              </select>
+            </div>
+          </div>
         </div>
 
         {{-- Section (col-md-2) --}}
-        <div class="col-md-2 col-sm-6">
-          <label class="filter-label" for="filter-section">
-            <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
-          </label>
-          
-          <select id="filter-section" class="niceSelect bordered_style">  
-            <option value="">All Sections</option>
-          </select>
+        <div class="col-md-2 col-sm-6 d-flex">
+          <div class="hw-filter-field d-flex flex-column w-100">
+            <label class="filter-label" for="filter-section">
+              <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
+            </label>
+            <div class="mt-auto pt-0">
+              <select id="filter-section" class="niceSelect bordered_style">
+                <option value="">All Sections</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {{-- Subject (col-md-2) --}}
-        <div class="col-md-2 col-sm-6">
-          <label class="filter-label" for="filter-subject">
-            <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
-          </label>
-          
-          <select id="filter-subject" class="niceSelect bordered_style">
-
-            <option value="">All Subjects</option>
-          </select>
+        <div class="col-md-2 col-sm-6 d-flex">
+          <div class="hw-filter-field d-flex flex-column w-100">
+            <label class="filter-label" for="filter-subject">
+              <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
+            </label>
+            <div class="mt-auto pt-0">
+              <select id="filter-subject" class="niceSelect bordered_style">
+                <option value="">All Subjects</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {{-- Task Type (col-md-2) --}}
-        <div class="col-md-2 col-sm-6">
-          <label class="filter-label" for="filter-task-type">
-            <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
-          </label>
-          
-           <select id="filter-task-type" class="niceSelect bordered_style"> 
-          <option value="all">All Types</option>
-            <option value="quiz">Quiz</option>
-            <option value="homework">Homework</option>
-            <option value="project">Project</option>
-            <option value="activity">Activity</option>
-            <option value="game">Game</option>
-            <option value="assignment">Assignment</option>
-          </select>
+        <div class="col-md-2 col-sm-6 d-flex">
+          <div class="hw-filter-field d-flex flex-column w-100">
+            <label class="filter-label" for="filter-task-type">
+              <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
+            </label>
+            <div class="mt-auto pt-0">
+              <select id="filter-task-type" class="niceSelect bordered_style">
+                <option value="all">All Types</option>
+                <option value="quiz">Quiz</option>
+                <option value="homework">Homework</option>
+                <option value="project">Project</option>
+                <option value="activity">Activity</option>
+                <option value="game">Game</option>
+                <option value="assignment">Assignment</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {{-- Spacer col to push buttons right (col-md-2 + col-md-2 = 4 cols spare) --}}
         <div class="col-md-2 d-none d-md-block"></div>
 
-        {{-- Proceed + Reset buttons (col-md-2, pinned to end baseline) --}}
-        <div class="col-md-2 col-sm-12 d-flex gap-2 align-items-end">
-          <button type="button" class="btn-proceed" id="proceed-btn">
-            <i class="fa-solid fa-arrow-right"></i>
-            Proceed
-          </button>
-          <button type="button" class="btn-reset" id="reset-filters-btn">
-            <i class="fa-solid fa-rotate-left"></i>
-          </button>
+        {{-- Proceed + Reset — spacer matches label height so buttons align with selects --}}
+        <div class="col-md-2 col-sm-12 d-flex">
+          <div class="hw-filter-field d-flex flex-column w-100 align-items-stretch">
+            <div class="filter-label invisible user-select-none" aria-hidden="true">
+              <i class="fa-solid fa-tags me-1"></i>Actions
+            </div>
+            <div class="mt-auto d-flex gap-2 justify-content-end flex-wrap">
+              <button type="button" class="btn-proceed" id="proceed-btn">
+                <i class="fa-solid fa-arrow-right"></i>
+                Proceed
+              </button>
+              <button type="button" class="btn-reset" id="reset-filters-btn">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>{{-- /row --}}
