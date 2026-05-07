@@ -841,7 +841,7 @@ class UserSeeder extends Seeder
 
                     // Dashboard permissions
                     'counter_read',
-                    'session_read',
+                    'classes_read',
                     'calendar_read',
 
                     // gallery_category

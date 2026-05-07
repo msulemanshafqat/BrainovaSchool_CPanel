@@ -11,6 +11,11 @@ interface ClassesInterface
 
     public function getAll();
 
+    /** Paginated classes the staff member teaches this session (subject assignment), distinct by class id. */
+    public function getAllForAssignedTeacher(int $staffId);
+
+    public function staffTeachesClass(int $staffId, int $classId): bool;
+
     public function store($request);
 
     public function show($id);

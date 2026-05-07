@@ -6,7 +6,7 @@ use App\Enums\Settings;
 use App\Models\Academic\Classes;
 use App\Traits\ReturnFormatTrait;
 use Illuminate\Support\Facades\DB;
-use App\Models\Academic\ClassSetup;
+use App\Models\Academic\SubjectAssignChildren;
 use App\Interfaces\Academic\ClassesInterface;
 use App\Models\ClassTranslate;
 
@@ -36,6 +36,41 @@ class ClassesRepository implements ClassesInterface
     public function getAll()
     {
         return $this->classes->latest()->paginate(Settings::PAGINATE);
+    }
+
+    public function getAllForAssignedTeacher(int $staffId)
+    {
+        $sessionId  = setting('session');
+        $childTable = (new SubjectAssignChildren())->getTable();
+
+        $classIds = SubjectAssignChildren::query()
+            ->where($childTable . '.staff_id', $staffId)
+            ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+            ->where('subject_assigns.session_id', $sessionId)
+            ->distinct()
+            ->pluck('subject_assigns.classes_id')
+            ->unique()
+            ->filter()
+            ->values();
+
+        if ($classIds->isEmpty()) {
+            return $this->classes->latest()->whereRaw('1 = 0')->paginate(Settings::PAGINATE);
+        }
+
+        return $this->classes->latest()->whereIn('id', $classIds)->paginate(Settings::PAGINATE);
+    }
+
+    public function staffTeachesClass(int $staffId, int $classId): bool
+    {
+        $sessionId  = setting('session');
+        $childTable = (new SubjectAssignChildren())->getTable();
+
+        return SubjectAssignChildren::query()
+            ->where($childTable . '.staff_id', $staffId)
+            ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+            ->where('subject_assigns.session_id', $sessionId)
+            ->where('subject_assigns.classes_id', $classId)
+            ->exists();
     }
 
     public function store($request)

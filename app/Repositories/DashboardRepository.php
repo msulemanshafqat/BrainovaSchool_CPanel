@@ -17,10 +17,11 @@ use App\Models\Staff\Staff;
 use App\Models\StudentInfo\ParentGuardian;
 use App\Models\StudentInfo\SessionClassStudent;
 use App\Models\StudentInfo\Student;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Academic\SubjectAssignChildren;
 
 class DashboardRepository implements DashboardInterface
 {
-
     public function index()
     {
         $data['student'] = SessionClassStudent::where('session_id', setting('session'))->count();
@@ -33,6 +34,20 @@ class DashboardRepository implements DashboardInterface
         $data['income']  = Income::where('session_id', setting('session'))->sum('amount');
         $data['expense'] = Expense::where('session_id', setting('session'))->sum('amount');
         $data['balance'] = $data['income'] - $data['expense'];
+
+        $data['teacher_classes_count'] = null;
+        if (Auth::check() && Auth::user()->role_id == 5 && Auth::user()->staff) {
+            $sessionId  = setting('session');
+            $staffId    = (int) Auth::user()->staff->id;
+            $childTable = (new SubjectAssignChildren())->getTable();
+            $data['teacher_classes_count'] = (int) SubjectAssignChildren::query()
+                ->where($childTable . '.staff_id', $staffId)
+                ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+                ->where('subject_assigns.session_id', $sessionId)
+                ->selectRaw('COUNT(DISTINCT subject_assigns.classes_id) as cnt')
+                ->value('cnt');
+        }
+
         return $data;
     }
 
