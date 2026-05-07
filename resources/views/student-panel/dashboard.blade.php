@@ -7,11 +7,15 @@
 @section('content')
 <div class="page-content">
 
-    <div class="row">
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+    @php
+        $gradedHw = (int) ($data['homework_graded_count'] ?? 0);
+        $avgScore = $data['homework_average_marks'] ?? null;
+    @endphp
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100">
                 <div class="icon">
-                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery1.svg') }}" alt="crm_summery1">
+                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery1.svg') }}" alt="">
                 </div>
                 <div class="summeryContent">
                     <h4>{{ ___('academic.class') }}</h4>
@@ -19,10 +23,10 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100">
                 <div class="icon">
-                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery2.svg') }}" alt="crm_summery1">
+                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery2.svg') }}" alt="">
                 </div>
                 <div class="summeryContent">
                     <h4>{{ ___('academic.subject') }}</h4>
@@ -30,10 +34,10 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100">
                 <div class="icon">
-                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery3.svg') }}" alt="crm_summery1">
+                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery3.svg') }}" alt="">
                 </div>
                 <div class="summeryContent">
                     <h4>{{ ___('academic.teacher') }}</h4>
@@ -41,14 +45,30 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100">
                 <div class="icon">
-                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery4.svg') }}" alt="crm_summery1">
+                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery4.svg') }}" alt="">
                 </div>
                 <div class="summeryContent">
                     <h4>{{ ___('settings.event') }}</h4>
                     <h1>{{ $data['totalEvent'] }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100">
+                <div class="icon">
+                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery2.svg') }}" alt="">
+                </div>
+                <div class="summeryContent">
+                    <h4>{{ ___('examination.marks') }} <small class="text-muted font-weight-normal">(avg)</small></h4>
+                    <h1>@if($gradedHw > 0 && $avgScore !== null){{ $avgScore }}@else—@endif</h1>
+                    @if($gradedHw > 0)
+                        <p class="paragraph mb-0 mt-1" style="font-size:12px;line-height:1.3;color:#64748b">
+                            {{ $gradedHw }} graded {{ $gradedHw === 1 ? 'assignment' : 'assignments' }}
+                        </p>
+                    @endif
                 </div>
             </div>
         </div>
