@@ -48,23 +48,19 @@ class DashboardRepository implements DashboardInterface
                             ->get();
             $data['student'] = $student;
 
-            $data['homework_graded_count']   = 0;
-            $data['homework_average_marks']  = null;
-            $data['homework_total_marks']    = null;
+            $data['homework_total_marks'] = null;
             if ($student) {
                 $sessionId = setting('session');
-                $hwTable     = (new Homework)->getTable();
-                $hwStats     = HomeworkStudent::query()
+                $hwTable = (new Homework)->getTable();
+                $hwStats = HomeworkStudent::query()
                     ->join($hwTable, $hwTable . '.id', '=', 'homework_students.homework_id')
                     ->where('homework_students.student_id', $student->id)
                     ->whereNotNull('homework_students.marks')
                     ->where($hwTable . '.session_id', $sessionId)
-                    ->selectRaw('COUNT(*) as c, AVG(homework_students.marks) as avg_m, SUM(homework_students.marks) as sum_m')
+                    ->selectRaw('COUNT(*) as c, SUM(homework_students.marks) as sum_m')
                     ->first();
                 if ($hwStats && (int) $hwStats->c > 0) {
-                    $data['homework_graded_count']  = (int) $hwStats->c;
-                    $data['homework_average_marks'] = round((float) $hwStats->avg_m, 1);
-                    $data['homework_total_marks']   = round((float) $hwStats->sum_m, 1);
+                    $data['homework_total_marks'] = round((float) $hwStats->sum_m, 1);
                 }
             }
 

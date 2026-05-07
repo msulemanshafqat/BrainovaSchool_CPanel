@@ -6,36 +6,23 @@
 
 @push('css')
 <style>
-/* Marks card: keep icon vertically centered with label + score block like other summary boxes */
-.student-dash-marks.ot_crm_summeryBox {
+/* Scores card: align like other summary boxes */
+.student-dash-scores.ot_crm_summeryBox {
   align-items: center;
 }
-.student-dash-marks.ot_crm_summeryBox > .icon {
+.student-dash-scores.ot_crm_summeryBox > .icon {
   flex-shrink: 0;
   align-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.student-dash-marks .summeryContent {
+.student-dash-scores .summeryContent {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-.student-dash-marks .summeryContent h1 {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.65rem;
-  line-height: 1.15;
-}
-.student-dash-marks .summeryContent h1 .dash-marks-sub {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.01em;
 }
 </style>
 @endpush
@@ -44,10 +31,6 @@
 @section('content')
 <div class="page-content">
 
-    @php
-        $gradedHw = (int) ($data['homework_graded_count'] ?? 0);
-        $avgScore = $data['homework_average_marks'] ?? null;
-    @endphp
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-24">
         <div class="col">
             <div class="ot_crm_summeryBox d-flex align-items-center h-100">
@@ -94,18 +77,13 @@
             </div>
         </div>
         <div class="col">
-            <div class="ot_crm_summeryBox student-dash-marks d-flex h-100">
+            <div class="ot_crm_summeryBox student-dash-scores d-flex h-100">
                 <div class="icon">
                     <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery2.svg') }}" alt="">
                 </div>
                 <div class="summeryContent">
-                    <h4>{{ ___('examination.marks') }} <small class="text-muted font-weight-normal">(avg)</small></h4>
-                    <h1>
-                        <span>@if($gradedHw > 0 && $avgScore !== null){{ $avgScore }}@else—@endif</span>
-                        @if($gradedHw > 0)
-                            <span class="dash-marks-sub">{{ $gradedHw }} graded {{ $gradedHw === 1 ? 'assignment' : 'assignments' }}</span>
-                        @endif
-                    </h1>
+                    <h4>{{ ___('examination.scores') }}</h4>
+                    <h1>@if(($data['homework_total_marks'] ?? null) !== null){{ $data['homework_total_marks'] }}@else—@endif</h1>
                 </div>
             </div>
         </div>
