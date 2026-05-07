@@ -3,6 +3,8 @@
 namespace App\Repositories\ParentPanel;
 
 use App\Models\Event;
+use App\Models\Homework;
+use App\Models\HomeworkStudent;
 use App\Models\StudentInfo\Student;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Academic\ClassRoutine;
@@ -55,6 +57,9 @@ class DashboardRepository implements DashboardInterface
                                 ->orderBy('date')
                                 ->take(5)
                                 ->get();
+                $data['homework_total_marks'] = $this->homeworkTotalMarksForStudent($student);
+            } else {
+                $data['homework_total_marks'] = null;
             }
             $data['student'] = $student;
             return $data;
@@ -99,10 +104,37 @@ class DashboardRepository implements DashboardInterface
                             ->take(5)
                             ->get();
             $data['student'] = $student;
+            $data['homework_total_marks'] = $this->homeworkTotalMarksForStudent($student);
 
             return $data;
         } catch (\Throwable $th) {
             return false;
         }
+    }
+
+    /**
+     * Sum of graded homework marks for the child in the current session (same rule as student panel).
+     */
+    private function homeworkTotalMarksForStudent(?Student $student): ?float
+    {
+        if (!$student) {
+            return null;
+        }
+
+        $sessionId = setting('session');
+        $hwTable = (new Homework())->getTable();
+        $hwStats = HomeworkStudent::query()
+            ->join($hwTable, $hwTable . '.id', '=', 'homework_students.homework_id')
+            ->where('homework_students.student_id', $student->id)
+            ->whereNotNull('homework_students.marks')
+            ->where($hwTable . '.session_id', $sessionId)
+            ->selectRaw('COUNT(*) as c, SUM(homework_students.marks) as sum_m')
+            ->first();
+
+        if ($hwStats && (int) $hwStats->c > 0) {
+            return round((float) $hwStats->sum_m, 1);
+        }
+
+        return null;
     }
 }

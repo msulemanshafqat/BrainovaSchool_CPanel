@@ -4,6 +4,20 @@
 {{ ___('common.Dashboard') }}
 @endsection
 
+@push('css')
+<style>
+.parent-dash-scores.ot_crm_summeryBox { align-items: center; }
+.parent-dash-scores.ot_crm_summeryBox > .icon {
+  flex-shrink: 0; align-self: center;
+  display: flex; align-items: center; justify-content: center;
+}
+.parent-dash-scores .summeryContent {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
+}
+</style>
+@endpush
+
 @section('content')
     <div class="row">
         <form action="{{ route('parent-panel-student.search') }}" method="post" id="marksheed" enctype="multipart/form-data">
@@ -40,9 +54,9 @@
     
     @if($data['student'])
 
-    <div class="row">
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100 mb-0">
                 <div class="icon">
                     <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery1.svg') }}" alt="crm_summery1">
                 </div>
@@ -52,8 +66,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100 mb-0">
                 <div class="icon">
                     <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery2.svg') }}" alt="crm_summery1">
                 </div>
@@ -63,8 +77,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100 mb-0">
                 <div class="icon">
                     <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery3.svg') }}" alt="crm_summery1">
                 </div>
@@ -74,14 +88,25 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3 col-md-6">
-            <div class="ot_crm_summeryBox d-flex align-items-center mb-24">
+        <div class="col">
+            <div class="ot_crm_summeryBox d-flex align-items-center h-100 mb-0">
                 <div class="icon">
                     <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery4.svg') }}" alt="crm_summery1">
                 </div>
                 <div class="summeryContent">
                     <h4>{{ ___('settings.event') }}</h4>
                     <h1>{{ $data['totalEvent'] }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="ot_crm_summeryBox parent-dash-scores d-flex h-100 mb-0">
+                <div class="icon">
+                    <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery2.svg') }}" alt="">
+                </div>
+                <div class="summeryContent">
+                    <h4>{{ ___('examination.scores') }}</h4>
+                    <h1>@if(($data['homework_total_marks'] ?? null) !== null){{ $data['homework_total_marks'] }}@else—@endif</h1>
                 </div>
             </div>
         </div>
