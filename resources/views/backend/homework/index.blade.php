@@ -150,7 +150,7 @@
               <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
             </label>
             <div class="mt-auto pt-0">
-              <select id="filter-class" class="niceSelect bordered_style">
+              <select id="filter-class" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="">All Classes</option>
                 @foreach($data['classes'] ?? [] as $item)
                   @if(!empty($item->class))
@@ -169,7 +169,7 @@
               <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
             </label>
             <div class="mt-auto pt-0">
-              <select id="filter-section" class="niceSelect bordered_style">
+              <select id="filter-section" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="">All Sections</option>
               </select>
             </div>
@@ -183,7 +183,7 @@
               <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
             </label>
             <div class="mt-auto pt-0">
-              <select id="filter-subject" class="niceSelect bordered_style">
+              <select id="filter-subject" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="">All Subjects</option>
               </select>
             </div>
@@ -197,7 +197,7 @@
               <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
             </label>
             <div class="mt-auto pt-0">
-              <select id="filter-task-type" class="niceSelect bordered_style">
+              <select id="filter-task-type" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="all">All Types</option>
                 <option value="quiz">Quiz</option>
                 <option value="homework">Homework</option>
@@ -397,9 +397,9 @@ $(document).ready(function () {
     const classId = $(this).val();
 
     $('#filter-section').val('').empty()
-      .append('<option value="">All Sections</option>').niceSelect('update');
+      .append('<option value="">All Sections</option>');
     $('#filter-subject').val('').empty()
-      .append('<option value="">All Subjects</option>').niceSelect('update');
+      .append('<option value="">All Subjects</option>');
 
     if (!classId) return;
     loadSectionsByClass(classId);
@@ -410,34 +410,26 @@ $(document).ready(function () {
     const sectionId = $(this).val();
 
     $('#filter-subject').val('').empty()
-      .append('<option value="">All Subjects</option>').niceSelect('update');
+      .append('<option value="">All Subjects</option>');
 
     if (!classId || !sectionId) return;
     loadSubjectsBySection(classId, sectionId);
   });
 
-  /* ── Init niceSelect AFTER events ── */
-  $('#filter-class').niceSelect();
-  $('#filter-section').niceSelect();
-  $('#filter-subject').niceSelect();
-  $('#filter-task-type').niceSelect();
-
-  /* ── Proceed button ── */
+  /* native selects (no niceSelect) */
   $('#proceed-btn').on('click', function () {
     getFilteredReport();
   });
 
   /* ── Reset button naz ── */
   $('#reset-filters-btn').on('click', function () {
-    $('#filter-class').val('').niceSelect('update');
-    $('#filter-section').empty().append('<option value="">All Sections</option>').niceSelect('update');
-    $('#filter-subject').empty().append('<option value="">All Subjects</option>').niceSelect('update');
-    $('#filter-task-type').val('all').niceSelect('update');
+    $('#filter-class').val('');
+    $('#filter-section').empty().append('<option value="">All Sections</option>');
+    $('#filter-subject').empty().append('<option value="">All Subjects</option>');
+    $('#filter-task-type').val('all');
     if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
     if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
-    $('#results-container').stop(true, true).fadeOut(300, function () {
-      $(this).css({ visibility: '', opacity: '' });
-    });
+    $('#results-container').stop(true, true).hide().css({ visibility: '', opacity: '' });
   });
 
   /* ── Functions ── */
@@ -489,7 +481,6 @@ $(document).ready(function () {
           response.data.forEach(function (section) {
             $sel.append('<option value="' + section.id + '">' + section.name + '</option>');
           });
-          $sel.niceSelect('update');
         }
       },
       error: function () { console.error('Failed to load sections'); }
@@ -508,7 +499,6 @@ $(document).ready(function () {
           response.data.forEach(function (subject) {
             $sel.append('<option value="' + subject.id + '">' + subject.name + '</option>');
           });
-          $sel.niceSelect('update');
         }
       },
       error: function () { console.error('Failed to load subjects'); }
@@ -564,7 +554,7 @@ $(document).ready(function () {
                   backgroundColor: donutColors.length >= donutVals.length ? donutColors : ['#10b981', '#f59e0b', '#dc2626'],
                   borderWidth: 3,
                   borderColor: '#312e81',
-                  hoverOffset: 8
+                  hoverOffset: 4
                 }]
               },
               options: {
@@ -646,9 +636,9 @@ $(document).ready(function () {
                     tension: typeof ds.tension === 'number' ? ds.tension : 0.35,
                     fill: ds.fill !== false,
                     spanGaps: ds.spanGaps === true,
-                    pointRadius: 4,
+                    pointRadius: 3,
                     pointBackgroundColor: bc,
-                    pointHoverRadius: 6
+                    pointHoverRadius: 4
                   };
                 })
               },
@@ -681,11 +671,10 @@ $(document).ready(function () {
             });
           }
 
-          $results.css({ visibility: 'visible' });
+          $results.css({ visibility: 'visible', opacity: 1 });
           window.requestAnimationFrame(function () {
             if (donutChartInstance && typeof donutChartInstance.resize === 'function') donutChartInstance.resize();
             if (lineChartInstance && typeof lineChartInstance.resize === 'function') lineChartInstance.resize();
-            $results.animate({ opacity: 1 }, 400);
           });
         }
       },
