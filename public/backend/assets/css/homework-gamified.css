@@ -177,6 +177,11 @@
   max-width: 48rem;
 }
 
+.hw-panel-desc .hw-deploy-callout {
+  color: #67e8f9;
+  font-weight: 800;
+}
+
 .soft-card {
   background: rgba(30, 27, 75, 0.55);
   border: 1px solid rgba(129, 140, 248, 0.3);
