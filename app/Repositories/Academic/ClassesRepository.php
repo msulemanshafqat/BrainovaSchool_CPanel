@@ -4,6 +4,7 @@ namespace App\Repositories\Academic;
 
 use App\Enums\Settings;
 use App\Models\Academic\Classes;
+use App\Models\Academic\ClassSetup;
 use App\Traits\ReturnFormatTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\Academic\SubjectAssignChildren;
