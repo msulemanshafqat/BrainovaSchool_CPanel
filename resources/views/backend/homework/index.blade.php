@@ -140,11 +140,12 @@
         <p class="hw-panel-desc mb-0">Pick class, section, and subject—optional task type—then hit <strong>Deploy</strong> to load charts and the quest log.</p>
       </header>
 
-      {{-- Single row: filters + actions bottom-aligned; tight label→control spacing --}}
-      <div class="row g-2 align-items-end">
-
+      {{-- Filters left / Deploy + Reset flush right (within .hw-panel / .page-content) --}}
+      <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-end gap-3 hw-filter-toolbar-row">
+        <div class="flex-grow-1 min-w-0 mw-100">
+          <div class="row g-2">
         {{-- Class --}}
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-6 col-xl-3">
           <div class="hw-filter-field">
             <label class="filter-label" for="filter-class">
               <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
@@ -161,7 +162,7 @@
         </div>
 
         {{-- Section --}}
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-6 col-xl-3">
           <div class="hw-filter-field">
             <label class="filter-label" for="filter-section">
               <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
@@ -173,7 +174,7 @@
         </div>
 
         {{-- Subject --}}
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-6 col-xl-3">
           <div class="hw-filter-field">
             <label class="filter-label" for="filter-subject">
               <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
@@ -185,7 +186,7 @@
         </div>
 
         {{-- Task Type --}}
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-6 col-xl-3">
           <div class="hw-filter-field">
             <label class="filter-label" for="filter-task-type">
               <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
@@ -201,9 +202,10 @@
               </select>
           </div>
         </div>
+          </div>{{-- /inner row --}}
+        </div>
 
-        {{-- Deploy + Reset — one row, aligned with selects (md+: same row as dropdowns) --}}
-        <div class="col-12 col-md-4">
+        <div class="flex-shrink-0 ms-lg-auto align-self-stretch align-self-lg-end">
           <div class="hw-filter-actions">
               <button type="button" class="btn-proceed" id="proceed-btn">
                 <i class="fa-solid fa-rocket"></i>
@@ -215,7 +217,7 @@
           </div>
         </div>
 
-      </div>{{-- /row --}}
+      </div>{{-- /hw-filter-toolbar-row --}}
     </div>{{-- /hw-filter-bar --}}
   </section>
 
