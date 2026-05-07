@@ -23,6 +23,7 @@
                     </div>
                </a>
             </div>
+            @if (auth()->user()->role_id != 5)
             <div class="col-xl-3 col-lg-3 col-md-6">
                <a href="{{ route('parent.index') }}">
                  <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24">
@@ -49,6 +50,7 @@
                     </div>
                 </a>
             </div>
+            @endif
             <div class="col-xl-3 col-lg-3 col-md-6">
                 @if (auth()->user()->role_id == 5)
                     {{-- Teachers: assigned classes for current session (not global sessions list) --}}

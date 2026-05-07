@@ -24,20 +24,20 @@ class DashboardRepository implements DashboardInterface
 {
     public function index()
     {
-        $data['student'] = SessionClassStudent::where('session_id', setting('session'))->count();
+        $sessionId = setting('session');
+        $data['student'] = SessionClassStudent::where('session_id', $sessionId)->count();
         $data['parent']  = ParentGuardian::count();
         $data['teacher'] = Staff::where('role_id',5)->count();
         $data['session'] = Session::count();
 
-        $data['events']  = Event::where('session_id', setting('session'))->active()->where('date', '>=', date('Y-m-d'))->orderBy('date')->take(5)->get();
+        $data['events']  = Event::where('session_id', $sessionId)->active()->where('date', '>=', date('Y-m-d'))->orderBy('date')->take(5)->get();
 
-        $data['income']  = Income::where('session_id', setting('session'))->sum('amount');
-        $data['expense'] = Expense::where('session_id', setting('session'))->sum('amount');
+        $data['income']  = Income::where('session_id', $sessionId)->sum('amount');
+        $data['expense'] = Expense::where('session_id', $sessionId)->sum('amount');
         $data['balance'] = $data['income'] - $data['expense'];
 
         $data['teacher_classes_count'] = null;
         if (Auth::check() && Auth::user()->role_id == 5 && Auth::user()->staff) {
-            $sessionId  = setting('session');
             $staffId    = (int) Auth::user()->staff->id;
             $childTable = (new SubjectAssignChildren())->getTable();
             $data['teacher_classes_count'] = (int) SubjectAssignChildren::query()
@@ -46,9 +46,45 @@ class DashboardRepository implements DashboardInterface
                 ->where('subject_assigns.session_id', $sessionId)
                 ->selectRaw('COUNT(DISTINCT subject_assigns.classes_id) as cnt')
                 ->value('cnt');
+
+            $data['student'] = $this->countSessionStudentsForTeacherAssignments($staffId, $sessionId);
         }
 
         return $data;
+    }
+
+    /**
+     * Students in the current session whose class/section matches a subject assignment for this staff member.
+     */
+    private function countSessionStudentsForTeacherAssignments(int $staffId, $sessionId): int
+    {
+        $pairs = $this->teacherAssignedClassSectionPairs($staffId, $sessionId);
+        if ($pairs->isEmpty()) {
+            return 0;
+        }
+
+        return SessionClassStudent::query()
+            ->where('session_id', $sessionId)
+            ->where(function ($q) use ($pairs) {
+                foreach ($pairs as $p) {
+                    $q->orWhere(function ($qq) use ($p) {
+                        $qq->where('classes_id', $p->classes_id)->where('section_id', $p->section_id);
+                    });
+                }
+            })
+            ->count();
+    }
+
+    private function teacherAssignedClassSectionPairs(int $staffId, $sessionId)
+    {
+        $childTable = (new SubjectAssignChildren())->getTable();
+
+        return SubjectAssignChildren::query()
+            ->where($childTable . '.staff_id', $staffId)
+            ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+            ->where('subject_assigns.session_id', $sessionId)
+            ->selectRaw('DISTINCT subject_assigns.classes_id, subject_assigns.section_id')
+            ->get();
     }
 
     public function feesCollectionYearly() {

@@ -7,6 +7,10 @@ interface ClassSetupInterface
 
     public function getSections($id);
 
+    public function assignedClassSetupsForTeacher(int $staffId);
+
+    public function getSectionsForTeacher($classId, int $staffId);
+
     public function all();
 
     public function getPaginateAll();

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\StudentInfo\SessionClassStudent;
 use App\Interfaces\StudentInfo\StudentInterface;
+use App\Models\Academic\SubjectAssignChildren;
 
 class StudentRepository implements StudentInterface
 {
@@ -38,17 +39,22 @@ class StudentRepository implements StudentInterface
         return $this->model->active()->get();
     }
 
-    public function getStudents($request)
+    public function getStudents($request, ?int $teacherStaffId = null)
     {
-        return  SessionClassStudent::query()
+        $query = SessionClassStudent::query()
             ->where('session_id', setting('session'))
             ->where('classes_id', $request->class)
             ->where('section_id', $request->section)
             ->when(request()->filled('gender'), function ($q) use ($request) {
                 $q->whereHas('student', fn($q) => $q->where('gender_id', $request->gender));
             })
-            ->with('student')
-            ->get();
+            ->with('student');
+
+        if ($teacherStaffId !== null) {
+            $this->applyTeacherClassSectionScope($query, $teacherStaffId);
+        }
+
+        return $query->get();
     }
 
 
@@ -56,16 +62,29 @@ class StudentRepository implements StudentInterface
     {
         return SessionClassStudent::whereHas('student')->where('session_id', setting('session'))->latest()->with('student', 'class', 'section')->paginate(Settings::PAGINATE);
     }
+
+    public function getPaginateAllForTeacher(int $staffId)
+    {
+        $query = SessionClassStudent::whereHas('student')
+            ->where('session_id', setting('session'));
+        $this->applyTeacherClassSectionScope($query, $staffId);
+
+        return $query->latest()->with('student', 'class', 'section')->paginate(Settings::PAGINATE);
+    }
     public function getSessionStudent($id)
     {
         return SessionClassStudent::where('id', $id)->first();
     }
 
 
-    public function searchStudents($request)
+    public function searchStudents($request, ?int $teacherStaffId = null)
     {
         $students = SessionClassStudent::query();
         $students = $students->where('session_id', setting('session'));
+
+        if ($teacherStaffId !== null) {
+            $this->applyTeacherClassSectionScope($students, $teacherStaffId);
+        }
 
         if ($request->class != "") {
             $students = $students->where('classes_id', $request->class);
@@ -327,6 +346,53 @@ class StudentRepository implements StudentInterface
         return StudentSpecialDiscount::whereIn('student_id', $studentIds)
             ->get()
             ->keyBy('student_id');
+    }
+
+    public function sessionClassStudentVisibleToTeacher(int $sessionClassStudentId, int $staffId): bool
+    {
+        $query = SessionClassStudent::query()
+            ->where('id', $sessionClassStudentId)
+            ->where('session_id', setting('session'));
+        $this->applyTeacherClassSectionScope($query, $staffId);
+
+        return $query->exists();
+    }
+
+    public function studentVisibleToTeacher(int $studentId, int $staffId): bool
+    {
+        $query = SessionClassStudent::query()
+            ->where('student_id', $studentId)
+            ->where('session_id', setting('session'));
+        $this->applyTeacherClassSectionScope($query, $staffId);
+
+        return $query->exists();
+    }
+
+    private function applyTeacherClassSectionScope(Builder $query, int $staffId): void
+    {
+        $sessionId = setting('session');
+        $childTable = (new SubjectAssignChildren())->getTable();
+        $pairs = SubjectAssignChildren::query()
+            ->where($childTable . '.staff_id', $staffId)
+            ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+            ->where('subject_assigns.session_id', $sessionId)
+            ->selectRaw('DISTINCT subject_assigns.classes_id, subject_assigns.section_id')
+            ->get();
+
+        if ($pairs->isEmpty()) {
+            $query->whereRaw('0 = 1');
+
+            return;
+        }
+
+        $query->where(function ($q) use ($pairs) {
+            foreach ($pairs as $p) {
+                $q->orWhere(function ($qq) use ($p) {
+                    $qq->where('classes_id', $p->classes_id)
+                        ->where('section_id', $p->section_id);
+                });
+            }
+        });
     }
 
 }

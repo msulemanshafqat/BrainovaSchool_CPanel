@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\StudentInfo;
 
-use App\Models\Staff\Staff;
 use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Imports\StudentsImport;
 use App\Models\StudentInfo\Student;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Attendance\Attendance;
 use App\Models\Examination\ExamAssign;
@@ -79,23 +79,43 @@ class StudentController extends Controller
         $this->feesAssignedRepo              = $feesAssignedRepo;
     }
 
+    private function teacherStaffId(): ?int
+    {
+        $user = Auth::user();
+        if ($user && (int) $user->role_id === 5 && $user->staff) {
+            return (int) $user->staff->id;
+        }
+
+        return null;
+    }
+
     public function index()
     {
-        $data['classes']  = $this->classRepo->assignedAll();
+        $staffId = $this->teacherStaffId();
+        $data['classes'] = $staffId !== null
+            ? $this->classSetupRepo->assignedClassSetupsForTeacher($staffId)
+            : $this->classRepo->assignedAll();
         $data['sections'] = [];
         $data['title']    = ___('student_info.student_list');
-        $data['students'] = $this->repo->getPaginateAll();
+        $data['students'] = $staffId !== null
+            ? $this->repo->getPaginateAllForTeacher($staffId)
+            : $this->repo->getPaginateAll();
 
         return view('backend.student-info.student.index', compact('data'));
     }
 
     public function search(Request $request)
     {
-        $data['classes']  = $this->classRepo->assignedAll();
-        $data['sections'] = $this->classSetupRepo->getSections($request->class);
+        $staffId = $this->teacherStaffId();
+        $data['classes'] = $staffId !== null
+            ? $this->classSetupRepo->assignedClassSetupsForTeacher($staffId)
+            : $this->classRepo->assignedAll();
+        $data['sections'] = $staffId !== null
+            ? $this->classSetupRepo->getSectionsForTeacher($request->class, $staffId)
+            : $this->classSetupRepo->getSections($request->class);
         $data['request']  = $request;
         $data['title']    = ___('student_info.student_list');
-        $data['students'] = $this->repo->searchStudents($request);
+        $data['students'] = $this->repo->searchStudents($request, $staffId);
         return view('backend.student-info.student.index', compact('data'));
     }
 
@@ -124,7 +144,7 @@ class StudentController extends Controller
     {
         $examAssign = $this->examAssignRepo->getExamAssign($request);
         // dd($examAssign->mark_distribution);
-        $students = $this->repo->getStudents($request);
+        $students = $this->repo->getStudents($request, $this->teacherStaffId());
         return view('backend.student-info.student.students-list', compact('students', 'examAssign'))->render();
     }
 
@@ -142,12 +162,24 @@ class StudentController extends Controller
 
     public function edit($id)
     {
-        $data['title']                 = ___('student_info.student_edit');
+        $staffId = $this->teacherStaffId();
         $data['session_class_student'] = $this->repo->getSessionStudent($id);
+        if (!$data['session_class_student']) {
+            abort(404);
+        }
+        if ($staffId !== null && !$this->repo->sessionClassStudentVisibleToTeacher($data['session_class_student']->id, $staffId)) {
+            abort(403);
+        }
+
+        $data['title']                 = ___('student_info.student_edit');
         $data['student']               = $this->repo->show($data['session_class_student']->student_id);
-        $data['classes']               = $this->classRepo->assignedAll();
+        $data['classes']               = $staffId !== null
+            ? $this->classSetupRepo->assignedClassSetupsForTeacher($staffId)
+            : $this->classRepo->assignedAll();
         $data['departments']           = $this->departmentRepo->getAsOptions();
-        $data['sections']              = $this->classSetupRepo->getSections($data['session_class_student']->classes_id);
+        $data['sections']              = $staffId !== null
+            ? $this->classSetupRepo->getSectionsForTeacher($data['session_class_student']->classes_id, $staffId)
+            : $this->classSetupRepo->getSections($data['session_class_student']->classes_id);
         $data['shifts']                = $this->shiftRepo->all();
         $data['bloods']                = $this->bloodRepo->all();
         $data['religions']             = $this->religionRepo->all();
@@ -161,6 +193,11 @@ class StudentController extends Controller
 
     public function show($id)
     {
+        $staffId = $this->teacherStaffId();
+        if ($staffId !== null && !$this->repo->studentVisibleToTeacher((int) $id, $staffId)) {
+            abort(403);
+        }
+
         $data = $this->repo->show($id);
         $fees['fees_masters'] = $data->feesMasters;
         $fees['fees_payments'] = $data->feesPayments;
@@ -265,6 +302,11 @@ class StudentController extends Controller
 
     public function update(StudentUpdateRequest $request)
     {
+        $staffId = $this->teacherStaffId();
+        if ($staffId !== null && !$this->repo->studentVisibleToTeacher((int) $request->id, $staffId)) {
+            abort(403);
+        }
+
         $result = $this->repo->update($request, $request->id);
 
         if ($result['status']) {
@@ -275,6 +317,10 @@ class StudentController extends Controller
 
     public function delete($id)
     {
+        $staffId = $this->teacherStaffId();
+        if ($staffId !== null && !$this->repo->studentVisibleToTeacher((int) $id, $staffId)) {
+            abort(403);
+        }
 
         $result = $this->repo->destroy($id);
         if ($result['status']):

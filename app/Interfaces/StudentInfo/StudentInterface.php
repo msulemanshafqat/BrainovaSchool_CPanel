@@ -7,10 +7,13 @@ interface StudentInterface
 
     public function all();
 
-    public function getStudents($request);
+    public function getStudents($request, ?int $teacherStaffId = null);
 
     public function getPaginateAll();
-    public function searchStudents($request);
+
+    public function getPaginateAllForTeacher(int $staffId);
+
+    public function searchStudents($request, ?int $teacherStaffId = null);
 
     public function store($request);
 
@@ -19,4 +22,8 @@ interface StudentInterface
     public function update($request, $id);
 
     public function destroy($id);
+
+    public function sessionClassStudentVisibleToTeacher(int $sessionClassStudentId, int $staffId): bool;
+
+    public function studentVisibleToTeacher(int $studentId, int $staffId): bool;
 }
