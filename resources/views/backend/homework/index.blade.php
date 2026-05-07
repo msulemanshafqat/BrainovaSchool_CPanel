@@ -140,17 +140,16 @@
         <p class="hw-panel-desc mb-0">Pick class, section, and subject—optional task type—then hit <strong>Deploy</strong> to load charts and the quest log.</p>
       </header>
 
-      {{-- Dropdown row: labels share one baseline; controls share one baseline (mt-auto per column) --}}
-      <div class="row g-2 align-items-stretch">
+      {{-- Single row: filters + actions bottom-aligned; tight label→control spacing --}}
+      <div class="row g-2 align-items-end">
 
-        {{-- Class (col-md-2) --}}
-        <div class="col-md-2 col-sm-6 d-flex">
-          <div class="hw-filter-field d-flex flex-column w-100">
+        {{-- Class --}}
+        <div class="col-6 col-md-2">
+          <div class="hw-filter-field">
             <label class="filter-label" for="filter-class">
               <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
             </label>
-            <div class="mt-auto pt-0">
-              <select id="filter-class" class="form-select form-select-sm hw-select" autocomplete="off">
+            <select id="filter-class" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="">All Classes</option>
                 @foreach($data['classes'] ?? [] as $item)
                   @if(!empty($item->class))
@@ -158,46 +157,40 @@
                   @endif
                 @endforeach
               </select>
-            </div>
           </div>
         </div>
 
-        {{-- Section (col-md-2) --}}
-        <div class="col-md-2 col-sm-6 d-flex">
-          <div class="hw-filter-field d-flex flex-column w-100">
+        {{-- Section --}}
+        <div class="col-6 col-md-2">
+          <div class="hw-filter-field">
             <label class="filter-label" for="filter-section">
               <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
             </label>
-            <div class="mt-auto pt-0">
-              <select id="filter-section" class="form-select form-select-sm hw-select" autocomplete="off">
+            <select id="filter-section" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="">All Sections</option>
               </select>
-            </div>
           </div>
         </div>
 
-        {{-- Subject (col-md-2) --}}
-        <div class="col-md-2 col-sm-6 d-flex">
-          <div class="hw-filter-field d-flex flex-column w-100">
+        {{-- Subject --}}
+        <div class="col-6 col-md-2">
+          <div class="hw-filter-field">
             <label class="filter-label" for="filter-subject">
               <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
             </label>
-            <div class="mt-auto pt-0">
-              <select id="filter-subject" class="form-select form-select-sm hw-select" autocomplete="off">
+            <select id="filter-subject" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="">All Subjects</option>
               </select>
-            </div>
           </div>
         </div>
 
-        {{-- Task Type (col-md-2) --}}
-        <div class="col-md-2 col-sm-6 d-flex">
-          <div class="hw-filter-field d-flex flex-column w-100">
+        {{-- Task Type --}}
+        <div class="col-6 col-md-2">
+          <div class="hw-filter-field">
             <label class="filter-label" for="filter-task-type">
               <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
             </label>
-            <div class="mt-auto pt-0">
-              <select id="filter-task-type" class="form-select form-select-sm hw-select" autocomplete="off">
+            <select id="filter-task-type" class="form-select form-select-sm hw-select" autocomplete="off">
                 <option value="all">All Types</option>
                 <option value="quiz">Quiz</option>
                 <option value="homework">Homework</option>
@@ -206,28 +199,19 @@
                 <option value="game">Game</option>
                 <option value="assignment">Assignment</option>
               </select>
-            </div>
           </div>
         </div>
 
-        {{-- Spacer col to push buttons right (col-md-2 + col-md-2 = 4 cols spare) --}}
-        <div class="col-md-2 d-none d-md-block"></div>
-
-        {{-- Proceed + Reset — spacer matches label height so buttons align with selects --}}
-        <div class="col-md-2 col-sm-12 d-flex">
-          <div class="hw-filter-field d-flex flex-column w-100 align-items-stretch">
-            <div class="filter-label invisible user-select-none" aria-hidden="true">
-              <i class="fa-solid fa-tags me-1"></i>Actions
-            </div>
-            <div class="mt-auto d-flex gap-2 justify-content-end flex-wrap">
+        {{-- Deploy + Reset — one row, aligned with selects (md+: same row as dropdowns) --}}
+        <div class="col-12 col-md-4">
+          <div class="hw-filter-actions">
               <button type="button" class="btn-proceed" id="proceed-btn">
                 <i class="fa-solid fa-rocket"></i>
                 Deploy
               </button>
-              <button type="button" class="btn-reset" id="reset-filters-btn">
+              <button type="button" class="btn-reset" id="reset-filters-btn" title="Reset filters">
                 <i class="fa-solid fa-rotate-left"></i>
               </button>
-            </div>
           </div>
         </div>
 
