@@ -18,7 +18,7 @@
                         </div>
                         <div class="summeryContent">
                             <h4>{{ $data['student'] }}</h4>
-                            <h1>{{ ___('dashboard.Student') }}</h1>
+                            <h1>@if (auth()->user()->role_id == 5) {{ ___('dashboard.Students') }} @else {{ ___('dashboard.Student') }} @endif</h1>
                         </div>
                     </div>
                </a>
@@ -62,18 +62,18 @@
                             </div>
                             <div class="summeryContent">
                                 <h4>{{ $data['teacher_classes_count'] ?? 0 }}</h4>
-                                <h1>{{ ___('academic.class') }}</h1>
+                                <h1>{{ ___('academic.classes') }}</h1>
                             </div>
                         </div>
                     </a>
                     @else
-                    <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24" role="group" aria-label="{{ ___('academic.class') }}">
+                    <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24" role="group" aria-label="{{ ___('academic.classes') }}">
                         <div class="icon style4">
                             <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/1.svg') }}" alt="">
                         </div>
                         <div class="summeryContent">
                             <h4>{{ $data['teacher_classes_count'] ?? 0 }}</h4>
-                            <h1>{{ ___('academic.class') }}</h1>
+                            <h1>{{ ___('academic.classes') }}</h1>
                         </div>
                     </div>
                     @endif

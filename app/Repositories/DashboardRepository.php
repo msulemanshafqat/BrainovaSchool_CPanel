@@ -87,6 +87,22 @@ class DashboardRepository implements DashboardInterface
             ->get();
     }
 
+    /**
+     * Distinct class IDs this staff member teaches in the session (subject assignments).
+     */
+    private function teacherAssignedClassIds(int $staffId, $sessionId)
+    {
+        $childTable = (new SubjectAssignChildren())->getTable();
+
+        return SubjectAssignChildren::query()
+            ->where($childTable . '.staff_id', $staffId)
+            ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+            ->where('subject_assigns.session_id', $sessionId)
+            ->distinct()
+            ->pluck('subject_assigns.classes_id')
+            ->values();
+    }
+
     public function feesCollectionYearly() {
         $data = [];
         for($i = 1; $i <= 12; $i++) {
@@ -128,7 +144,17 @@ class DashboardRepository implements DashboardInterface
     }
 
     public function attendance() {
-        $items = ClassSetup::active()->where('session_id', setting('session'))->get();
+        $sessionId = setting('session');
+        $items = ClassSetup::active()->where('session_id', $sessionId);
+
+        if (Auth::check() && Auth::user()->role_id == 5 && Auth::user()->staff) {
+            $classIds = $this->teacherAssignedClassIds((int) Auth::user()->staff->id, $sessionId);
+            $items = $classIds->isEmpty()
+                ? collect()
+                : $items->whereIn('classes_id', $classIds)->get();
+        } else {
+            $items = $items->get();
+        }
 
         $data['classes'] = [];
         $data['present'] = [];
@@ -137,12 +163,12 @@ class DashboardRepository implements DashboardInterface
         $data['classes'] = [];
         foreach ($items as $key => $value) {
             $data['classes'][] = $value->class->name;
-            $data['present'][] = Attendance::where('session_id', setting('session'))
+            $data['present'][] = Attendance::where('session_id', $sessionId)
                                 ->where('classes_id', $value->classes_id)
                                 ->whereDay('date', date('d'))
                                 ->whereIn('attendance', [AttendanceType::PRESENT, AttendanceType::LATE, AttendanceType::HALFDAY])
                                 ->count();
-            $data['absent'][]  = Attendance::where('session_id', setting('session'))
+            $data['absent'][]  = Attendance::where('session_id', $sessionId)
                                 ->where('classes_id', $value->classes_id)
                                 ->whereDay('date', date('d'))
                                 ->where('attendance', AttendanceType::ABSENT)
