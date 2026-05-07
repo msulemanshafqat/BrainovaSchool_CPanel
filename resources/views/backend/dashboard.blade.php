@@ -50,6 +50,7 @@
                 </a>
             </div>
             <div class="col-xl-3 col-lg-3 col-md-6">
+                @if (hasPermission('session_read'))
                 <a href="{{ route('sessions.index') }}">
                     <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24">
                         <div class="icon style4">
@@ -61,6 +62,17 @@
                         </div>
                     </div>
                 </a>
+                @else
+                <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24" role="group" aria-label="{{ ___('settings.Session') }}">
+                    <div class="icon style4">
+                        <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/1.svg') }}" alt="crm_summery1">
+                    </div>
+                    <div class="summeryContent">
+                        <h4>{{ $data['session'] }}</h4>
+                        <h1>{{ ___('settings.Session') }}</h1>
+                    </div>
+                </div>
+                @endif
             </div>
         @endif
 
