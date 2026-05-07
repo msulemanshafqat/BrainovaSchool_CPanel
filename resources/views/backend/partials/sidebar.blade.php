@@ -88,7 +88,7 @@
                             @if (hasPermission('student_read'))
                                 <li
                                     class="sidebar-menu-item {{ set_menu(['student', 'student/create', 'student/edit']) }}">
-                                    <a href="{{ route('student.index') }}">{{ ___('settings.stundets') }}</a>
+                                    <a href="{{ route('student.index') }}">{{ ___('student_info.student_list') }}</a>
                                 </li>
                             @endif
                             @if (hasPermission('student_category_read'))
