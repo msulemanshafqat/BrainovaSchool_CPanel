@@ -1,24 +1,83 @@
 /* Homework module — gamified theme, light tone (scoped via .hw-portal parent) */
 
-.hw-portal {
+/*
+  Backend global + body.dark-theme use --ot-bg-primary / --ot-text-title for the whole app.
+  This page must read as a light canvas even in dark mode: reset theme tokens locally.
+*/
+.page-content.hw-portal {
+  isolation: isolate;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   --game-font: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  min-height: calc(100svh - 100px);
+  min-height: calc(100svh - 88px);
   margin: 0;
-  padding: 0 0 2.5rem;
+  padding: 1rem 0 2.75rem;
   position: relative;
   overflow-x: hidden;
-  background:
-    radial-gradient(920px 480px at 10% -6%, rgba(167, 139, 250, 0.09) 0%, transparent 58%),
-    radial-gradient(820px 440px at 98% 6%, rgba(125, 211, 252, 0.08) 0%, transparent 54%),
-    radial-gradient(560px 380px at 50% 102%, rgba(253, 230, 138, 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, #fefefe 0%, #fafbfc 45%, #f6f7fb 100%);
+  color: #475569;
+  background-color: #f6f7f9 !important;
+  background-image:
+    radial-gradient(880px 460px at 6% -12%, rgba(99, 102, 241, 0.055) 0%, transparent 58%),
+    radial-gradient(760px 400px at 104% 4%, rgba(56, 189, 248, 0.045) 0%, transparent 54%),
+    radial-gradient(520px 360px at 48% 108%, rgba(253, 224, 71, 0.04) 0%, transparent 52%),
+    linear-gradient(180deg, #fdfdfd 0%, #f4f5f7 55%, #eef0f4 100%) !important;
+  /* Override style.css / dark-theme for everything inside this page */
+  --ot-text-title: #1e293b;
+  --ot-text-primary: #475569;
+  --ot-text-subtitle: #64748b;
+  --ot-bg-primary: #eef1f5;
+  --ot-bg-secondary: #ffffff;
+  --ot-bg-tertiary: #fafbfc;
+  --ot-border-primary: #e2e8f0;
+  --header-bg: transparent;
+  /* Table/pagination tokens — dark-theme globals use charcoals; reset for this page */
+  --ot-bg-table-card: #ffffff;
+  --ot-border-table-card: #eaeaea;
+  --ot-bg-table-card-header: #ffffff;
+  --ot-bg-table-thead: #f7fafc;
+  --ot-bg-table-tbody: #f7fafc;
+  --ot-bg-table-pagination: #ffffff;
+  --ot-text-table-pagination: #1a1d1f;
+  --ot-border-table-pagination: #eaeaea;
 }
 
-.hw-portal > * {
+body.dark-theme .page-content.hw-portal {
+  color: #475569;
+  background-color: #f6f7f9 !important;
+  background-image:
+    radial-gradient(880px 460px at 6% -12%, rgba(99, 102, 241, 0.055) 0%, transparent 58%),
+    radial-gradient(760px 400px at 104% 4%, rgba(56, 189, 248, 0.045) 0%, transparent 54%),
+    radial-gradient(520px 360px at 48% 108%, rgba(253, 224, 71, 0.04) 0%, transparent 52%),
+    linear-gradient(180deg, #fdfdfd 0%, #f4f5f7 55%, #eef0f4 100%) !important;
+  --ot-text-title: #1e293b;
+  --ot-text-primary: #475569;
+  --ot-text-subtitle: #64748b;
+  --ot-bg-primary: #eef1f5;
+  --ot-bg-secondary: #ffffff;
+  --ot-bg-tertiary: #fafbfc;
+  --ot-border-primary: #e2e8f0;
+  --ot-bg-table-card: #ffffff;
+  --ot-border-table-card: #eaeaea;
+  --ot-bg-table-card-header: #ffffff;
+  --ot-bg-table-thead: #f7fafc;
+  --ot-bg-table-tbody: #f7fafc;
+  --ot-bg-table-pagination: #ffffff;
+  --ot-text-table-pagination: #1a1d1f;
+  --ot-border-table-pagination: #eaeaea;
+}
+
+/* Dark mode sets labels to white — restore readable slate on this light page */
+body.dark-theme .page-content.hw-portal label:not(.filter-label) {
+  color: #64748b !important;
+}
+
+body.dark-theme .page-content.hw-portal .hw-filter-bar .filter-label {
+  color: #7c3aed !important;
+}
+
+.page-content.hw-portal > * {
   position: relative;
   z-index: 1;
 }
@@ -94,7 +153,7 @@
   font-family: var(--game-font);
   font-size: clamp(1.5rem, 3.2vw, 2rem);
   font-weight: 700;
-  background: linear-gradient(135deg, #94a3b8 0%, #64748b 22%, #38bdf8 52%, #a5b4fc 85%);
+  background: linear-gradient(135deg, #cbd5e1 0%, #bae6fd 32%, #ddd6fe 68%, #fce7f3 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -828,5 +887,5 @@
 @media (max-width: 575.98px) {
   .hw-page-hero { padding: 1.2rem 1.15rem; }
   .hw-panel { padding: 1.2rem 1.15rem 1.35rem; }
-  .hw-portal { min-height: calc(100svh - 88px); }
+  .page-content.hw-portal { min-height: calc(100svh - 88px); }
 }
