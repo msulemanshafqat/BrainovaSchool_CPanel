@@ -595,8 +595,11 @@ class HomeworkRepository implements HomeworkInterface
         // Quest log: newest due date first (PHP sort — handles NULL/empty strings & driver quirks)
         $homeworks = $this->sortQuestLogByDueDateLatestFirst($query->get());
 
-        // Build task status donut data
+        // Build task status donut data (submission pipeline)
         $donutData = $this->getTaskStatisticsForFilters($homeworks);
+
+        // Evaluation donut — submitted rows split by marks (graded vs awaiting score)
+        $evalDonutData = $this->getEvaluationStatisticsForFilters($homeworks);
 
         // Build score trend line data
         $trendData = $this->getScoreTrendForFilters($homeworks);
@@ -607,11 +610,12 @@ class HomeworkRepository implements HomeworkInterface
         ])->render();
 
         return [
-            'success'        => true,
-            'table_html'     => $tableHtml,
-            'donut_data'     => $donutData,
-            'trend_data'     => $trendData,
-            'total_records'  => $homeworks->count(),
+            'success'          => true,
+            'table_html'       => $tableHtml,
+            'donut_data'       => $donutData,
+            'eval_donut_data'  => $evalDonutData,
+            'trend_data'       => $trendData,
+            'total_records'    => $homeworks->count(),
         ];
     }
 
@@ -710,6 +714,36 @@ class HomeworkRepository implements HomeworkInterface
             'labels' => ['Submitted', 'Pending', 'Overdue'],
             'data'   => [$submitted, $pending, $overdue],
             'colors' => ['#10b981', '#f59e0b', '#dc2626'],
+        ];
+    }
+
+    /**
+     * Evaluation donut only — among submissions (homework_students rows):
+     * graded (marks set) vs awaiting teacher score (marks null).
+     */
+    private function getEvaluationStatisticsForFilters($homeworks): array
+    {
+        $graded   = 0;
+        $awaiting = 0;
+
+        foreach ($homeworks as $hw) {
+            $graded += (int) DB::table('homework_students')
+                ->where('homework_id', $hw->id)
+                ->whereNotNull('marks')
+                ->selectRaw('COUNT(DISTINCT student_id) as c')
+                ->value('c');
+
+            $awaiting += (int) DB::table('homework_students')
+                ->where('homework_id', $hw->id)
+                ->whereNull('marks')
+                ->selectRaw('COUNT(DISTINCT student_id) as c')
+                ->value('c');
+        }
+
+        return [
+            'labels' => ['Graded', 'Awaiting score'],
+            'data'   => [$graded, $awaiting],
+            'colors' => ['#10b981', '#22d3ee'],
         ];
     }
 

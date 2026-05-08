@@ -166,19 +166,35 @@
 
     <div class="row g-3 g-lg-4 mb-0">
 
-      {{-- Donut Chart · col-md-6 --}}
-      <div class="col-md-6">
+      {{-- Quest status donut --}}
+      <div class="col-md-6 col-lg-4">
         <div class="cc">
           <div class="cc-title">
             <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
             Quest status radar
           </div>
+          <div class="cc-sub" style="color:rgba(199,210,254,0.85)">Hand-ins vs still pending (on-time window vs overdue).</div>
           <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-filtered"></canvas></div>
         </div>
       </div>
 
-      {{-- Line Chart · col-md-6 --}}
-      <div class="col-md-6">
+      {{-- Evaluation donut (adjacent) --}}
+      <div class="col-md-6 col-lg-4">
+        <div class="cc">
+          <div class="cc-title">
+            <i class="fa-solid fa-pen-to-square me-1" style="color:var(--bp)"></i>
+            Evaluation scoreboard
+          </div>
+          <div class="cc-sub hw-donut-legend" style="color:rgba(199,210,254,0.88)">
+            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#10b981"></i>Graded</span>
+            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#22d3ee"></i>Awaiting score</span>
+          </div>
+          <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-evaluation"></canvas></div>
+        </div>
+      </div>
+
+      {{-- Line chart --}}
+      <div class="col-md-12 col-lg-4">
         <div class="cc">
           <div class="cc-title">
             <i class="fa-solid fa-chart-line me-1" style="color:var(--bp)"></i>
@@ -310,8 +326,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-let donutChartInstance = null;
-let lineChartInstance  = null;
+let donutChartInstance     = null;
+let evalDonutChartInstance = null;
+let lineChartInstance      = null;
 
 /** Quest log (#filtered-table-body): header-driven sort; tbody replaced via AJAX */
 var hwQuestLogSortState = { col: null, dir: 'asc' };
@@ -469,6 +486,7 @@ $(document).ready(function () {
     $('#filter-subject').empty().append('<option value="">All Subjects</option>');
     $('#filter-task-type').val('all');
     if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
+    if (evalDonutChartInstance) { evalDonutChartInstance.destroy(); evalDonutChartInstance = null; }
     if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
     $('#results-container').stop(true, true).hide().css({ visibility: '', opacity: '' });
   });
@@ -535,6 +553,7 @@ $(document).ready(function () {
           $('#table-count-badge').text(rowCount + ' record' + (rowCount !== 1 ? 's' : ''));
 
           if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
+          if (evalDonutChartInstance) { evalDonutChartInstance.destroy(); evalDonutChartInstance = null; }
           if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
 
           /* Chart.js reads canvas parent size; display:none gives 0×0 and charts disappear */
@@ -552,13 +571,14 @@ $(document).ready(function () {
               donutVals = [1];
               donutColors = ['#e2e8f0'];
             }
+            var donutPalette = ['#10b981', '#f59e0b', '#dc2626'];
             donutChartInstance = new Chart(donutCtx, {
               type: 'doughnut',
               data: {
                 labels: donutLabels,
                 datasets: [{
                   data: donutVals,
-                  backgroundColor: donutColors.length >= donutVals.length ? donutColors : ['#10b981', '#f59e0b', '#dc2626'],
+                  backgroundColor: donutColors.length >= donutVals.length ? donutColors : donutPalette,
                   borderWidth: 3,
                   borderColor: '#312e81',
                   hoverOffset: 4
@@ -577,7 +597,59 @@ $(document).ready(function () {
                     enabled: donutSum > 0,
                     callbacks: {
                       label: function (ctx) {
-                        return ' ' + (ctx.label || '') + ': ' + ctx.raw;
+                        var raw = Number(ctx.raw) || 0;
+                        var sum = ctx.dataset.data.reduce(function (a, b) { return a + (Number(b) || 0); }, 0);
+                        var pct = sum > 0 ? Math.round((raw / sum) * 1000) / 10 : 0;
+                        return ' ' + (ctx.label || '') + ': ' + raw + ' (' + pct + '%)';
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+
+          const evalDonutCtx = document.getElementById('donut-chart-evaluation');
+          if (evalDonutCtx && response.eval_donut_data && Array.isArray(response.eval_donut_data.data)) {
+            var evVals = response.eval_donut_data.data.map(function (v) { return Number(v) || 0; });
+            var evLabels = response.eval_donut_data.labels ? response.eval_donut_data.labels.slice() : [];
+            var evColors = response.eval_donut_data.colors ? response.eval_donut_data.colors.slice() : [];
+            var evSum = evVals.reduce(function (a, b) { return a + b; }, 0);
+            if (evSum === 0) {
+              evLabels = ['No submissions yet'];
+              evVals = [1];
+              evColors = ['#e2e8f0'];
+            }
+            var evPalette = ['#10b981', '#22d3ee'];
+            evalDonutChartInstance = new Chart(evalDonutCtx, {
+              type: 'doughnut',
+              data: {
+                labels: evLabels,
+                datasets: [{
+                  data: evVals,
+                  backgroundColor: evColors.length >= evVals.length ? evColors : evPalette,
+                  borderWidth: 3,
+                  borderColor: '#312e81',
+                  hoverOffset: 4
+                }]
+              },
+              options: {
+                cutout: '65%',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#cbd5e1' }
+                  },
+                  tooltip: {
+                    enabled: evSum > 0,
+                    callbacks: {
+                      label: function (ctx) {
+                        var raw = Number(ctx.raw) || 0;
+                        var sum = ctx.dataset.data.reduce(function (a, b) { return a + (Number(b) || 0); }, 0);
+                        var pct = sum > 0 ? Math.round((raw / sum) * 1000) / 10 : 0;
+                        return ' ' + (ctx.label || '') + ': ' + raw + ' (' + pct + '%)';
                       }
                     }
                   }
@@ -681,6 +753,7 @@ $(document).ready(function () {
           $results.css({ visibility: 'visible', opacity: 1 });
           window.requestAnimationFrame(function () {
             if (donutChartInstance && typeof donutChartInstance.resize === 'function') donutChartInstance.resize();
+            if (evalDonutChartInstance && typeof evalDonutChartInstance.resize === 'function') evalDonutChartInstance.resize();
             if (lineChartInstance && typeof lineChartInstance.resize === 'function') lineChartInstance.resize();
           });
         }
