@@ -59,80 +59,7 @@
     </div>
   </header>
 
-  {{-- SECTION 1 · Overview metrics — grouped panel -------------------------------- --}}
-  <section class="hw-panel hw-section" id="stats-cards-container">
-    <header class="hw-panel-head">
-      <p class="hw-eyebrow">Player stats</p>
-      <h2 class="hw-panel-title">Power-ups &amp; progress</h2>
-    </header>
-    <div class="row g-3 g-lg-4">
-
-      {{-- Card 1 · Assigned Tasks --}}
-      <div class="col-md-6 col-lg-3">
-        <div class="sc">
-          <div class="si" style="background: linear-gradient(135deg,#dbeafe,#bfdbfe);">
-            <i class="fa-solid fa-book-open" style="color:#1d4ed8"></i>
-          </div>
-          <div style="flex:1">
-            <div class="sv" id="stat-total-tasks"><span class="stat-loading"></span></div>
-            <div class="sl">Active quests</div>
-          </div>
-        </div>
-      </div>
-
-      {{-- Card 2 · Submitted --}}
-      <div class="col-md-6 col-lg-3">
-        <div class="sc">
-          <div class="si" style="background: linear-gradient(135deg,#d1fae5,#a7f3d0);">
-            <i class="fa-solid fa-circle-check" style="color:#059669"></i>
-          </div>
-          <div style="flex:1">
-            <div class="sv" id="stat-submitted"><span class="stat-loading"></span></div>
-            <div class="sl">Turned in</div>
-          </div>
-        </div>
-      </div>
-
-      {{-- Card 3 · Pending Evaluation --}}
-      <div class="col-md-6 col-lg-3">
-        <div class="sc">
-          <div class="si" style="background: linear-gradient(135deg,#fef3c7,#fde68a);">
-            <i class="fa-solid fa-hourglass-half" style="color:#d97706"></i>
-          </div>
-          <div style="flex:1">
-            <div class="sv" id="stat-pending"><span class="stat-loading"></span></div>
-            <div class="sl">Awaiting score</div>
-          </div>
-        </div>
-      </div>
-
-      {{-- Card 4 · cumulative score (uses config('brainova.e6_multiplier') server-side) --}}
-      <div class="col-md-6 col-lg-3">
-        <div class="sc">
-          <div class="si" style="background: linear-gradient(135deg,#ede9fe,#ddd6fe);">
-            <i class="fa-solid fa-star-half-stroke" style="color:#7c3aed"></i>
-          </div>
-          <div style="flex:1">
-            <div class="sv" id="stat-score"><span class="stat-loading"></span></div>
-            <div class="sl">Glory points</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <div class="hw-xp-wrap">
-      <div class="hw-xp-head">
-        <span class="hw-xp-title"><i class="fa-solid fa-bolt"></i> Engagement XP</span>
-        <span class="hw-xp-label" id="hw-xp-label">Loading…</span>
-      </div>
-      <div class="hw-xp-track" aria-hidden="true">
-        <div class="hw-xp-fill" id="hw-xp-fill"></div>
-      </div>
-    </div>
-  </section>
-
-
-  {{-- SECTION 2 · Filters — same visual weight as overview -------------------------------- --}}
+  {{-- SECTION 1 · Filters -------------------------------- --}}
   <section class="hw-panel hw-section">
     <div class="hw-filter-bar">
       <header class="hw-filter-intro">
@@ -223,7 +150,7 @@
 
 
   {{-- =================================================================
-       SECTION 3 · RESULTS AREA  (hidden on page load — revealed via
+       SECTION 2 · RESULTS AREA  (hidden on page load — revealed via
        jQuery .fadeIn() when Proceed is clicked)
        margin-bottom: 4rem
   ================================================================= --}}
@@ -310,7 +237,7 @@
 
     </section>
 
-  </div>{{-- /SECTION 3 · results-container --}}
+  </div>{{-- /SECTION 2 · results-container --}}
 
 </div>{{-- /page-content hw-portal --}}
 
@@ -376,8 +303,6 @@ let lineChartInstance  = null;
 
 $(document).ready(function () {
 
-  loadGlobalStats();
-
   /* ── Bind events FIRST ── */
   $('#filter-class').on('change', function () {
     const classId = $(this).val();
@@ -419,41 +344,6 @@ $(document).ready(function () {
   });
 
   /* ── Functions ── */
-
-  function loadGlobalStats() {
-    $.ajax({
-      url: '{{ route("homework.ajax.global-stats") }}',
-      method: 'GET',
-      dataType: 'json',
-      success: function (response) {
-        if (response.success && response.data) {
-          const s = response.data;
-          $('#stat-total-tasks').text(s.total_tasks_assigned ?? '—');
-          $('#stat-submitted'  ).text(s.total_submitted      ?? '—');
-          $('#stat-pending'    ).text(s.pending_evaluations  ?? '—');
-          $('#stat-score'      ).text(s.cumulative_score_e6  ?? '—');
-          if (s.total_tasks_assigned) {
-            $('#table-count-badge').text(s.total_tasks_assigned + ' records');
-          }
-          var t = parseInt(s.total_tasks_assigned, 10) || 0;
-          var sub = parseInt(s.total_submitted, 10) || 0;
-          var pct = t > 0 ? Math.min(100, Math.round((sub / t) * 100)) : 0;
-          $('#hw-xp-fill').css('width', pct + '%');
-          $('#hw-xp-label').text(
-            t > 0
-              ? pct + '% submitted · ' + sub + ' / ' + t + ' quests cleared'
-              : 'Deploy filters to start earning XP'
-          );
-        }
-      },
-      error: function () {
-        ['#stat-total-tasks','#stat-submitted','#stat-pending','#stat-score']
-          .forEach(function (sel) { $(sel).text('—'); });
-        $('#hw-xp-fill').css('width', '0%');
-        $('#hw-xp-label').text('Stats unavailable');
-      }
-    });
-  }
 
   function loadSectionsByClass(classId) {
     $.ajax({
