@@ -513,18 +513,19 @@
   color: #22d3ee !important;
 }
 
+.hw-portal .hw-eval-marking-status-inner.hw-eval-clear,
+.hw-portal .hw-eval-marking-status-inner.hw-eval-clear * {
+  color: #22d3ee !important;
+}
+
 .hw-portal .hw-eval-marking-status-inner.hw-eval-pending {
   border-color: rgba(34, 211, 238, 0.55);
   background: rgba(34, 211, 238, 0.12);
   color: #22d3ee !important;
 }
 
-.hw-portal .hw-eval-marking-status-inner.hw-eval-clear strong,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-clear span,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-clear i,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-pending strong,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-pending span,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-pending i {
+.hw-portal .hw-eval-marking-status-inner.hw-eval-pending,
+.hw-portal .hw-eval-marking-status-inner.hw-eval-pending * {
   color: #22d3ee !important;
 }
 
