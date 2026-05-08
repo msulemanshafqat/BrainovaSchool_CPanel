@@ -718,33 +718,57 @@ class HomeworkRepository implements HomeworkInterface
     }
 
     /**
-     * Evaluation donut only — among submissions (homework_students rows):
-     * graded (marks set) vs awaiting teacher score (marks null).
+     * Evaluation donut — mark totals from homework_students (scores teachers/system save there).
+     * Graded slice = sum of recorded submission marks; awaiting slice = sum of assignment max marks
+     * for submissions that still have no marks (same weight basis so the pie reflects marking workload).
      */
     private function getEvaluationStatisticsForFilters($homeworks): array
     {
-        $graded   = 0;
-        $awaiting = 0;
+        $gradedMarksTotal    = 0.0;
+        $awaitingMaxMarksSum = 0.0;
 
         foreach ($homeworks as $hw) {
-            $graded += (int) DB::table('homework_students')
-                ->where('homework_id', $hw->id)
-                ->whereNotNull('marks')
-                ->selectRaw('COUNT(DISTINCT student_id) as c')
-                ->value('c');
+            $maxAssign = $this->homeworkNumericMaxMarks($hw);
+            $pendingWeight = ($maxAssign !== null && $maxAssign > 0) ? $maxAssign : 1.0;
 
-            $awaiting += (int) DB::table('homework_students')
+            $rows = DB::table('homework_students')
                 ->where('homework_id', $hw->id)
-                ->whereNull('marks')
-                ->selectRaw('COUNT(DISTINCT student_id) as c')
-                ->value('c');
+                ->select('student_id', 'marks')
+                ->orderBy('id')
+                ->get();
+
+            $perStudent = [];
+            foreach ($rows as $row) {
+                $sid = (int) $row->student_id;
+                if ($this->homeworkStudentMarksAreRecorded($row->marks)) {
+                    $perStudent[$sid] = (float) $row->marks;
+                } elseif (!array_key_exists($sid, $perStudent)) {
+                    $perStudent[$sid] = null;
+                }
+            }
+
+            foreach ($perStudent as $m) {
+                if ($this->homeworkStudentMarksAreRecorded($m)) {
+                    $gradedMarksTotal += (float) $m;
+                } else {
+                    $awaitingMaxMarksSum += $pendingWeight;
+                }
+            }
         }
 
         return [
-            'labels' => ['Graded', 'Awaiting score'],
-            'data'   => [$graded, $awaiting],
+            'labels' => ['Recorded marks', 'Max marks pending'],
+            'data'   => [
+                round($gradedMarksTotal, 2),
+                round($awaitingMaxMarksSum, 2),
+            ],
             'colors' => ['#10b981', '#22d3ee'],
         ];
+    }
+
+    private function homeworkStudentMarksAreRecorded($marks): bool
+    {
+        return $marks !== null && $marks !== '';
     }
 
     /**

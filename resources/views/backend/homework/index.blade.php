@@ -185,9 +185,12 @@
             <i class="fa-solid fa-pen-to-square me-1" style="color:var(--bp)"></i>
             Evaluation scoreboard
           </div>
+          <div class="cc-sub" style="color:rgba(199,210,254,0.82);margin-bottom:10px;font-size:11px;line-height:1.45">
+            Slice sizes use totals from <strong>submission marks</strong> teachers save when evaluating (plus auto‑quiz scores already stored on the submission).
+          </div>
           <div class="cc-sub hw-donut-legend" style="color:rgba(199,210,254,0.88)">
-            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#10b981"></i>Graded</span>
-            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#22d3ee"></i>Awaiting score</span>
+            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#10b981"></i>Recorded marks</span>
+            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#22d3ee"></i>Max marks pending</span>
           </div>
           <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-evaluation"></canvas></div>
         </div>
