@@ -485,24 +485,29 @@
   margin-bottom: 16px;
 }
 
-.hw-portal .hw-donut-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: 1rem;
-  row-gap: 0.35rem;
+.hw-portal .hw-eval-marking-status {
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 52rem;
 }
 
-.hw-portal .hw-donut-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+.hw-portal .hw-eval-marking-status-inner {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  background: rgba(30, 27, 75, 0.55);
+  color: rgba(226, 232, 240, 0.95);
 }
 
-.hw-portal .hw-donut-legend .hw-donut-dot {
-  font-size: 0.55rem;
-  opacity: 0.95;
+.hw-portal .hw-eval-marking-status-inner.hw-eval-clear {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(6, 78, 59, 0.25);
+}
+
+.hw-portal .hw-eval-marking-status-inner.hw-eval-pending {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(14, 116, 144, 0.22);
 }
 
 .hw-chart-canvas-wrap {

@@ -167,7 +167,7 @@
     <div class="row g-3 g-lg-4 mb-0">
 
       {{-- Quest status donut --}}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6">
         <div class="cc">
           <div class="cc-title">
             <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
@@ -178,26 +178,8 @@
         </div>
       </div>
 
-      {{-- Evaluation donut (adjacent) --}}
-      <div class="col-md-6 col-lg-4">
-        <div class="cc">
-          <div class="cc-title">
-            <i class="fa-solid fa-pen-to-square me-1" style="color:var(--bp)"></i>
-            Evaluation scoreboard
-          </div>
-          <div class="cc-sub" style="color:rgba(199,210,254,0.82);margin-bottom:10px;font-size:11px;line-height:1.45">
-            Slice sizes use totals from <strong>submission marks</strong> teachers save when evaluating (plus auto‑quiz scores already stored on the submission).
-          </div>
-          <div class="cc-sub hw-donut-legend" style="color:rgba(199,210,254,0.88)">
-            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#10b981"></i>Recorded marks</span>
-            <span class="hw-donut-legend-item"><i class="fa-solid fa-circle hw-donut-dot" style="color:#22d3ee"></i>Max marks pending</span>
-          </div>
-          <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-evaluation"></canvas></div>
-        </div>
-      </div>
-
       {{-- Line chart --}}
-      <div class="col-md-12 col-lg-4">
+      <div class="col-md-6">
         <div class="cc">
           <div class="cc-title">
             <i class="fa-solid fa-chart-line me-1" style="color:var(--bp)"></i>
@@ -215,11 +197,19 @@
 
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 hw-table-toolbar">
         <div class="results-section-label mb-0 flex-grow-1 me-2">
-          <span class="d-inline-flex align-items-center justify-content-center rounded-2 me-2"
-                style="width:36px;height:36px;background:rgba(34,211,238,0.2);color:#22d3ee;border:1px solid rgba(167,139,250,0.4)">
-            <i class="fa-solid fa-scroll" style="font-size:14px"></i>
-          </span>
-          <span>Quest log</span>
+          <div class="d-flex flex-column gap-2">
+            <div class="d-flex flex-wrap align-items-center">
+              <span class="d-inline-flex align-items-center justify-content-center rounded-2 me-2"
+                    style="width:36px;height:36px;background:rgba(34,211,238,0.2);color:#22d3ee;border:1px solid rgba(167,139,250,0.4)">
+                <i class="fa-solid fa-scroll" style="font-size:14px"></i>
+              </span>
+              <span style="font-weight:700;color:#fef9c3">Quest log</span>
+            </div>
+            <div id="hw-evaluation-status"
+                 class="hw-eval-marking-status"
+                 role="status"
+                 aria-live="polite"></div>
+          </div>
         </div>
         <span id="table-count-badge"
               class="badge rounded-pill px-3 py-2">
@@ -329,9 +319,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-let donutChartInstance     = null;
-let evalDonutChartInstance = null;
-let lineChartInstance      = null;
+let donutChartInstance = null;
+let lineChartInstance  = null;
 
 /** Quest log (#filtered-table-body): header-driven sort; tbody replaced via AJAX */
 var hwQuestLogSortState = { col: null, dir: 'asc' };
@@ -441,6 +430,38 @@ function sortHwQuestLogTable(colIndex) {
   });
 }
 
+function renderHwEvaluationStatus(es) {
+  var $el = $('#hw-evaluation-status');
+  if (!$el.length) {
+    return;
+  }
+  if (!es || es.submissions_awaiting_marks === undefined) {
+    $el.empty();
+    return;
+  }
+  var hp = parseInt(es.homeworks_pending_evaluation, 10) || 0;
+  var sa = parseInt(es.submissions_awaiting_marks, 10) || 0;
+  if (sa === 0) {
+    $el.html(
+      '<span class="hw-eval-marking-status-inner hw-eval-clear">' +
+      '<i class="fa-solid fa-circle-check me-1"></i>' +
+      '<strong>Evaluation:</strong> no submitted student work is awaiting marks (students who have not submitted are excluded).' +
+      '</span>'
+    );
+    return;
+  }
+  var taskWord = hp === 1 ? 'task' : 'tasks';
+  var subWord = sa === 1 ? 'submission' : 'submissions';
+  $el.html(
+    '<span class="hw-eval-marking-status-inner hw-eval-pending">' +
+    '<i class="fa-solid fa-pen-to-square me-1"></i>' +
+    '<strong>Evaluation backlog:</strong> <strong>' + sa + '</strong> ' + subWord +
+    ' still need marks, across <strong>' + hp + '</strong> homework ' + taskWord +
+    '. <span style="opacity:.85">Only students who already submitted are counted.</span>' +
+    '</span>'
+  );
+}
+
 $(document).ready(function () {
 
   $('#hw-quest-log-table').on('click', 'thead th.hw-sortable', function () {
@@ -489,8 +510,8 @@ $(document).ready(function () {
     $('#filter-subject').empty().append('<option value="">All Subjects</option>');
     $('#filter-task-type').val('all');
     if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
-    if (evalDonutChartInstance) { evalDonutChartInstance.destroy(); evalDonutChartInstance = null; }
     if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
+    $('#hw-evaluation-status').empty();
     $('#results-container').stop(true, true).hide().css({ visibility: '', opacity: '' });
   });
 
@@ -556,8 +577,9 @@ $(document).ready(function () {
           $('#table-count-badge').text(rowCount + ' record' + (rowCount !== 1 ? 's' : ''));
 
           if (donutChartInstance) { donutChartInstance.destroy(); donutChartInstance = null; }
-          if (evalDonutChartInstance) { evalDonutChartInstance.destroy(); evalDonutChartInstance = null; }
           if (lineChartInstance)  { lineChartInstance.destroy();  lineChartInstance  = null; }
+
+          renderHwEvaluationStatus(response.evaluation_status);
 
           /* Chart.js reads canvas parent size; display:none gives 0×0 and charts disappear */
           var $results = $('#results-container');
@@ -598,55 +620,6 @@ $(document).ready(function () {
                   },
                   tooltip: {
                     enabled: donutSum > 0,
-                    callbacks: {
-                      label: function (ctx) {
-                        var raw = Number(ctx.raw) || 0;
-                        var sum = ctx.dataset.data.reduce(function (a, b) { return a + (Number(b) || 0); }, 0);
-                        var pct = sum > 0 ? Math.round((raw / sum) * 1000) / 10 : 0;
-                        return ' ' + (ctx.label || '') + ': ' + raw + ' (' + pct + '%)';
-                      }
-                    }
-                  }
-                }
-              }
-            });
-          }
-
-          const evalDonutCtx = document.getElementById('donut-chart-evaluation');
-          if (evalDonutCtx && response.eval_donut_data && Array.isArray(response.eval_donut_data.data)) {
-            var evVals = response.eval_donut_data.data.map(function (v) { return Number(v) || 0; });
-            var evLabels = response.eval_donut_data.labels ? response.eval_donut_data.labels.slice() : [];
-            var evColors = response.eval_donut_data.colors ? response.eval_donut_data.colors.slice() : [];
-            var evSum = evVals.reduce(function (a, b) { return a + b; }, 0);
-            if (evSum === 0) {
-              evLabels = ['No submissions yet'];
-              evVals = [1];
-              evColors = ['#e2e8f0'];
-            }
-            var evPalette = ['#10b981', '#22d3ee'];
-            evalDonutChartInstance = new Chart(evalDonutCtx, {
-              type: 'doughnut',
-              data: {
-                labels: evLabels,
-                datasets: [{
-                  data: evVals,
-                  backgroundColor: evColors.length >= evVals.length ? evColors : evPalette,
-                  borderWidth: 3,
-                  borderColor: '#312e81',
-                  hoverOffset: 4
-                }]
-              },
-              options: {
-                cutout: '65%',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#cbd5e1' }
-                  },
-                  tooltip: {
-                    enabled: evSum > 0,
                     callbacks: {
                       label: function (ctx) {
                         var raw = Number(ctx.raw) || 0;
@@ -756,7 +729,6 @@ $(document).ready(function () {
           $results.css({ visibility: 'visible', opacity: 1 });
           window.requestAnimationFrame(function () {
             if (donutChartInstance && typeof donutChartInstance.resize === 'function') donutChartInstance.resize();
-            if (evalDonutChartInstance && typeof evalDonutChartInstance.resize === 'function') evalDonutChartInstance.resize();
             if (lineChartInstance && typeof lineChartInstance.resize === 'function') lineChartInstance.resize();
           });
         }

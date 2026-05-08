@@ -327,7 +327,7 @@ class HomeworkController extends Controller
     /**
      * AJAX endpoint: Returns filtered report data (chart + table).
      * Accepts filters: class, section, subject, task_type.
-     * Response: JSON with donut_data, trend_data, table_html.
+     * Response: JSON with donut_data, evaluation_status, trend_data, table_html.
      */
     public function getFilteredReport(Request $request)
     {

@@ -598,8 +598,8 @@ class HomeworkRepository implements HomeworkInterface
         // Build task status donut data (submission pipeline)
         $donutData = $this->getTaskStatisticsForFilters($homeworks);
 
-        // Evaluation donut — submitted rows split by marks (graded vs awaiting score)
-        $evalDonutData = $this->getEvaluationStatisticsForFilters($homeworks);
+        // Teacher marking backlog — only homework_students rows (submitted); non-submitters excluded
+        $evaluationStatus = $this->getEvaluationMarkingStatusForFilters($homeworks);
 
         // Build score trend line data
         $trendData = $this->getScoreTrendForFilters($homeworks);
@@ -610,12 +610,12 @@ class HomeworkRepository implements HomeworkInterface
         ])->render();
 
         return [
-            'success'          => true,
-            'table_html'       => $tableHtml,
-            'donut_data'       => $donutData,
-            'eval_donut_data'  => $evalDonutData,
-            'trend_data'       => $trendData,
-            'total_records'    => $homeworks->count(),
+            'success'             => true,
+            'table_html'          => $tableHtml,
+            'donut_data'          => $donutData,
+            'evaluation_status'   => $evaluationStatus,
+            'trend_data'          => $trendData,
+            'total_records'       => $homeworks->count(),
         ];
     }
 
@@ -718,57 +718,34 @@ class HomeworkRepository implements HomeworkInterface
     }
 
     /**
-     * Evaluation donut — mark totals from homework_students (scores teachers/system save there).
-     * Graded slice = sum of recorded submission marks; awaiting slice = sum of assignment max marks
-     * for submissions that still have no marks (same weight basis so the pie reflects marking workload).
+     * Submissions only (homework_students rows). Students with no row are not in evaluation stats.
+     * awaiting_marks = submissions where marks are still null (teacher evaluation pending).
      */
-    private function getEvaluationStatisticsForFilters($homeworks): array
+    private function getEvaluationMarkingStatusForFilters($homeworks): array
     {
-        $gradedMarksTotal    = 0.0;
-        $awaitingMaxMarksSum = 0.0;
+        $homeworksPendingEvaluation = 0;
+        $submissionsAwaitingMarks    = 0;
 
         foreach ($homeworks as $hw) {
-            $maxAssign = $this->homeworkNumericMaxMarks($hw);
-            $pendingWeight = ($maxAssign !== null && $maxAssign > 0) ? $maxAssign : 1.0;
-
-            $rows = DB::table('homework_students')
+            $awaitingHere = (int) DB::table('homework_students')
                 ->where('homework_id', $hw->id)
-                ->select('student_id', 'marks')
-                ->orderBy('id')
-                ->get();
+                ->where(function ($q) {
+                    $q->whereNull('marks')->orWhere('marks', '');
+                })
+                ->selectRaw('COUNT(DISTINCT student_id) as c')
+                ->value('c');
 
-            $perStudent = [];
-            foreach ($rows as $row) {
-                $sid = (int) $row->student_id;
-                if ($this->homeworkStudentMarksAreRecorded($row->marks)) {
-                    $perStudent[$sid] = (float) $row->marks;
-                } elseif (!array_key_exists($sid, $perStudent)) {
-                    $perStudent[$sid] = null;
-                }
-            }
+            $submissionsAwaitingMarks += $awaitingHere;
 
-            foreach ($perStudent as $m) {
-                if ($this->homeworkStudentMarksAreRecorded($m)) {
-                    $gradedMarksTotal += (float) $m;
-                } else {
-                    $awaitingMaxMarksSum += $pendingWeight;
-                }
+            if ($awaitingHere > 0) {
+                $homeworksPendingEvaluation++;
             }
         }
 
         return [
-            'labels' => ['Recorded marks', 'Max marks pending'],
-            'data'   => [
-                round($gradedMarksTotal, 2),
-                round($awaitingMaxMarksSum, 2),
-            ],
-            'colors' => ['#10b981', '#22d3ee'],
+            'homeworks_pending_evaluation' => $homeworksPendingEvaluation,
+            'submissions_awaiting_marks'   => $submissionsAwaitingMarks,
         ];
-    }
-
-    private function homeworkStudentMarksAreRecorded($marks): bool
-    {
-        return $marks !== null && $marks !== '';
     }
 
     /**
