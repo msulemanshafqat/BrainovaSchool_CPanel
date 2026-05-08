@@ -137,7 +137,7 @@
     <div class="hw-filter-bar">
       <header class="hw-filter-intro">
         <h2 class="hw-panel-title">Choose your arena</h2>
-        <p class="hw-panel-desc mb-0">Pick class, section, and subject—optional task type—then hit <strong class="hw-deploy-callout">Deploy</strong> to load charts and the quest log.</p>
+        <p class="hw-panel-desc mb-0">Pick class, section, and subject—optional task type—then hit <span class="hw-deploy-callout">Deploy</span> to load charts and the quest log.</p>
       </header>
 
       {{-- Filters left / Deploy + Reset flush right (within .hw-panel / .page-content) --}}

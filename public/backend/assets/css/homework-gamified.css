@@ -177,8 +177,8 @@
   max-width: 48rem;
 }
 
-.hw-panel-desc .hw-deploy-callout {
-  color: #fef9c3;
+.hw-portal .hw-deploy-callout {
+  color: #fef9c3 !important;
   font-weight: 800;
 }
 
