@@ -200,10 +200,10 @@
           <div class="d-flex flex-column gap-2">
             <div class="d-flex flex-wrap align-items-center">
               <span class="d-inline-flex align-items-center justify-content-center rounded-2 me-2"
-                    style="width:36px;height:36px;background:rgba(224,242,254,0.9);color:#0369a1;border:1px solid rgba(167,139,250,0.28)">
+                    style="width:36px;height:36px;background:rgba(239,246,255,0.95);color:#64748b;border:1px solid rgba(226,232,240,0.98)">
                 <i class="fa-solid fa-scroll" style="font-size:14px"></i>
               </span>
-              <span style="font-weight:700;color:#4338ca">Quest log</span>
+              <span style="font-weight:600;color:#64748b">Quest log</span>
             </div>
             <div id="hw-evaluation-status"
                  class="hw-eval-marking-status"
@@ -618,7 +618,7 @@ $(document).ready(function () {
                 plugins: {
                   legend: {
                     position: 'bottom',
-                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#475569' }
+                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#94a3b8' }
                   },
                   tooltip: {
                     enabled: donutSum > 0,
@@ -652,7 +652,7 @@ $(document).ready(function () {
                   display: true,
                   font: { size: 10, weight: '600', family: 'Fredoka, sans-serif' },
                   text: td.y_left_title || 'Score',
-                  color: '#4338ca'
+                  color: '#64748b'
                 }
               }
             };
@@ -672,7 +672,7 @@ $(document).ready(function () {
                   display: true,
                   font: { size: 10, weight: '600', family: 'Fredoka, sans-serif' },
                   text: td.y_right_title || '% submitted',
-                  color: '#4338ca'
+                  color: '#64748b'
                 }
               };
             }
