@@ -507,25 +507,34 @@
   color: #fef9c3 !important;
 }
 
-.hw-portal .hw-eval-marking-status-inner.hw-eval-clear {
+/*
+  Global style.css sets `strong { color: var(--ot-text-title) }` with no !important,
+  but other theme rules can still paint nested text black. Use #hw-evaluation-status (ID)
+  so these beat everything. Cyan states: clear + pending.
+*/
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-clear {
   border-color: rgba(34, 211, 238, 0.45);
   background: rgba(34, 211, 238, 0.08);
   color: #22d3ee !important;
 }
 
-.hw-portal .hw-eval-marking-status-inner.hw-eval-clear,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-clear * {
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-clear,
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-clear strong,
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-clear span,
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-clear i {
   color: #22d3ee !important;
 }
 
-.hw-portal .hw-eval-marking-status-inner.hw-eval-pending {
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-pending {
   border-color: rgba(34, 211, 238, 0.55);
   background: rgba(34, 211, 238, 0.12);
   color: #22d3ee !important;
 }
 
-.hw-portal .hw-eval-marking-status-inner.hw-eval-pending,
-.hw-portal .hw-eval-marking-status-inner.hw-eval-pending * {
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-pending,
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-pending strong,
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-pending span,
+#hw-evaluation-status .hw-eval-marking-status-inner.hw-eval-pending i {
   color: #22d3ee !important;
 }
 

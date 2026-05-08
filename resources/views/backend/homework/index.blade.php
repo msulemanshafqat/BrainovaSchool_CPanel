@@ -443,9 +443,9 @@ function renderHwEvaluationStatus(es) {
   var sa = parseInt(es.submissions_awaiting_marks, 10) || 0;
   if (sa === 0) {
     $el.html(
-      '<span class="hw-eval-marking-status-inner hw-eval-clear">' +
-      '<i class="fa-solid fa-circle-check me-1"></i>' +
-      '<strong>Evaluation:</strong> no submitted student work is awaiting marks (students who have not submitted are excluded).' +
+      '<span class="hw-eval-marking-status-inner hw-eval-clear" style="color:#22d3ee;border-color:rgba(34,211,238,0.45);background:rgba(34,211,238,0.08)">' +
+      '<i class="fa-solid fa-circle-check me-1" style="color:#22d3ee"></i>' +
+      '<span class="fw-semibold" style="color:#22d3ee">Evaluation:</span> no submitted student work is awaiting marks (students who have not submitted are excluded).' +
       '</span>'
     );
     return;
@@ -453,11 +453,13 @@ function renderHwEvaluationStatus(es) {
   var taskWord = hp === 1 ? 'task' : 'tasks';
   var subWord = sa === 1 ? 'submission' : 'submissions';
   $el.html(
-    '<span class="hw-eval-marking-status-inner hw-eval-pending">' +
-    '<i class="fa-solid fa-pen-to-square me-1"></i>' +
-    '<strong>Evaluation backlog:</strong> <strong>' + sa + '</strong> ' + subWord +
-    ' still need marks, across <strong>' + hp + '</strong> homework ' + taskWord +
-    '. <span style="opacity:.85">Only students who already submitted are counted.</span>' +
+    '<span class="hw-eval-marking-status-inner hw-eval-pending" style="color:#22d3ee;border-color:rgba(34,211,238,0.55);background:rgba(34,211,238,0.12)">' +
+    '<i class="fa-solid fa-pen-to-square me-1" style="color:#22d3ee"></i>' +
+    '<span class="fw-semibold" style="color:#22d3ee">Evaluation backlog:</span> ' +
+    '<span style="color:#22d3ee;font-weight:700">' + sa + '</span> ' + subWord +
+    ' still need marks, across ' +
+    '<span style="color:#22d3ee;font-weight:700">' + hp + '</span> homework ' + taskWord +
+    '. <span style="color:#22d3ee;opacity:.85">Only students who already submitted are counted.</span>' +
     '</span>'
   );
 }
