@@ -209,16 +209,28 @@
       </div>
 
       <div style="overflow-x:auto">
-        <table class="ht">
+        <table class="ht" id="hw-quest-log-table">
           <thead>
             <tr>
               <th style="width:36px">#</th>
-              <th>Title</th>
-              <th style="white-space:nowrap">Class / Section</th>
-              <th style="white-space:nowrap">Subject</th>
-              <th style="white-space:nowrap">Type</th>
-              <th style="white-space:nowrap">Due Date</th>
-              <th style="white-space:nowrap;width:60px">Marks</th>
+              <th class="hw-sortable" data-sort-col="1" scope="col" tabindex="0" aria-sort="none">
+                Title <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+              </th>
+              <th class="hw-sortable" data-sort-col="2" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                Class / Section <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+              </th>
+              <th class="hw-sortable" data-sort-col="3" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                Subject <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+              </th>
+              <th class="hw-sortable" data-sort-col="4" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                Type <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+              </th>
+              <th class="hw-sortable" data-sort-col="5" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                Due Date <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+              </th>
+              <th class="hw-sortable" data-sort-col="6" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap;width:60px">
+                Marks <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+              </th>
               <th style="white-space:nowrap;min-width:88px">Act.</th>
             </tr>
           </thead>
@@ -301,7 +313,125 @@
 let donutChartInstance = null;
 let lineChartInstance  = null;
 
+/** Quest log (#filtered-table-body): header-driven sort; tbody replaced via AJAX */
+var hwQuestLogSortState = { col: null, dir: 'asc' };
+
+function resetHwQuestLogSortHeaders() {
+  hwQuestLogSortState.col = null;
+  hwQuestLogSortState.dir = 'asc';
+  $('#hw-quest-log-table thead th.hw-sortable').each(function () {
+    $(this).attr('aria-sort', 'none');
+    $(this).find('.hw-sort-icon').attr('class', 'hw-sort-icon fa-solid fa-sort');
+  });
+}
+
+function sortHwQuestLogTable(colIndex) {
+  var $tbody = $('#filtered-table-body');
+  var $rows = $tbody.find('tr').filter(function () {
+    var $tds = $(this).find('td');
+    return $tds.length >= 8 && $tds.filter('[colspan]').length === 0;
+  });
+  if ($rows.length < 2) {
+    return;
+  }
+
+  if (hwQuestLogSortState.col === colIndex) {
+    hwQuestLogSortState.dir = hwQuestLogSortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    hwQuestLogSortState.col = colIndex;
+    hwQuestLogSortState.dir = 'asc';
+  }
+
+  var dir = hwQuestLogSortState.dir;
+
+  function valOf(tr) {
+    var v = $(tr).children('td').eq(colIndex).attr('data-sort');
+    return v === undefined || v === null ? '' : String(v);
+  }
+
+  function cmpDue(va, vb) {
+    var ae = va === '', be = vb === '';
+    if (ae && be) {
+      return 0;
+    }
+    if (ae) {
+      return 1;
+    }
+    if (be) {
+      return -1;
+    }
+    return va.localeCompare(vb);
+  }
+
+  function cmpMarks(va, vb) {
+    function num(s) {
+      if (s === '') {
+        return null;
+      }
+      var n = parseFloat(s);
+      return isNaN(n) ? null : n;
+    }
+    var na = num(va), nb = num(vb);
+    if (na === null && nb === null) {
+      return 0;
+    }
+    if (na === null) {
+      return 1;
+    }
+    if (nb === null) {
+      return -1;
+    }
+    return na - nb;
+  }
+
+  var sorted = $rows.get().sort(function (a, b) {
+    var va = valOf(a), vb = valOf(b);
+    var c = 0;
+    if (colIndex === 5) {
+      c = cmpDue(va, vb);
+    } else if (colIndex === 6) {
+      c = cmpMarks(va, vb);
+    } else {
+      c = va.localeCompare(vb, undefined, { sensitivity: 'base', numeric: true });
+    }
+    if (c !== 0) {
+      return dir === 'asc' ? c : -c;
+    }
+    var ida = parseInt($(a).attr('data-hw-row-id'), 10) || 0;
+    var idb = parseInt($(b).attr('data-hw-row-id'), 10) || 0;
+    return ida - idb;
+  });
+
+  $tbody.append(sorted);
+
+  $tbody.find('tr td.hw-quest-num').each(function (i) {
+    $(this).text(i + 1);
+  });
+
+  $('#hw-quest-log-table thead th.hw-sortable').each(function () {
+    var idx = parseInt($(this).data('sort-col'), 10);
+    var $icon = $(this).find('.hw-sort-icon');
+    if (idx === hwQuestLogSortState.col) {
+      $(this).attr('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+      $icon.attr('class', 'hw-sort-icon fa-solid ' + (dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down'));
+    } else {
+      $(this).attr('aria-sort', 'none');
+      $icon.attr('class', 'hw-sort-icon fa-solid fa-sort');
+    }
+  });
+}
+
 $(document).ready(function () {
+
+  $('#hw-quest-log-table').on('click', 'thead th.hw-sortable', function () {
+    sortHwQuestLogTable(parseInt($(this).data('sort-col'), 10));
+  });
+  $('#hw-quest-log-table').on('keydown', 'thead th.hw-sortable', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      sortHwQuestLogTable(parseInt($(this).data('sort-col'), 10));
+    }
+  });
 
   /* ── Bind events FIRST ── */
   $('#filter-class').on('change', function () {
@@ -400,6 +530,7 @@ $(document).ready(function () {
       success: function (response) {
         if (response.success) {
           $('#filtered-table-body').html(response.table_html);
+          resetHwQuestLogSortHeaders();
           const rowCount = $('#filtered-table-body tr:not(.hh)').length;
           $('#table-count-badge').text(rowCount + ' record' + (rowCount !== 1 ? 's' : ''));
 

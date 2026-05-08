@@ -561,6 +561,29 @@
 
 .ht thead th:last-child { border-right: none; }
 
+.hw-portal .ht thead th.hw-sortable {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hw-portal .ht thead th.hw-sortable:hover {
+  color: #fef9c3;
+}
+
+.hw-portal .ht thead th.hw-sortable .hw-sort-icon {
+  margin-left: 4px;
+  font-size: 0.75em;
+  opacity: 0.65;
+  vertical-align: middle;
+}
+
+.hw-portal .ht thead th.hw-sortable[aria-sort="ascending"] .hw-sort-icon,
+.hw-portal .ht thead th.hw-sortable[aria-sort="descending"] .hw-sort-icon {
+  opacity: 1;
+  color: #22d3ee;
+}
+
 .ht tbody td {
   padding: 14px 16px;
   border-bottom: 1px solid rgba(129, 140, 248, 0.15);
