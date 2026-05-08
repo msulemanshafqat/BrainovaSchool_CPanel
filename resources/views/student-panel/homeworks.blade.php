@@ -231,9 +231,14 @@
           {{ $row->title ?? '—' }}
         </div>
 
-        {{-- Meta row: submission date + marks only.
-             Assignment date removed — already encoded in the title string.
-             Description removed — free-text field used inconsistently by teachers. --}}
+        @if(filled($row->description))
+        <div style="font-size:12.5px;color:#475569;line-height:1.55;margin-bottom:8px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;white-space:pre-wrap;word-break:break-word">
+          <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700;margin-bottom:4px">Instructions</span>
+          {{ $row->description }}
+        </div>
+        @endif
+
+        {{-- Meta row: due date + marks --}}
         <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:#64748b;margin-bottom:8px">
           <span><i class="fa-solid fa-clock" style="margin-right:3px"></i>Due: <strong style="color:#334155">{{ $row->submission_date ?? '—' }}</strong></span>
           @if($row->marks)
