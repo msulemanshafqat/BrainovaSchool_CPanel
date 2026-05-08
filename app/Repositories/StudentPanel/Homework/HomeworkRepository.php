@@ -69,16 +69,35 @@ class HomeworkRepository implements HomeworkInterface
             $homework_student->homework_id = $request->homework_id;
             $homework_student->date        = date('Y-m-d');
 
-            // File upload — was previously commented out, causing "submitted" status
-            // to never persist (the record saved but the file was never stored,
-            // and the next page load showed "Not Submitted Yet" again).
-            if ($request->hasFile('homework')) {
-                $homework_student->homework = $this->UploadImageUpdate(
-                    $request->homework,
-                    'backend/uploads/homeworks',
-                    $homework_student->homework
-                );
+            $files = $request->file('homework');
+            if (!is_array($files)) {
+                $files = array_values(array_filter([$files]));
             }
+            $files = array_slice($files, 0, 5);
+
+            foreach ($homework_student->extra_upload_ids ?? [] as $oldId) {
+                if ($oldId) {
+                    $this->UploadImageDelete((int) $oldId);
+                }
+            }
+
+            $firstFile = $files[0];
+            $homework_student->homework = $this->UploadImageUpdate(
+                $firstFile,
+                'backend/uploads/homeworks',
+                $homework_student->homework
+            );
+
+            $extraIds = [];
+            for ($i = 1; $i < count($files); $i++) {
+                $extraIds[] = $this->UploadImageUpdate($files[$i], 'backend/uploads/homeworks', null);
+            }
+            $homework_student->extra_upload_ids = $extraIds !== [] ? $extraIds : null;
+
+            $comment = $request->input('student_comment');
+            $homework_student->student_comment = ($comment !== null && trim((string) $comment) !== '')
+                ? trim((string) $comment)
+                : null;
 
             $homework_student->save();
             DB::commit();

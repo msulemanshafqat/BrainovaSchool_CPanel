@@ -476,6 +476,7 @@ class HomeworkRepository implements HomeworkInterface
                 'hs.date        as submission_date',
                 'hs.marks',
                 'hs.feedback',
+                'hs.student_comment',
             ])
             ->orderBy('s.first_name')
             ->get();
@@ -502,6 +503,7 @@ class HomeworkRepository implements HomeworkInterface
                 'Marks Earned',
                 'Total Marks',
                 'Feedback',
+                'Student comment',
             ]);
 
             foreach ($students as $row) {
@@ -512,6 +514,7 @@ class HomeworkRepository implements HomeworkInterface
                     $row->marks          ?? '—',
                     $homework->marks     ?? '—',
                     $row->feedback       ?? '',
+                    $row->student_comment ?? '',
                 ]);
             }
 

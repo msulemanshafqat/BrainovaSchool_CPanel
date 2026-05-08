@@ -80,23 +80,36 @@
                             Submitted: {{ $row->homeworkStudent->date ?? '—' }}
                         </div>
 
+                        @if(filled($row->homeworkStudent->student_comment))
+                            <div class="small text-secondary mb-2" style="max-width:32rem;white-space:pre-wrap">
+                                <i class="fa-solid fa-message me-1 text-primary"></i>
+                                <span class="fw-semibold">Student note:</span>
+                                {{ $row->homeworkStudent->student_comment }}
+                            </div>
+                        @endif
+
                         @if($data['homework']->task_type === 'quiz')
                             {{-- Quiz: auto-graded on submission, no file to view --}}
                             <span class="badge bg-info text-white">
                                 <i class="fa-solid fa-robot me-1"></i>Auto-graded
                             </span>
-                        @elseif($row->homeworkStudent->homeworkUpload)
-                            {{--
-                                Use url() directly — globalAsset() resolves relative paths
-                                from the wrong CWD on some server configs, causing 404s.
-                            --}}
-                            <a class="btn btn-sm ot-btn-primary radius_30px"
-                               href="{{ url($row->homeworkStudent->homeworkUpload->path) }}"
-                               target="_blank">
-                                <i class="fa-solid fa-eye me-1"></i>View Work
-                            </a>
                         @else
-                            <span class="badge bg-warning text-dark">No file</span>
+                            @php
+                                $subFiles = $row->homeworkStudent->allSubmissionUploads();
+                            @endphp
+                            @if($subFiles->isNotEmpty())
+                                <div class="d-flex flex-wrap gap-1 align-items-center">
+                                    @foreach($subFiles as $idx => $upl)
+                                        <a class="btn btn-sm ot-btn-primary radius_30px"
+                                           href="{{ url($upl->path) }}"
+                                           target="_blank">
+                                            <i class="fa-solid fa-file-arrow-down me-1"></i>File {{ $idx + 1 }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="badge bg-warning text-dark">No file</span>
+                            @endif
                         @endif
                     @else
                         <span class="badge-basic-danger-text">

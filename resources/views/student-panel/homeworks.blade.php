@@ -246,6 +246,13 @@
           @endif
         </div>
 
+        @if($sub && filled($sub->student_comment))
+        <div style="font-size:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 10px;margin-bottom:8px;line-height:1.45;color:#475569;white-space:pre-wrap">
+          <i class="fa-solid fa-message" style="color:#2563eb;margin-right:4px"></i>
+          <strong style="color:#0f172a">Your note:</strong> {{ $sub->student_comment }}
+        </div>
+        @endif
+
         {{-- Row 5: Teacher feedback (Tier 2 Feature F) --}}
         @if($sub && $sub->feedback)
         <div style="font-size:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:6px 10px;margin-bottom:8px">
@@ -285,12 +292,15 @@
               <span style="font-size:12px;color:#059669;font-weight:600">
                 <i class="fa-solid fa-check-circle" style="margin-right:3px"></i>Submitted
               </span>
-              @if($sub->homeworkUpload && $sub->homeworkUpload->path)
-                <a href="{{ url($sub->homeworkUpload->path) }}" target="_blank"
+              @php $myUploads = $sub->allSubmissionUploads(); @endphp
+              @foreach($myUploads as $fi => $upl)
+              @if($upl->path)
+                <a href="{{ url($upl->path) }}" target="_blank"
                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:7px;font-size:11.5px;font-weight:600;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;text-decoration:none">
-                  <i class="fa-solid fa-eye"></i> Your Work
+                  <i class="fa-solid fa-eye"></i> File {{ $fi + 1 }}
                 </a>
               @endif
+              @endforeach
             @endif
           @endif
         </div>
@@ -415,23 +425,25 @@
       <input type="hidden" name="homework_id" id="sid">
       <div class="modal-body p-4">
         <label class="form-label fw-semibold">Upload your work <span class="fillable">*</span></label>
+        <div class="small text-muted mb-2">You can attach up to <strong>5 files</strong> (images, PDF, Word). Max 10 MB each.</div>
         <div class="ot_fileUploader left-side mb-1">
-          <input class="form-control" type="text" placeholder="Choose file..." readonly id="sph">
+          <input class="form-control" type="text" placeholder="Choose file(s)..." readonly id="sph">
           <button class="primary-btn-small-input" type="button">
             <label class="btn btn-lg ot-btn-primary" for="sfl">Browse</label>
-            <input type="file" class="d-none" name="homework" id="sfl" accept="image/*,.pdf,.doc,.docx">
+            <input type="file" class="d-none" name="homework[]" id="sfl" multiple accept="image/*,.pdf,.doc,.docx">
           </button>
         </div>
-        {{-- File preview bar --}}
+        {{-- File preview list --}}
         <div id="fprev" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:7px 12px;font-size:12px;color:#1d4ed8;margin-top:6px">
-          <i class="fa-solid fa-file" style="margin-right:6px"></i>
-          <span id="fprev-name"></span>
-          <span id="fprev-size" style="color:#64748b;margin-left:6px"></span>
+          <div style="font-weight:600;margin-bottom:4px"><i class="fa-solid fa-paperclip me-1"></i>Selected files</div>
+          <ul id="fprev-list" style="margin:0;padding-left:18px;"></ul>
         </div>
+        <label class="form-label fw-semibold mt-3" for="scm">Comment for your teacher <span class="text-muted fw-normal">(optional)</span></label>
+        <textarea class="form-control" name="student_comment" id="scm" rows="3" maxlength="2000" placeholder="Add context about your submission…"></textarea>
         <span id="serr" class="text-danger" style="font-size:12px"></span>
         <div style="margin-top:8px;font-size:11.5px;color:#94a3b8">
           <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
-          Accepted: Images, PDF, Word documents (max 10 MB)
+          Accepted: Images, PDF, Word documents (max 10 MB per file)
         </div>
       </div>
       <div class="modal-footer">
@@ -618,31 +630,65 @@ function openSub(id) {
   document.getElementById('sid').value  = id;
   document.getElementById('sph').value  = '';
   document.getElementById('sfl').value  = '';
+  document.getElementById('scm').value  = '';
   document.getElementById('serr').textContent = '';
   document.getElementById('fprev').style.display = 'none';
+  var ul = document.getElementById('fprev-list');
+  if (ul) ul.innerHTML = '';
 }
 
 document.getElementById('sfl').addEventListener('change', function() {
-  var f = this.files[0];
-  if (!f) return;
-  document.getElementById('sph').value = f.name;
-  var kb  = Math.round(f.size / 1024);
-  var sz  = kb > 1024 ? (kb/1024).toFixed(1)+' MB' : kb+' KB';
-  document.getElementById('fprev-name').textContent = f.name;
-  document.getElementById('fprev-size').textContent = '('+sz+')';
-  document.getElementById('fprev').style.display = 'block';
-  if (f.size > 10*1024*1024) {
-    document.getElementById('serr').textContent = 'File exceeds 10 MB limit.';
-    document.getElementById('fprev').style.display = 'none';
-  } else {
-    document.getElementById('serr').textContent = '';
+  var files = this.files;
+  var ul = document.getElementById('fprev-list');
+  var prev = document.getElementById('fprev');
+  if (!files || files.length === 0) {
+    prev.style.display = 'none';
+    return;
   }
+  var names = [];
+  ul.innerHTML = '';
+  var ok = true;
+  if (files.length > 5) {
+    document.getElementById('serr').textContent = 'You can select at most 5 files.';
+    prev.style.display = 'none';
+    return;
+  }
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (f.size > 10*1024*1024) {
+      document.getElementById('serr').textContent = 'One or more files exceed 10 MB.';
+      ok = false;
+      break;
+    }
+    var kb = Math.round(f.size / 1024);
+    var sz = kb > 1024 ? (kb/1024).toFixed(1)+' MB' : kb+' KB';
+    var li = document.createElement('li');
+    li.textContent = f.name + ' (' + sz + ')';
+    ul.appendChild(li);
+    names.push(f.name);
+  }
+  document.getElementById('sph').value = names.join(', ');
+  prev.style.display = ok ? 'block' : 'none';
+  if (ok) document.getElementById('serr').textContent = '';
 });
 
 function doSub() {
-  var f = document.getElementById('sfl').files[0];
-  if (!f) { document.getElementById('serr').textContent = 'Please select a file.'; return; }
-  if (f.size > 10*1024*1024) { document.getElementById('serr').textContent = 'File exceeds 10 MB limit.'; return; }
+  var inp = document.getElementById('sfl');
+  var files = inp.files;
+  if (!files || files.length === 0) {
+    document.getElementById('serr').textContent = 'Please select at least one file.';
+    return;
+  }
+  if (files.length > 5) {
+    document.getElementById('serr').textContent = 'You can upload at most 5 files.';
+    return;
+  }
+  for (var i = 0; i < files.length; i++) {
+    if (files[i].size > 10*1024*1024) {
+      document.getElementById('serr').textContent = 'Each file must be 10 MB or smaller.';
+      return;
+    }
+  }
   var btn = document.getElementById('sbtn');
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:5px"></i>Uploading...';
   btn.disabled  = true;
