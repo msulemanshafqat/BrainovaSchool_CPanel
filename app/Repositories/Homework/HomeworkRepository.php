@@ -591,7 +591,12 @@ class HomeworkRepository implements HomeworkInterface
             $query->whereIn('subject_id', teacherSubjects());
         }
 
-        $homeworks = $query->orderByDesc('id')->get();
+        // Quest log: due date (submission_date) newest first; undated rows last; tie-break by id
+        $homeworks = $query
+            ->orderByRaw('CASE WHEN submission_date IS NULL THEN 1 ELSE 0 END')
+            ->orderByDesc('submission_date')
+            ->orderByDesc('id')
+            ->get();
 
         // Build task status donut data
         $donutData = $this->getTaskStatisticsForFilters($homeworks);
