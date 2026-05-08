@@ -8,6 +8,7 @@ use App\Models\OnlineExamination\Answer;
 use App\Models\OnlineExamination\AnswerChildren;
 use App\Traits\CommonHelperTrait;
 use App\Traits\ReturnFormatTrait;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class HomeworkRepository implements HomeworkInterface
@@ -591,12 +592,8 @@ class HomeworkRepository implements HomeworkInterface
             $query->whereIn('subject_id', teacherSubjects());
         }
 
-        // Quest log: due date (submission_date) newest first; undated rows last; tie-break by id
-        $homeworks = $query
-            ->orderByRaw('CASE WHEN submission_date IS NULL THEN 1 ELSE 0 END')
-            ->orderByDesc('submission_date')
-            ->orderByDesc('id')
-            ->get();
+        // Quest log: newest due date first (PHP sort — handles NULL/empty strings & driver quirks)
+        $homeworks = $this->sortQuestLogByDueDateLatestFirst($query->get());
 
         // Build task status donut data
         $donutData = $this->getTaskStatisticsForFilters($homeworks);
@@ -616,6 +613,46 @@ class HomeworkRepository implements HomeworkInterface
             'trend_data'     => $trendData,
             'total_records'  => $homeworks->count(),
         ];
+    }
+
+    /**
+     * Due column in UI is submission_date; sort newest deadline first, missing dates last.
+     */
+    private function sortQuestLogByDueDateLatestFirst(Collection $homeworks): Collection
+    {
+        return $homeworks->sort(function ($a, $b) {
+            $tsA = $this->homeworkSubmissionDueTimestamp($a);
+            $tsB = $this->homeworkSubmissionDueTimestamp($b);
+
+            if ($tsA === null && $tsB === null) {
+                return $b->id <=> $a->id;
+            }
+            if ($tsA === null) {
+                return 1;
+            }
+            if ($tsB === null) {
+                return -1;
+            }
+            if ($tsA !== $tsB) {
+                return $tsB <=> $tsA;
+            }
+
+            return $b->id <=> $a->id;
+        })->values();
+    }
+
+    private function homeworkSubmissionDueTimestamp($hw): ?int
+    {
+        $raw = $hw->submission_date ?? null;
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        try {
+            return \Carbon\Carbon::parse($raw)->startOfDay()->timestamp;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
