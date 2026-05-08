@@ -173,7 +173,7 @@
             <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
             Quest status radar
           </div>
-          <div class="cc-sub" style="color:rgba(199,210,254,0.85)">Hand-ins vs still pending (on-time window vs overdue).</div>
+          <div class="cc-sub">Hand-ins vs still pending (on-time window vs overdue).</div>
           <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-filtered"></canvas></div>
         </div>
       </div>
@@ -185,7 +185,7 @@
             <i class="fa-solid fa-chart-line me-1" style="color:var(--bp)"></i>
             Power curve
           </div>
-          <div class="cc-sub" style="color:rgba(199,210,254,0.85)">Blue = graded average · Gray = % of class submitted</div>
+          <div class="cc-sub">Blue = graded average · Gray = % of class submitted</div>
           <div class="hw-chart-canvas-wrap"><canvas id="line-chart-filtered"></canvas></div>
         </div>
       </div>
@@ -200,10 +200,10 @@
           <div class="d-flex flex-column gap-2">
             <div class="d-flex flex-wrap align-items-center">
               <span class="d-inline-flex align-items-center justify-content-center rounded-2 me-2"
-                    style="width:36px;height:36px;background:rgba(34,211,238,0.2);color:#22d3ee;border:1px solid rgba(167,139,250,0.4)">
+                    style="width:36px;height:36px;background:rgba(224,242,254,0.9);color:#0369a1;border:1px solid rgba(167,139,250,0.28)">
                 <i class="fa-solid fa-scroll" style="font-size:14px"></i>
               </span>
-              <span style="font-weight:700;color:#fef9c3">Quest log</span>
+              <span style="font-weight:700;color:#4338ca">Quest log</span>
             </div>
             <div id="hw-evaluation-status"
                  class="hw-eval-marking-status"
@@ -607,7 +607,7 @@ $(document).ready(function () {
                   data: donutVals,
                   backgroundColor: donutColors.length >= donutVals.length ? donutColors : donutPalette,
                   borderWidth: 3,
-                  borderColor: '#312e81',
+                  borderColor: '#ffffff',
                   hoverOffset: 4
                 }]
               },
@@ -618,7 +618,7 @@ $(document).ready(function () {
                 plugins: {
                   legend: {
                     position: 'bottom',
-                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#cbd5e1' }
+                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#475569' }
                   },
                   tooltip: {
                     enabled: donutSum > 0,
@@ -640,19 +640,19 @@ $(document).ready(function () {
           if (lineCtx && response.trend_data && response.trend_data.datasets && response.trend_data.datasets.length) {
             var td = response.trend_data;
             var scales = {
-              x: { grid: { display: false, color: 'rgba(148,163,184,0.15)' }, ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#94a3b8' } },
+              x: { grid: { display: false, color: 'rgba(148,163,184,0.2)' }, ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' } },
               y: {
                 type: 'linear',
                 display: true,
                 position: 'left',
                 beginAtZero: true,
-                grid: { color: 'rgba(148,163,184,0.12)' },
-                ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#94a3b8' },
+                grid: { color: 'rgba(148,163,184,0.18)' },
+                ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' },
                 title: {
                   display: true,
                   font: { size: 10, weight: '600', family: 'Fredoka, sans-serif' },
                   text: td.y_left_title || 'Score',
-                  color: '#a5b4fc'
+                  color: '#4338ca'
                 }
               }
             };
@@ -667,12 +667,12 @@ $(document).ready(function () {
                 beginAtZero: true,
                 max: 100,
                 grid: { drawOnChartArea: false },
-                ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#94a3b8' },
+                ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' },
                 title: {
                   display: true,
                   font: { size: 10, weight: '600', family: 'Fredoka, sans-serif' },
                   text: td.y_right_title || '% submitted',
-                  color: '#a5b4fc'
+                  color: '#4338ca'
                 }
               };
             }
