@@ -16,7 +16,7 @@
   padding: 1rem 0 2.75rem;
   position: relative;
   overflow-x: hidden;
-  color: #475569;
+  color: #99bef1;
   background-color: #f8fafc !important;
   background-image: none !important;
   /* Match student-panel homeworks + admin overview tokens */
@@ -62,11 +62,11 @@ body.dark-theme .page-content.hw-portal {
 
 /* Dark mode sets labels to white — restore readable slate on this light page */
 body.dark-theme .page-content.hw-portal label:not(.filter-label) {
-  color: #64748b !important;
+  color: #a9c7f0 !important;
 }
 
 body.dark-theme .page-content.hw-portal .hw-filter-bar .filter-label {
-  color: #64748b !important;
+  color: #a9c7f0 !important;
 }
 
 .page-content.hw-portal > * {
@@ -106,7 +106,7 @@ body.dark-theme .page-content.hw-portal .hw-filter-bar .filter-label {
   border: 1px solid #e8edf2;
   border-radius: 16px;
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 1px 2px rgba(109, 130, 179, 0.04),
     0 4px 20px rgba(15, 23, 42, 0.06);
   padding: 1.6rem 1.85rem 1.65rem;
   margin-bottom: 1.5rem;
