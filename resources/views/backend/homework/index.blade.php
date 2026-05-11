@@ -1,8 +1,54 @@
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
 
+@push('css')
+<style>
+  /* Homework index — light blue gradients (scoped; default + dark theme) */
+  .homework-index-page .card.ot-card {
+    background: linear-gradient(145deg, #f8fbff 0%, #e8f4fc 42%, #f0f9ff 78%, #ffffff 100%);
+    border: 1px solid rgba(147, 197, 253, 0.55);
+    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .homework-index-page .card.ot-card .card-header {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.35) 100%);
+    border-bottom: 1px solid rgba(186, 230, 253, 0.65);
+  }
+  .homework-index-page .card.ot-card .card-body {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(239, 246, 255, 0.45) 100%);
+  }
+  .homework-index-page #results-container {
+    padding: 1.25rem 1.15rem 1.35rem;
+    border-radius: 14px;
+    background: linear-gradient(168deg, #eff6ff 0%, #dbeafe 28%, #e0f2fe 55%, #f8fafc 92%, #ffffff 100%);
+    border: 1px solid rgba(147, 197, 253, 0.5);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      0 10px 28px rgba(37, 99, 235, 0.08);
+  }
+  body.dark-theme .homework-index-page .card.ot-card {
+    background: linear-gradient(145deg, #1e293b 0%, #1e3a5f 45%, #172554 100%);
+    border-color: rgba(96, 165, 250, 0.35);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  body.dark-theme .homework-index-page .card.ot-card .card-header {
+    background: linear-gradient(180deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.2) 100%);
+    border-bottom-color: rgba(96, 165, 250, 0.25);
+  }
+  body.dark-theme .homework-index-page .card.ot-card .card-body {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(30, 58, 138, 0.12) 100%);
+  }
+  body.dark-theme .homework-index-page #results-container {
+    background: linear-gradient(168deg, #0f172a 0%, #172554 35%, #1e293b 70%, #0f172a 100%);
+    border-color: rgba(59, 130, 246, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 32px rgba(0, 0, 0, 0.4);
+  }
+</style>
+@endpush
+
 @section('content')
-<div class="page-content">
+<div class="page-content homework-index-page">
 
   <input type="hidden" id="url" value="{{ url('/') }}">
 
@@ -85,7 +131,7 @@
     </div>
   </div>
 
-  <div id="results-container" class="mt-20" style="display:none">
+  <div id="results-container" class="homework-results-panel mt-20" style="display:none">
 
     <div class="row g-3 mb-3">
       <div class="col-md-6">
@@ -113,7 +159,7 @@
     </div>
 
     <div class="table-content table-basic">
-      <div class="card">
+      <div class="card ot-card">
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
           <div>
             <h4 class="mb-0">{{ @$data['title'] }}</h4>
