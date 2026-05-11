@@ -2,6 +2,15 @@
 @php
   $typeMap = ['homework'=>'hw','quiz'=>'quiz','project'=>'project','activity'=>'activity','game'=>'game','assignment'=>'assignment'];
   $typeKey = $typeMap[$row->task_type ?? 'homework'] ?? 'hw';
+  $badgeClass = match ($typeKey) {
+    'quiz' => 'bg-primary',
+    'hw' => 'bg-success',
+    'project' => 'bg-danger',
+    'activity' => 'bg-info text-dark',
+    'game' => 'bg-warning text-dark',
+    'assignment' => 'bg-secondary',
+    default => 'bg-secondary',
+  };
   $isOverdue = $row->submission_date && \Carbon\Carbon::parse($row->submission_date)->isPast();
   $dueSort = ($row->submission_date ?? null)
     ? \Carbon\Carbon::parse($row->submission_date)->format('Y-m-d')
@@ -14,44 +23,46 @@
   $sortType = (string) ($row->task_type ?? '');
 @endphp
 <tr data-hw-row-id="{{ $row->id }}">
-  <td class="hw-quest-num">{{ $loop->iteration }}</td>
+  <td class="serial hw-quest-num">{{ $loop->iteration }}</td>
   <td data-sort="{{ e($sortTitle) }}">
-    <div class="hw-quest-title" title="{{ $row->title ?? '' }}">{{ $row->title ?? '—' }}</div>
+    <strong>{{ $row->title ?? '—' }}</strong>
   </td>
-  <td class="hw-quest-meta" data-sort="{{ e($sortClassSection) }}">
+  <td data-sort="{{ e($sortClassSection) }}">
     {{ $row->class->name ?? '—' }} / {{ $row->section->name ?? '—' }}
   </td>
-  <td class="hw-quest-meta" data-sort="{{ e($sortSubject) }}">{{ $row->subject->name ?? '—' }}</td>
+  <td data-sort="{{ e($sortSubject) }}">{{ $row->subject->name ?? '—' }}</td>
   <td data-sort="{{ e($sortType) }}">
-    <span class="tbg tbg-{{ $typeKey }}">{{ $row->task_type ?? '—' }}</span>
+    <span class="badge {{ $badgeClass }}">{{ $row->task_type ?? '—' }}</span>
   </td>
-  <td class="hw-quest-meta" data-sort="{{ e($dueSort) }}">
+  <td data-sort="{{ e($dueSort) }}">
     {{ $row->submission_date ?? '—' }}
     @if($isOverdue)
-      <span class="od">Late</span>
+      <span class="badge bg-warning text-dark ms-1">Late</span>
     @endif
   </td>
-  <td class="hw-quest-marks" data-sort="{{ e($marksSort) }}">{{ $row->marks ?? '—' }}</td>
-  <td class="hw-act-cell">
+  <td class="text-end" data-sort="{{ e($marksSort) }}">{{ $row->marks ?? '—' }}</td>
+  <td class="action">
     @if(hasPermission('homework_update'))
-      <a href="{{ route('homework.edit', $row->id) }}"
-         class="ab"
-         title="{{ ___('common.edit') }}">
-        <i class="fa-solid fa-pencil" style="font-size:11px"></i>
-      </a>
-      <button type="button"
-              class="ab"
-              title="Evaluate submissions"
-              onclick="openEval({{ $row->id }})">
-        <i class="fa-solid fa-pen-to-square" style="font-size:11px"></i>
-      </button>
+      <div class="d-flex flex-wrap gap-1 justify-content-end">
+        <a href="{{ route('homework.edit', $row->id) }}"
+           class="btn btn-sm btn-outline-primary"
+           title="{{ ___('common.edit') }}">
+          <i class="fa-solid fa-pencil"></i>
+        </a>
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary"
+                title="Evaluate submissions"
+                onclick="openEval({{ $row->id }})">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </button>
+      </div>
     @endif
   </td>
 </tr>
 @empty
 <tr>
-  <td colspan="8" class="hw-empty">
-    <i class="fa-solid fa-inbox" style="font-size:2rem;opacity:.25;display:block;margin-bottom:10px"></i>
+  <td colspan="8" class="text-center text-muted py-4">
+    <i class="fa-solid fa-inbox d-block mb-2 fs-3 opacity-25"></i>
     No homework found for the selected filters.
   </td>
 </tr>

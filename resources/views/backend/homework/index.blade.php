@@ -1,273 +1,171 @@
-{{-- ============================================================
-     TEMPLATE INHERITANCE
-     Extends the main backend layout (master.blade.php).
-     Sets the browser tab title dynamically from $data['title'].
-     ============================================================ --}}
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
 
-{{-- ============================================================
-     PAGE-SPECIFIC CSS (pushed into the <head> via @stack('css'))
-     Scoped to this page only via .hw-portal wrapper.
-     ============================================================ --}}
-@push('css')
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ global_asset('backend/assets/css/homework-gamified.css') }}">
-@endpush
-
-{{-- ============================================================
-     MAIN PAGE CONTENT
-     ============================================================ --}}
 @section('content')
-<div class="page-content hw-portal">
+<div class="page-content">
 
-  {{-- Hidden base URL for JS --}}
   <input type="hidden" id="url" value="{{ url('/') }}">
 
-  {{-- ── Hero: primary heading + short context (not buried in breadcrumb-only UI) ── --}}
-  <header class="hw-page-hero">
-    <div class="row align-items-start align-items-lg-center g-3">
-      <div class="col-lg">
-        <p class="hw-eyebrow">Mission control</p>
-        <h1 class="hw-page-title">Homework quest board</h1>
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <span class="hw-badge-level"><i class="fa-solid fa-trophy"></i> Level up your class</span>
-        </div>
-        <p class="hw-page-lead">
-          Track quests (tasks), loot (submissions), and boss fights (grading)—filter your arena, then chart the win.
-        </p>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Homework &amp; tasks</li>
-          </ol>
-        </nav>
+  <div class="page-header">
+    <div class="row align-items-center">
+      <div class="col-sm-6">
+        <h4 class="bradecrumb-title mb-1">{{ @$data['title'] }}</h4>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ @$data['title'] }}</li>
+        </ol>
       </div>
       @if(hasPermission('homework_create'))
-      <div class="col-lg-auto">
-        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-          <a href="{{ route('homework.download-sample') }}"
-             class="btn btn-outline-secondary btn-sm px-3">
-            <i class="fa-solid fa-download me-1"></i>CSV template
-          </a>
-          <a href="{{ route('homework.create') }}" class="btn ot-btn-primary btn-sm px-3">
-            <i class="fa-solid fa-plus me-1"></i>New task
-          </a>
-        </div>
+      <div class="col-sm-6 text-end mt-3 mt-sm-0">
+        <a href="{{ route('homework.download-sample') }}" class="btn btn-outline-secondary btn-sm me-1">
+          <i class="fa-solid fa-download me-1"></i>CSV template
+        </a>
+        <a href="{{ route('homework.create') }}" class="btn btn-lg ot-btn-primary">
+          <span><i class="fa-solid fa-plus"></i></span>
+          <span>{{ ___('common.add') }}</span>
+        </a>
       </div>
       @endif
     </div>
-  </header>
+  </div>
 
-  {{-- SECTION 1 · Filters -------------------------------- --}}
-  <section class="hw-panel hw-section">
-    <div class="hw-filter-bar">
-      <header class="hw-filter-intro">
-        <h2 class="hw-panel-title">Choose your arena</h2>
-        <p class="hw-panel-desc mb-0">Pick class, section, and subject—optional task type—then hit <span class="hw-deploy-callout">Deploy</span> to load charts and the quest log.</p>
-      </header>
-
-      {{-- Filters left / Deploy + Reset flush right (within .hw-panel / .page-content) --}}
-      <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-end gap-3 hw-filter-toolbar-row">
-        <div class="flex-grow-1 min-w-0 mw-100">
-          <div class="row g-2">
-        {{-- Class --}}
-        <div class="col-6 col-md-6 col-xl-3">
-          <div class="hw-filter-field">
-            <label class="filter-label" for="filter-class">
-              <i class="fa-solid fa-school me-1" style="color:var(--bp)"></i>Class
-            </label>
-            <select id="filter-class" class="form-select form-select-sm hw-select" autocomplete="off">
-                <option value="">All Classes</option>
-                @foreach($data['classes'] ?? [] as $item)
-                  @if(!empty($item->class))
-                    <option value="{{ $item->class->id }}">{{ $item->class->name }}</option>
-                  @endif
-                @endforeach
-              </select>
+  <div class="table-content table-basic mt-20">
+    <div class="card ot-card">
+      <div class="card-header">
+        <h4 class="mb-0">{{ ___('common.filter') }}</h4>
+        <p class="mb-0 text-muted small mt-1">Select class, section, and subject, then load the report.</p>
+      </div>
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-6 col-md-6 col-xl-3">
+            <label class="filter-label" for="filter-class">{{ ___('academic.class') }}</label>
+            <select id="filter-class" class="form-select form-select-sm" autocomplete="off">
+              <option value="">All Classes</option>
+              @foreach($data['classes'] ?? [] as $item)
+                @if(!empty($item->class))
+                  <option value="{{ $item->class->id }}">{{ $item->class->name }}</option>
+                @endif
+              @endforeach
+            </select>
+          </div>
+          <div class="col-6 col-md-6 col-xl-3">
+            <label class="filter-label" for="filter-section">{{ ___('academic.section') }}</label>
+            <select id="filter-section" class="form-select form-select-sm" autocomplete="off">
+              <option value="">All Sections</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-6 col-xl-3">
+            <label class="filter-label" for="filter-subject">{{ ___('academic.subject') }}</label>
+            <select id="filter-subject" class="form-select form-select-sm" autocomplete="off">
+              <option value="">All Subjects</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-6 col-xl-3">
+            <label class="filter-label" for="filter-task-type">Task type</label>
+            <select id="filter-task-type" class="form-select form-select-sm" autocomplete="off">
+              <option value="all">All Types</option>
+              <option value="quiz">Quiz</option>
+              <option value="homework">Homework</option>
+              <option value="project">Project</option>
+              <option value="activity">Activity</option>
+              <option value="game">Game</option>
+              <option value="assignment">Assignment</option>
+            </select>
+          </div>
+          <div class="col-12 col-lg-auto ms-lg-auto d-flex gap-2 justify-content-lg-end">
+            <button type="button" class="btn ot-btn-primary" id="proceed-btn">
+              <i class="fa-solid fa-filter me-1"></i>{{ ___('common.submit') }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="reset-filters-btn" title="{{ ___('common.reset') }}">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        {{-- Section --}}
-        <div class="col-6 col-md-6 col-xl-3">
-          <div class="hw-filter-field">
-            <label class="filter-label" for="filter-section">
-              <i class="fa-solid fa-layer-group me-1" style="color:var(--bp)"></i>Section
-            </label>
-            <select id="filter-section" class="form-select form-select-sm hw-select" autocomplete="off">
-                <option value="">All Sections</option>
-              </select>
+  <div id="results-container" class="mt-20" style="display:none">
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <div class="card ot-card h-100">
+          <div class="card-header border-0 pb-0">
+            <h5 class="mb-0">{{ ___('common.status') ?? 'Status' }}</h5>
+            <p class="text-muted small mb-0">Submissions vs pending</p>
+          </div>
+          <div class="card-body pt-2" style="min-height:260px">
+            <canvas id="donut-chart-filtered"></canvas>
           </div>
         </div>
-
-        {{-- Subject --}}
-        <div class="col-6 col-md-6 col-xl-3">
-          <div class="hw-filter-field">
-            <label class="filter-label" for="filter-subject">
-              <i class="fa-solid fa-book me-1" style="color:var(--bp)"></i>Subject
-            </label>
-            <select id="filter-subject" class="form-select form-select-sm hw-select" autocomplete="off">
-                <option value="">All Subjects</option>
-              </select>
+      </div>
+      <div class="col-md-6">
+        <div class="card ot-card h-100">
+          <div class="card-header border-0 pb-0">
+            <h5 class="mb-0">Trend</h5>
+            <p class="text-muted small mb-0">Graded average and submission rate</p>
+          </div>
+          <div class="card-body pt-2" style="min-height:260px">
+            <canvas id="line-chart-filtered"></canvas>
           </div>
         </div>
-
-        {{-- Task Type --}}
-        <div class="col-6 col-md-6 col-xl-3">
-          <div class="hw-filter-field">
-            <label class="filter-label" for="filter-task-type">
-              <i class="fa-solid fa-tags me-1" style="color:var(--bp)"></i>Task Type
-            </label>
-            <select id="filter-task-type" class="form-select form-select-sm hw-select" autocomplete="off">
-                <option value="all">All Types</option>
-                <option value="quiz">Quiz</option>
-                <option value="homework">Homework</option>
-                <option value="project">Project</option>
-                <option value="activity">Activity</option>
-                <option value="game">Game</option>
-                <option value="assignment">Assignment</option>
-              </select>
-          </div>
-        </div>
-          </div>{{-- /inner row --}}
-        </div>
-
-        <div class="flex-shrink-0 ms-lg-auto align-self-stretch align-self-lg-end">
-          <div class="hw-filter-actions">
-              <button type="button" class="btn-proceed" id="proceed-btn">
-                <i class="fa-solid fa-rocket"></i>
-                Deploy
-              </button>
-              <button type="button" class="btn-reset" id="reset-filters-btn" title="Reset filters">
-                <i class="fa-solid fa-rotate-left"></i>
-              </button>
-          </div>
-        </div>
-
-      </div>{{-- /hw-filter-toolbar-row --}}
-    </div>{{-- /hw-filter-bar --}}
-  </section>
-
-
-  {{-- =================================================================
-       SECTION 2 · RESULTS AREA  (hidden on page load — revealed via
-       jQuery .fadeIn() when Proceed is clicked)
-       margin-bottom: 4rem
-  ================================================================= --}}
-  <div class="hw-section" id="results-container" style="display:none">
-
-    <section class="hw-panel hw-results-panel">
-
-    <div class="hw-block-head mb-4">
-      <p class="hw-eyebrow">Loot drop</p>
-      <h2 class="hw-block-title">Scoreboards &amp; quest log</h2>
-      <p class="hw-block-desc">Charts show how your filtered quests are going; the table is your live mission list.</p>
+      </div>
     </div>
 
-    <div class="row g-3 g-lg-4 mb-0">
-
-      {{-- Quest status donut --}}
-      <div class="col-md-6">
-        <div class="cc">
-          <div class="cc-title">
-            <i class="fa-solid fa-chart-pie me-1" style="color:var(--bp)"></i>
-            Quest status radar
+    <div class="table-content table-basic">
+      <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <h4 class="mb-0">{{ @$data['title'] }}</h4>
+            <div id="hw-evaluation-status" class="mt-2 small" role="status" aria-live="polite"></div>
           </div>
-          <div class="cc-sub">Hand-ins vs still pending (on-time window vs overdue).</div>
-          <div class="hw-chart-canvas-wrap"><canvas id="donut-chart-filtered"></canvas></div>
+          <span id="table-count-badge" class="badge bg-secondary rounded-pill px-3 py-2">— records</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered religion-table mb-0" id="hw-quest-log-table">
+              <thead class="thead">
+                <tr>
+                  <th class="serial" style="width:48px">#</th>
+                  <th class="hw-sortable" data-sort-col="1" scope="col" tabindex="0" aria-sort="none">
+                    {{ ___('common.title') ?? 'Title' }} <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+                  </th>
+                  <th class="hw-sortable" data-sort-col="2" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                    Class / Section <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+                  </th>
+                  <th class="hw-sortable" data-sort-col="3" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                    {{ ___('academic.subject') }} <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+                  </th>
+                  <th class="hw-sortable" data-sort-col="4" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                    Type <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+                  </th>
+                  <th class="hw-sortable" data-sort-col="5" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
+                    {{ ___('common.due_date') ?? 'Due date' }} <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+                  </th>
+                  <th class="hw-sortable" data-sort-col="6" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap;width:72px">
+                    {{ ___('common.marks') ?? 'Marks' }} <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
+                  </th>
+                  <th class="action" style="white-space:nowrap;min-width:100px">{{ ___('common.action') }}</th>
+                </tr>
+              </thead>
+              <tbody id="filtered-table-body" class="tbody">
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-5">
+                    <i class="fa-solid fa-filter me-2"></i>
+                    Choose filters and click <strong>{{ ___('common.submit') }}</strong> to show homework.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+    </div>
 
-      {{-- Line chart --}}
-      <div class="col-md-6">
-        <div class="cc">
-          <div class="cc-title">
-            <i class="fa-solid fa-chart-line me-1" style="color:var(--bp)"></i>
-            Power curve
-          </div>
-          <div class="cc-sub">Blue = graded average · Gray = % of class submitted</div>
-          <div class="hw-chart-canvas-wrap"><canvas id="line-chart-filtered"></canvas></div>
-        </div>
-      </div>
+  </div>
 
-    </div>{{-- /charts row --}}
+</div>
 
-    {{-- ── Homework Table ────────── --}}
-    <div class="hw-table-card">
-
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 hw-table-toolbar">
-        <div class="results-section-label mb-0 flex-grow-1 me-2">
-          <div class="d-flex flex-column gap-2">
-            <div class="d-flex flex-wrap align-items-center">
-              <span class="d-inline-flex align-items-center justify-content-center rounded-2 me-2"
-                    style="width:36px;height:36px;background:rgba(239,246,255,0.95);color:#64748b;border:1px solid rgba(226,232,240,0.98)">
-                <i class="fa-solid fa-scroll" style="font-size:14px"></i>
-              </span>
-              <span style="font-weight:600;color:#64748b">Quest log</span>
-            </div>
-            <div id="hw-evaluation-status"
-                 class="hw-eval-marking-status"
-                 role="status"
-                 aria-live="polite"></div>
-          </div>
-        </div>
-        <span id="table-count-badge"
-              class="badge rounded-pill px-3 py-2">
-          — records
-        </span>
-      </div>
-
-      <div style="overflow-x:auto">
-        <table class="ht" id="hw-quest-log-table">
-          <thead>
-            <tr>
-              <th style="width:36px">#</th>
-              <th class="hw-sortable" data-sort-col="1" scope="col" tabindex="0" aria-sort="none">
-                Title <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
-              </th>
-              <th class="hw-sortable" data-sort-col="2" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
-                Class / Section <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
-              </th>
-              <th class="hw-sortable" data-sort-col="3" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
-                Subject <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
-              </th>
-              <th class="hw-sortable" data-sort-col="4" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
-                Type <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
-              </th>
-              <th class="hw-sortable" data-sort-col="5" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap">
-                Due Date <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
-              </th>
-              <th class="hw-sortable" data-sort-col="6" scope="col" tabindex="0" aria-sort="none" style="white-space:nowrap;width:60px">
-                Marks <i class="hw-sort-icon fa-solid fa-sort" aria-hidden="true"></i>
-              </th>
-              <th style="white-space:nowrap;min-width:88px">Act.</th>
-            </tr>
-          </thead>
-          <tbody id="filtered-table-body">
-            <tr>
-              <td colspan="8" class="hw-empty">
-                <i class="fa-solid fa-wand-magic-sparkles me-2" style="opacity:.65"></i>
-                Choose filters and tap <strong>Deploy</strong> to load your quest log.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div>{{-- /hw-table-card --}}
-
-    </section>
-
-  </div>{{-- /SECTION 2 · results-container --}}
-
-</div>{{-- /page-content hw-portal --}}
-
-
-{{-- ============================================================
-     MODALS
-     ============================================================ --}}
-
-{{-- ── Evaluation Modal (#mEv): openEval() shows modal + POST homework/students loads evaluation.blade.php into #ev-body ── --}}
 <div class="modal fade" id="mEv" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
@@ -289,10 +187,10 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-            Cancel
+            {{ ___('common.cancel') }}
           </button>
           <button type="submit" class="btn ot-btn-primary">
-            <i class="fa-solid fa-check me-1"></i>Save Marks
+            <i class="fa-solid fa-check me-1"></i>{{ ___('common.save') }}
           </button>
         </div>
       </form>
@@ -300,18 +198,12 @@
   </div>
 </div>
 
-{{-- ── Quiz Questions Modal (#mQ) ── --}}
 <div class="modal fade" id="mQ" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl"></div>
 </div>
 
 @endsection
 
-
-{{-- ============================================================
-     PAGE-SPECIFIC JAVASCRIPT
-     All repository-pattern AJAX routes are preserved exactly.
-     ============================================================ --}}
 @push('script')
 
 @include('backend.partials.delete-ajax')
@@ -322,7 +214,9 @@
 let donutChartInstance = null;
 let lineChartInstance  = null;
 
-/** Quest log (#filtered-table-body): header-driven sort; tbody replaced via AJAX */
+var HW_PROCEED_BTN_HTML = @json('<i class="fa-solid fa-filter me-1"></i>' . ___('common.submit'));
+var HW_LOADING_BTN_HTML = '<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i>';
+
 var hwQuestLogSortState = { col: null, dir: 'asc' };
 
 function resetHwQuestLogSortHeaders() {
@@ -443,9 +337,9 @@ function renderHwEvaluationStatus(es) {
   var sa = parseInt(es.submissions_awaiting_marks, 10) || 0;
   if (sa === 0) {
     $el.html(
-      '<span class="hw-eval-marking-status-inner hw-eval-clear" style="color:#22d3ee;border-color:rgba(34,211,238,0.45);background:rgba(34,211,238,0.08)">' +
-      '<i class="fa-solid fa-circle-check me-1" style="color:#22d3ee"></i>' +
-      '<span class="fw-semibold" style="color:#22d3ee">Evaluation:</span> no submitted student work is awaiting marks (students who have not submitted are excluded).' +
+      '<span class="d-inline-block px-2 py-1 rounded border border-success bg-success bg-opacity-10 text-success">' +
+      '<i class="fa-solid fa-circle-check me-1"></i>' +
+      '<strong>Evaluation:</strong> no submitted work is awaiting marks.' +
       '</span>'
     );
     return;
@@ -453,13 +347,9 @@ function renderHwEvaluationStatus(es) {
   var taskWord = hp === 1 ? 'task' : 'tasks';
   var subWord = sa === 1 ? 'submission' : 'submissions';
   $el.html(
-    '<span class="hw-eval-marking-status-inner hw-eval-pending" style="color:#22d3ee;border-color:rgba(34,211,238,0.55);background:rgba(34,211,238,0.12)">' +
-    '<i class="fa-solid fa-pen-to-square me-1" style="color:#22d3ee"></i>' +
-    '<span class="fw-semibold" style="color:#22d3ee">Evaluation backlog:</span> ' +
-    '<span style="color:#22d3ee;font-weight:700">' + sa + '</span> ' + subWord +
-    ' still need marks, across ' +
-    '<span style="color:#22d3ee;font-weight:700">' + hp + '</span> homework ' + taskWord +
-    '. <span style="color:#22d3ee;opacity:.85">Only students who already submitted are counted.</span>' +
+    '<span class="d-inline-block px-2 py-1 rounded border border-warning bg-warning bg-opacity-10 text-dark">' +
+    '<i class="fa-solid fa-pen-to-square me-1"></i>' +
+    '<strong>Evaluation backlog:</strong> ' + sa + ' ' + subWord + ' need marks across ' + hp + ' homework ' + taskWord + '.' +
     '</span>'
   );
 }
@@ -476,7 +366,6 @@ $(document).ready(function () {
     }
   });
 
-  /* ── Bind events FIRST ── */
   $('#filter-class').on('change', function () {
     const classId = $(this).val();
 
@@ -500,12 +389,10 @@ $(document).ready(function () {
     loadSubjectsBySection(classId, sectionId);
   });
 
-  /* native selects (no niceSelect) */
   $('#proceed-btn').on('click', function () {
     getFilteredReport();
   });
 
-  /* ── Reset button naz ── */
   $('#reset-filters-btn').on('click', function () {
     $('#filter-class').val('');
     $('#filter-section').empty().append('<option value="">All Sections</option>');
@@ -516,8 +403,6 @@ $(document).ready(function () {
     $('#hw-evaluation-status').empty();
     $('#results-container').stop(true, true).hide().css({ visibility: '', opacity: '' });
   });
-
-  /* ── Functions ── */
 
   function loadSectionsByClass(classId) {
     $.ajax({
@@ -557,7 +442,7 @@ $(document).ready(function () {
 
   function getFilteredReport() {
     const $btn = $('#proceed-btn');
-    $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> Loading…').prop('disabled', true);
+    $btn.html(HW_LOADING_BTN_HTML).prop('disabled', true);
 
     const filters = {
       class:     $('#filter-class'    ).val(),
@@ -583,7 +468,6 @@ $(document).ready(function () {
 
           renderHwEvaluationStatus(response.evaluation_status);
 
-          /* Chart.js reads canvas parent size; display:none gives 0×0 and charts disappear */
           var $results = $('#results-container');
           $results.css({ display: 'block', visibility: 'hidden', opacity: 0 });
 
@@ -618,7 +502,7 @@ $(document).ready(function () {
                 plugins: {
                   legend: {
                     position: 'bottom',
-                    labels: { font: { size: 11, family: 'Fredoka, Plus Jakarta Sans, sans-serif' }, padding: 14, usePointStyle: true, color: '#94a3b8' }
+                    labels: { font: { size: 11 }, padding: 14, usePointStyle: true }
                   },
                   tooltip: {
                     enabled: donutSum > 0,
@@ -640,19 +524,18 @@ $(document).ready(function () {
           if (lineCtx && response.trend_data && response.trend_data.datasets && response.trend_data.datasets.length) {
             var td = response.trend_data;
             var scales = {
-              x: { grid: { display: false, color: 'rgba(148,163,184,0.2)' }, ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' } },
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
               y: {
                 type: 'linear',
                 display: true,
                 position: 'left',
                 beginAtZero: true,
-                grid: { color: 'rgba(148,163,184,0.18)' },
-                ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' },
+                grid: {},
+                ticks: { font: { size: 10 } },
                 title: {
                   display: true,
-                  font: { size: 10, weight: '600', family: 'Fredoka, sans-serif' },
-                  text: td.y_left_title || 'Score',
-                  color: '#64748b'
+                  font: { size: 10, weight: '600' },
+                  text: td.y_left_title || 'Score'
                 }
               }
             };
@@ -667,12 +550,11 @@ $(document).ready(function () {
                 beginAtZero: true,
                 max: 100,
                 grid: { drawOnChartArea: false },
-                ticks: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' },
+                ticks: { font: { size: 10 } },
                 title: {
                   display: true,
-                  font: { size: 10, weight: '600', family: 'Fredoka, sans-serif' },
-                  text: td.y_right_title || '% submitted',
-                  color: '#64748b'
+                  font: { size: 10, weight: '600' },
+                  text: td.y_right_title || '% submitted'
                 }
               };
             }
@@ -740,15 +622,13 @@ $(document).ready(function () {
         alert('Error loading report. Please check your filters and try again.');
       },
       complete: function () {
-        $btn.html('<i class="fa-solid fa-rocket"></i> Deploy').prop('disabled', false);
+        $btn.html(HW_PROCEED_BTN_HTML).prop('disabled', false);
       }
     });
   }
 
-}); // ← closes $(document).ready — THIS WAS MISSING
+});
 
-
-/* ── These stay outside document.ready (called from HTML onclick) ── */
 function openEval(id) {
   $('#hw_id').val(id);
   $('#ev-body').html('<div class="text-center py-5"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>');
