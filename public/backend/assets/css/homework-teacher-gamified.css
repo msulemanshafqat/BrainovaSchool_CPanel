@@ -433,13 +433,18 @@ body.dark-theme .hw-gamified .hw-btn-apply {
 .hw-gamified .hw-eval-banner--backlog .fa-pen-to-square {
   color: #2563eb;
 }
-.hw-gamified .hw-eval-legend {
-  color: #475569;
+.hw-gamified .hw-eval-legend.small,
+.hw-gamified p.hw-eval-legend {
+  color: #64748b;
   border-left: 3px solid rgba(56, 189, 248, 0.55);
   padding-left: 0.6rem;
+  font-size: 0.65rem;
+  font-style: italic;
+  line-height: 1.35;
 }
 .hw-gamified .hw-eval-legend .hw-marking-asterisk {
-  font-size: 1em;
+  font-size: 1.05em;
+  font-style: normal;
   margin-left: 0;
   margin-right: 0.05em;
 }

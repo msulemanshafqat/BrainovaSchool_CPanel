@@ -5,6 +5,7 @@ namespace App\Http\Controllers\StudentPanel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
 use App\Models\HomeworkStudent;
 use App\Http\Requests\StudentPanel\HomeworkSubmit;
@@ -123,63 +124,92 @@ class HomeworkController extends Controller
      */
     public function submitInteractiveQuiz(Request $request)
     {
+        $user = Auth::user();
+        if (!$user || !$user->student) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Student profile not found.',
+            ], 403);
+        }
+
+        $student    = $user->student;
+        $homeworkId = (int) $request->homework_id;
+
+        if ($homeworkId < 1) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Invalid quiz.',
+            ], 422);
+        }
+
+        // Guard: prevent reattempt (before opening a transaction)
+        $alreadySubmitted = HomeworkStudent::where('student_id', $student->id)
+            ->where('homework_id', $homeworkId)
+            ->exists();
+
+        if ($alreadySubmitted) {
+            return response()->json([
+                'status'  => 'already_submitted',
+                'message' => 'You have already submitted this quiz.',
+            ]);
+        }
+
+        $homework = DB::table('homework')->where('id', $homeworkId)->first();
+        if (!$homework) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Quiz not found.',
+            ], 404);
+        }
+
+        $totalQuestions = DB::table('homework_quiz_questions')
+            ->where('homework_id', $homeworkId)
+            ->count();
+
+        $maxMarks = isset($homework->marks) && is_numeric($homework->marks)
+            ? (float) $homework->marks
+            : 0.0;
+
+        $marksPerQuestion = ($totalQuestions > 0 && $maxMarks > 0)
+            ? $maxMarks / $totalQuestions
+            : 1.0;
+
+        // Grade answers sent from JS
+        // $request->answers = [ quiz_question_id => 'selected_option_text', ... ]
+        // $request->hints   = [ quiz_question_id => true, ... ]
+        $answers     = is_array($request->answers) ? $request->answers : [];
+        $hintsUsed   = is_array($request->hints) ? $request->hints : [];
+        $earnedMarks = 0.0;
+
+        foreach ($answers as $questionId => $selectedAnswer) {
+            $question = DB::table('homework_quiz_questions')
+                ->where('id', $questionId)
+                ->where('homework_id', $homeworkId)
+                ->first();
+
+            if (!$question) {
+                continue;
+            }
+
+            $picked   = strtolower(trim((string) $selectedAnswer));
+            $expected = strtolower(trim((string) ($question->correct_answer ?? '')));
+
+            $isCorrect = $picked !== '' && $picked === $expected;
+
+            if ($isCorrect) {
+                $points = $marksPerQuestion;
+                $qKey   = (string) $questionId;
+                if (!empty($hintsUsed[$questionId]) || !empty($hintsUsed[$qKey])) {
+                    $points *= 0.5;
+                }
+                $earnedMarks += $points;
+            }
+        }
+
+        $earnedMarks = round($earnedMarks, 2);
+
         DB::beginTransaction();
         try {
-            $student    = Auth::user()->student;
-            $homeworkId = (int) $request->homework_id;
-
-            // Guard: prevent reattempt
-            $alreadySubmitted = HomeworkStudent::where('student_id', $student->id)
-                ->where('homework_id', $homeworkId)
-                ->exists();
-
-            if ($alreadySubmitted) {
-                return response()->json([
-                    'status'  => 'already_submitted',
-                    'message' => 'You have already submitted this quiz.',
-                ]);
-            }
-
-            // Load homework to get total marks and question count
-            $homework       = DB::table('homework')->where('id', $homeworkId)->first();
-            $totalQuestions = DB::table('homework_quiz_questions')
-                ->where('homework_id', $homeworkId)
-                ->count();
-
-            $marksPerQuestion = ($totalQuestions > 0 && $homework->marks > 0)
-                ? (float) $homework->marks / $totalQuestions
-                : 1;
-
-            // Grade answers sent from JS
-            // $request->answers = [ quiz_question_id => 'selected_option_text', ... ]
-            // $request->hints   = [ quiz_question_id => true, ... ]
-            $answers      = $request->answers ?? [];
-            $hintsUsed    = $request->hints   ?? [];
-            $earnedMarks  = 0;
-
-            foreach ($answers as $questionId => $selectedAnswer) {
-                $question = DB::table('homework_quiz_questions')
-                    ->where('id', $questionId)
-                    ->where('homework_id', $homeworkId)
-                    ->first();
-
-                if (!$question) continue;
-
-                $isCorrect = strtolower(trim($selectedAnswer))
-                          === strtolower(trim($question->correct_answer));
-
-                if ($isCorrect) {
-                    $points = $marksPerQuestion;
-                    // 50% hint penalty
-                    if (!empty($hintsUsed[$questionId])) {
-                        $points *= 0.5;
-                    }
-                    $earnedMarks += $points;
-                }
-            }
-
-            $earnedMarks = round($earnedMarks, 2);
-
             // Record submission — no file upload for quizzes, homework column is nullable
             HomeworkStudent::create([
                 'student_id'  => $student->id,
@@ -189,9 +219,9 @@ class HomeworkController extends Controller
                 'date'        => now()->format('Y-m-d'),
             ]);
 
-            // Brainova E6 Points Hook — 1 mark = config multiplier points
-            $e6Points = (int) round($earnedMarks * config('brainova.e6_points_per_mark', 10));
-            if ($e6Points > 0) {
+            // Brainova E6 Points Hook — skip if column missing (avoids SQL error on some DBs)
+            $e6Points = (int) round($earnedMarks * (float) config('brainova.e6_points_per_mark', 10));
+            if ($e6Points > 0 && Schema::hasColumn('students', 'total_score')) {
                 DB::table('students')
                     ->where('id', $student->id)
                     ->increment('total_score', $e6Points);
@@ -200,16 +230,16 @@ class HomeworkController extends Controller
             DB::commit();
 
             return response()->json([
-                'status'      => 'success',
-                'message'     => 'Quiz submitted!',
-                'earned'      => $earnedMarks,
-                'total'       => $homework->marks,
-                'e6_points'   => $e6Points,
+                'status'    => 'success',
+                'message'   => 'Quiz submitted!',
+                'earned'    => $earnedMarks,
+                'total'     => $homework->marks,
+                'e6_points' => $e6Points,
             ]);
-
         } catch (\Throwable $th) {
             DB::rollBack();
-            \Log::error('Quiz Submit Error: ' . $th->getMessage());
+            \Log::error('Quiz Submit Error: ' . $th->getMessage(), ['trace' => $th->getTraceAsString()]);
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Something went wrong. Please try again.',
