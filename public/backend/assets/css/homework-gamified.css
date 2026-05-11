@@ -122,7 +122,7 @@ body.dark-theme .page-content.hw-portal .hw-filter-bar .filter-label {
   right: 0;
   top: 0;
   height: 3px;
-  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 40%, #93c5fd 100%);
+  background: linear-gradient(90deg, #93abe0 0%, #3b82f6 40%, #93c5fd 100%);
   opacity: 0.85;
   pointer-events: none;
 }
@@ -137,7 +137,7 @@ body.dark-theme .page-content.hw-portal .hw-filter-bar .filter-label {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #aec2df;
   margin: 0 0 0.4rem;
   display: flex;
   align-items: center;
@@ -450,7 +450,7 @@ body.dark-theme .page-content.hw-portal .hw-filter-bar .filter-label {
   border-radius: 12px;
   border: 1px solid var(--game-card-border);
   background-color: var(--game-card);
-  color: #334155;
+  color: #85aadd;
   min-height: 42px;
   padding-top: 0.4rem;
   padding-bottom: 0.4rem;
