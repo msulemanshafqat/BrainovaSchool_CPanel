@@ -11,7 +11,7 @@
      Scoped to this page only via .hw-portal wrapper.
      ============================================================ --}}
 @push('css')
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ global_asset('backend/assets/css/homework-gamified.css') }}">
 @endpush
 

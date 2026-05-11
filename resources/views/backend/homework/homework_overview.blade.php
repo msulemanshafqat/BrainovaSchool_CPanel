@@ -1,8 +1,18 @@
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
 
+@push('css')
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+@endpush
+
 @push('style')
 <style>
+body.default-theme .page-content.hw-admin-unified,
+body.dark-theme .page-content.hw-admin-unified {
+  background: #f8fafc;
+  padding-bottom: 1.5rem;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
 :root{--bp:#1d4ed8;--br:#dc2626;--brl:#fee2e2;--bg:#059669;--bgl:#d1fae5;--bs:#64748b;--bb:#e2e8f0;--rr:12px}
 .ov-wrap{border-radius:var(--rr);overflow:hidden;border:2px solid #b8c5d6;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .ov-tbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -59,7 +69,7 @@
 
 @section('content')
 
-<div class="page-content">
+<div class="page-content hw-admin-unified">
 <input type="hidden" id="url" value="{{ url('/') }}">
 
 {{-- BREADCRUMB --}}
