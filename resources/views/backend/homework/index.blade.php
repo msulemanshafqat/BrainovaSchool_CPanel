@@ -2,84 +2,55 @@
 @section('title') {{ @$data['title'] }} @endsection
 
 @push('css')
-<style>
-  /* Homework index — light blue gradients (scoped; default + dark theme) */
-  .homework-index-page .card.ot-card {
-    background: linear-gradient(145deg, #f8fbff 0%, #e8f4fc 42%, #f0f9ff 78%, #ffffff 100%);
-    border: 1px solid rgba(147, 197, 253, 0.55);
-    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.95);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .homework-index-page .card.ot-card .card-header {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.35) 100%);
-    border-bottom: 1px solid rgba(186, 230, 253, 0.65);
-  }
-  .homework-index-page .card.ot-card .card-body {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(239, 246, 255, 0.45) 100%);
-  }
-  .homework-index-page #results-container {
-    padding: 1.25rem 1.15rem 1.35rem;
-    border-radius: 14px;
-    background: linear-gradient(168deg, #eff6ff 0%, #dbeafe 28%, #e0f2fe 55%, #f8fafc 92%, #ffffff 100%);
-    border: 1px solid rgba(147, 197, 253, 0.5);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.85),
-      0 10px 28px rgba(37, 99, 235, 0.08);
-  }
-  body.dark-theme .homework-index-page .card.ot-card {
-    background: linear-gradient(145deg, #1e293b 0%, #1e3a5f 45%, #172554 100%);
-    border-color: rgba(96, 165, 250, 0.35);
-    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  }
-  body.dark-theme .homework-index-page .card.ot-card .card-header {
-    background: linear-gradient(180deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.2) 100%);
-    border-bottom-color: rgba(96, 165, 250, 0.25);
-  }
-  body.dark-theme .homework-index-page .card.ot-card .card-body {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(30, 58, 138, 0.12) 100%);
-  }
-  body.dark-theme .homework-index-page #results-container {
-    background: linear-gradient(168deg, #0f172a 0%, #172554 35%, #1e293b 70%, #0f172a 100%);
-    border-color: rgba(59, 130, 246, 0.28);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 32px rgba(0, 0, 0, 0.4);
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ global_asset('backend/assets/css/homework-teacher-gamified.css') }}">
 @endpush
 
 @section('content')
-<div class="page-content homework-index-page">
+<div class="page-content homework-index-page hw-gamified">
 
   <input type="hidden" id="url" value="{{ url('/') }}">
 
-  <div class="page-header">
-    <div class="row align-items-center">
-      <div class="col-sm-6">
-        <h4 class="bradecrumb-title mb-1">{{ @$data['title'] }}</h4>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a></li>
-          <li class="breadcrumb-item active" aria-current="page">{{ @$data['title'] }}</li>
-        </ol>
+  <div class="hw-game-hero mt-20">
+    <div class="hw-game-hero-inner row align-items-start g-3">
+      <div class="col-lg">
+        <p class="hw-game-eyebrow">Mission control</p>
+        <h1 class="hw-game-title">{{ @$data['title'] }}</h1>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="hw-game-badge"><i class="fa-solid fa-trophy"></i> Level up your classes</span>
+        </div>
+        <p class="hw-game-lead">
+          Pick your arena (filters), deploy to load charts and the quest log, then review submissions like a pro.
+        </p>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ @$data['title'] }}</li>
+          </ol>
+        </nav>
       </div>
       @if(hasPermission('homework_create'))
-      <div class="col-sm-6 text-end mt-3 mt-sm-0">
-        <a href="{{ route('homework.download-sample') }}" class="btn btn-outline-secondary btn-sm me-1">
-          <i class="fa-solid fa-download me-1"></i>CSV template
-        </a>
-        <a href="{{ route('homework.create') }}" class="btn btn-lg ot-btn-primary">
-          <span><i class="fa-solid fa-plus"></i></span>
-          <span>{{ ___('common.add') }}</span>
-        </a>
+      <div class="col-lg-auto">
+        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+          <a href="{{ route('homework.download-sample') }}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fa-solid fa-download me-1"></i>CSV template
+          </a>
+          <a href="{{ route('homework.create') }}" class="btn btn-lg ot-btn-primary">
+            <span><i class="fa-solid fa-plus"></i></span>
+            <span>{{ ___('common.add') }}</span>
+          </a>
+        </div>
       </div>
       @endif
     </div>
   </div>
 
   <div class="table-content table-basic mt-20">
-    <div class="card ot-card">
+    <div class="card ot-card hw-mission-panel">
       <div class="card-header">
-        <h4 class="mb-0">{{ ___('common.filter') }}</h4>
-        <p class="mb-0 text-muted small mt-1">Select class, section, and subject, then load the report.</p>
+        <span class="hw-section-chip"><i class="fa-solid fa-crosshairs"></i> Stage 1</span>
+        <h4 class="hw-mission-title mb-0">{{ ___('common.filter') }}</h4>
+        <p class="hw-mission-desc">Choose class, section, subject, and task type—then <strong>Deploy</strong> to reveal charts and the live quest log.</p>
       </div>
       <div class="card-body">
         <div class="row g-2 align-items-end">
@@ -119,10 +90,10 @@
             </select>
           </div>
           <div class="col-12 col-lg-auto ms-lg-auto d-flex gap-2 justify-content-lg-end">
-            <button type="button" class="btn ot-btn-primary" id="proceed-btn">
-              <i class="fa-solid fa-filter me-1"></i>{{ ___('common.submit') }}
+            <button type="button" class="btn ot-btn-primary hw-btn-deploy" id="proceed-btn" title="{{ ___('common.submit') }}">
+              <i class="fa-solid fa-rocket me-1"></i>Deploy
             </button>
-            <button type="button" class="btn btn-outline-secondary" id="reset-filters-btn" title="{{ ___('common.reset') }}">
+            <button type="button" class="btn btn-outline-secondary hw-btn-reset" id="reset-filters-btn" title="{{ ___('common.reset') }}">
               <i class="fa-solid fa-rotate-left"></i>
             </button>
           </div>
@@ -135,8 +106,9 @@
 
     <div class="row g-3 mb-3">
       <div class="col-md-6">
-        <div class="card ot-card h-100">
+        <div class="card ot-card h-100 hw-chart-mission">
           <div class="card-header border-0 pb-0">
+            <span class="hw-section-chip"><i class="fa-solid fa-chart-pie"></i> Intel</span>
             <h5 class="mb-0">{{ ___('common.status') ?? 'Status' }}</h5>
             <p class="text-muted small mb-0">Submissions vs pending</p>
           </div>
@@ -146,8 +118,9 @@
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card ot-card h-100">
+        <div class="card ot-card h-100 hw-chart-mission">
           <div class="card-header border-0 pb-0">
+            <span class="hw-section-chip"><i class="fa-solid fa-chart-line"></i> Power curve</span>
             <h5 class="mb-0">Trend</h5>
             <p class="text-muted small mb-0">Graded average and submission rate</p>
           </div>
@@ -158,11 +131,12 @@
       </div>
     </div>
 
-    <div class="table-content table-basic">
+    <div class="table-content table-basic hw-quest-log-wrap">
       <div class="card ot-card">
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
           <div>
-            <h4 class="mb-0">{{ @$data['title'] }}</h4>
+            <span class="hw-section-chip"><i class="fa-solid fa-scroll"></i> Stage 2</span>
+            <h4 class="mb-0">{{ @$data['title'] }} — quest log</h4>
             <div id="hw-evaluation-status" class="mt-2 small" role="status" aria-live="polite"></div>
           </div>
           <span id="table-count-badge" class="badge bg-secondary rounded-pill px-3 py-2">— records</span>
@@ -197,8 +171,8 @@
               <tbody id="filtered-table-body" class="tbody">
                 <tr>
                   <td colspan="8" class="text-center text-muted py-5">
-                    <i class="fa-solid fa-filter me-2"></i>
-                    Choose filters and click <strong>{{ ___('common.submit') }}</strong> to show homework.
+                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i>
+                    Choose filters and hit <strong>Deploy</strong> to load your quest log.
                   </td>
                 </tr>
               </tbody>
@@ -260,7 +234,7 @@
 let donutChartInstance = null;
 let lineChartInstance  = null;
 
-var HW_PROCEED_BTN_HTML = @json('<i class="fa-solid fa-filter me-1"></i>' . ___('common.submit'));
+var HW_PROCEED_BTN_HTML = @json('<i class="fa-solid fa-rocket me-1"></i>Deploy');
 var HW_LOADING_BTN_HTML = '<i class="fa-solid fa-spinner fa-spin me-1" aria-hidden="true"></i>';
 
 var hwQuestLogSortState = { col: null, dir: 'asc' };

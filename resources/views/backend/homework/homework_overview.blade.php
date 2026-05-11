@@ -2,74 +2,13 @@
 @section('title') {{ @$data['title'] }} @endsection
 
 @push('css')
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-@endpush
-
-@push('style')
-<style>
-body.default-theme .page-content.hw-admin-unified,
-body.dark-theme .page-content.hw-admin-unified {
-  background: #f8fafc;
-  padding-bottom: 1.5rem;
-  font-family: 'DM Sans', system-ui, sans-serif;
-}
-:root{--bp:#1d4ed8;--br:#dc2626;--brl:#fee2e2;--bg:#059669;--bgl:#d1fae5;--bs:#64748b;--bb:#e2e8f0;--rr:12px}
-.ov-wrap{border-radius:var(--rr);overflow:hidden;border:2px solid #b8c5d6;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.ov-tbl{width:100%;border-collapse:collapse;font-size:13px}
-.ov-tbl thead th{background:#eef2f9;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--bs);border-bottom:2px solid #b8c5d6;border-right:1px solid #c7d2e0;white-space:nowrap}
-.ov-tbl thead th:last-child{border-right:none}
-.ov-tbl tbody td{padding:11px 12px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e8edf5;vertical-align:middle;background:#fff}
-.ov-tbl tbody td:last-child{border-right:none}
-.ov-tbl tbody tr:nth-child(even) td{background:#fafbff}
-.ov-tbl tbody tr:hover td{background:#eef4ff!important}
-.tbg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase}
-.tbg-quiz{background:#dbeafe;color:#1e40af}.tbg-hw{background:#d1fae5;color:#065f46}
-.tbg-project{background:#fce7f3;color:#9d174d}.tbg-activity{background:#ede9fe;color:#5b21b6}
-.tbg-game{background:#fef3c7;color:#92400e}.tbg-assignment{background:#e0f2fe;color:#075985}
-.ab{background:none;border:1.5px solid var(--bb);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--bs);font-size:12px;transition:all .15s}
-.ab:hover{border-color:var(--br);color:var(--br)}
-/* Filter bar */
-
-/* Filter bar — one row, equal-width dropdowns */
-.filter-bar {
-  background: #fff;
-  border: 1px solid var(--bb);
-  border-radius: var(--rr);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;
-  overflow: visible;
-  position: relative;
-  z-index: 50;
-}
-
-/* Each niceSelect wrapper gets equal share of the row*/
-.filter-bar .nice-select {
-  float: none !important;
-  flex: 1 1 0 !important;
-  min-width: 0 !important;
-  width: auto !important;
-  height: 38px;
-  line-height: 36px;
-  font-size: 12px;
-}
-
-/* The dropdown popup list must escape the container */
-/* Filter bar */
-.filter-bar{background:#fff;border:1px solid var(--bb);border-radius:var(--rr);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;position:relative;z-index:50;overflow:visible}
-.fb-select{flex:1 1 0;min-width:0;height:38px;padding:0 10px;border:1.5px solid var(--bb);border-radius:8px;font-size:12px;font-family:inherit;color:#334155;background:#fff;cursor:pointer;outline:none;transition:border-color .15s}
-.fb-select:focus,.fb-select:hover{border-color:var(--bp)}
-.filter-reset{font-size:12px;color:var(--bs);text-decoration:none;padding:5px 12px;border:1.5px solid var(--bb);border-radius:6px;background:#fff;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.filter-reset:hover{border-color:var(--br);color:var(--br)}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ global_asset('backend/assets/css/homework-teacher-gamified.css') }}">
 @endpush
 
 @section('content')
 
-<div class="page-content hw-admin-unified">
+<div class="page-content hw-admin-unified hw-gamified">
 <input type="hidden" id="url" value="{{ url('/') }}">
 
 {{-- BREADCRUMB --}}
@@ -93,6 +32,12 @@ body.dark-theme .page-content.hw-admin-unified {
   </div>
 </div>
 
+<div class="hw-admin-hero mt-20">
+  <p class="hw-game-eyebrow mb-1">Admin raid map</p>
+  <h2 class="hw-game-title mb-2" style="font-size:1.35rem">Every quest on campus</h2>
+  <p class="hw-game-lead mb-0">Scan filters, apply intel, and sweep the full homework registry—same light-blue command deck as teachers.</p>
+</div>
+
 {{-- SUMMARY CARDS --}}
 @php
   $total   = $data['homeworks']->total();
@@ -102,56 +47,53 @@ body.dark-theme .page-content.hw-admin-unified {
   $filtered = request()->hasAny(['class','section','subject','task_type']);
 
 @endphp
-  <button type="submit" style="height:38px;padding:0 16px;background:var(--bp);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
-  <i class="fa-solid fa-magnifying-glass me-1"></i>Apply
-</button>
 
 
 
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
-    <div style="background:#fff;border-radius:var(--rr);border:1px solid var(--bb);padding:16px 18px;display:flex;align-items:center;gap:12px">
-      <div style="width:42px;height:42px;border-radius:9px;background:#dbeafe;color:var(--bp);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">
+    <div class="hw-stat-slab">
+      <div class="hw-stat-slab__icon" style="background:#dbeafe;color:var(--bp)">
         <i class="fa-solid fa-layer-group"></i>
       </div>
       <div>
-        <div style="font-size:24px;font-weight:800;color:#0f172a">{{ $total }}</div>
-        <div style="font-size:11px;color:var(--bs);font-weight:600;text-transform:uppercase">
+        <div class="hw-stat-slab__value">{{ $total }}</div>
+        <div class="hw-stat-slab__label">
           {{ $filtered ? 'Filtered Results' : 'Total Tasks' }}
         </div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-3">
-    <div style="background:#fff;border-radius:var(--rr);border:1px solid var(--bb);padding:16px 18px;display:flex;align-items:center;gap:12px">
-      <div style="width:42px;height:42px;border-radius:9px;background:#fef3c7;color:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">
+    <div class="hw-stat-slab">
+      <div class="hw-stat-slab__icon" style="background:#fef3c7;color:#f59e0b">
         <i class="fa-solid fa-circle-question"></i>
       </div>
       <div>
-        <div style="font-size:24px;font-weight:800;color:#0f172a">{{ $quizCnt }}</div>
-        <div style="font-size:11px;color:var(--bs);font-weight:600;text-transform:uppercase">Quizzes</div>
+        <div class="hw-stat-slab__value">{{ $quizCnt }}</div>
+        <div class="hw-stat-slab__label">Quizzes</div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-3">
-    <div style="background:#fff;border-radius:var(--rr);border:1px solid var(--bb);padding:16px 18px;display:flex;align-items:center;gap:12px">
-      <div style="width:42px;height:42px;border-radius:9px;background:#d1fae5;color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">
+    <div class="hw-stat-slab">
+      <div class="hw-stat-slab__icon" style="background:#d1fae5;color:var(--bg)">
         <i class="fa-solid fa-file-lines"></i>
       </div>
       <div>
-        <div style="font-size:24px;font-weight:800;color:#0f172a">{{ $data['homeworks']->lastPage() }}</div>
-        <div style="font-size:11px;color:var(--bs);font-weight:600;text-transform:uppercase">Total Pages</div>
+        <div class="hw-stat-slab__value">{{ $data['homeworks']->lastPage() }}</div>
+        <div class="hw-stat-slab__label">Total Pages</div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-3">
-    <div style="background:#fff;border-radius:var(--rr);border:1px solid var(--bb);padding:16px 18px;display:flex;align-items:center;gap:12px">
-      <div style="width:42px;height:42px;border-radius:9px;background:#fee2e2;color:var(--br);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">
-        <i class="fa-solid fa-trash-can"></i>
+    <div class="hw-stat-slab">
+      <div class="hw-stat-slab__icon" style="background:#fee2e2;color:var(--br)">
+        <i class="fa-solid fa-list-ol"></i>
       </div>
       <div>
-        <div style="font-size:24px;font-weight:800;color:#0f172a">20</div>
-        <div style="font-size:11px;color:var(--bs);font-weight:600;text-transform:uppercase">Per Page</div>
+        <div class="hw-stat-slab__value">{{ $data['homeworks']->perPage() }}</div>
+        <div class="hw-stat-slab__label">Per Page</div>
       </div>
     </div>
   </div>
@@ -241,6 +183,10 @@ body.dark-theme .page-content.hw-admin-unified {
       <i class="fa-solid fa-xmark me-1"></i>Clear Filters
     </a>
     @endif
+
+    <button type="submit" class="hw-btn-apply">
+      <i class="fa-solid fa-magnifying-glass me-1"></i>Apply
+    </button>
 
   </div>
 </form>

@@ -1,0 +1,540 @@
+/**
+ * Homework — teacher index + admin overview
+ * Gamified UI on light blue gradient theme (default + dark)
+ */
+body.default-theme .homework-index-page.hw-gamified,
+body.default-theme .page-content.hw-admin-unified.hw-gamified {
+  background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 40%, #f8fbff 100%);
+  padding-bottom: 1.75rem;
+}
+
+.hw-gamified {
+  --hw-sky: #38bdf8;
+  --hw-sky-deep: #0ea5e9;
+  --hw-ice: #e0f2fe;
+  --hw-mist: #f0f9ff;
+  --hw-cloud: #f8fbff;
+  --hw-border: rgba(147, 197, 253, 0.55);
+  --hw-glow: rgba(56, 189, 248, 0.35);
+  --hw-text: #0f172a;
+  --hw-muted: #64748b;
+  --hw-rr: 14px;
+  --hw-rr-lg: 18px;
+  /* Legacy tokens used by admin overview markup */
+  --bp: #2563eb;
+  --br: #dc2626;
+  --brl: #fee2e2;
+  --bg: #059669;
+  --bgl: #d1fae5;
+  --bs: #64748b;
+  --bb: #e2e8f0;
+  --rr: 12px;
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+}
+
+/* ── Teacher index: gradient cards + results island ─────────────── */
+.hw-gamified.homework-index-page .card.ot-card {
+  background: linear-gradient(145deg, #f8fbff 0%, #e8f4fc 42%, #f0f9ff 78%, #ffffff 100%);
+  border: 1px solid var(--hw-border);
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  border-radius: var(--hw-rr);
+  overflow: hidden;
+}
+.hw-gamified.homework-index-page .card.ot-card .card-header {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 242, 254, 0.45) 100%);
+  border-bottom: 1px solid rgba(186, 230, 253, 0.65);
+}
+.hw-gamified.homework-index-page .card.ot-card .card-body {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(239, 246, 255, 0.5) 100%);
+}
+.hw-gamified.homework-index-page #results-container {
+  padding: 1.35rem 1.2rem 1.45rem;
+  border-radius: var(--hw-rr-lg);
+  background: linear-gradient(168deg, #eff6ff 0%, #dbeafe 28%, #e0f2fe 55%, #f8fafc 92%, #ffffff 100%);
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 10px 28px rgba(37, 99, 235, 0.08);
+  position: relative;
+}
+.hw-gamified.homework-index-page #results-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(59, 130, 246, 0.08), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Hero */
+.hw-game-hero {
+  position: relative;
+  border-radius: var(--hw-rr-lg);
+  padding: 1.35rem 1.5rem 1.25rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(125deg, #dbeafe 0%, #e0f2fe 25%, #f0f9ff 55%, #ffffff 100%);
+  border: 1px solid var(--hw-border);
+  box-shadow: 0 8px 28px rgba(14, 165, 233, 0.12);
+  overflow: hidden;
+}
+.hw-game-hero::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -8%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hw-game-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+.hw-game-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hw-sky-deep);
+  margin-bottom: 0.35rem;
+  font-family: "Space Grotesk", "DM Sans", system-ui, sans-serif;
+}
+.hw-game-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--hw-text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  font-family: "Space Grotesk", "DM Sans", system-ui, sans-serif;
+}
+.hw-game-lead {
+  font-size: 0.9rem;
+  color: var(--hw-muted);
+  max-width: 42rem;
+  margin: 0 0 0.75rem;
+}
+.hw-game-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.15), rgba(59, 130, 246, 0.12));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #0369a1;
+}
+.hw-game-hero .breadcrumb {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
+
+/* Section chips */
+.hw-section-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0369a1;
+  background: rgba(224, 242, 254, 0.9);
+  border: 1px solid rgba(125, 211, 252, 0.5);
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+}
+.hw-mission-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--hw-text);
+  margin: 0;
+}
+.hw-mission-desc {
+  font-size: 0.8125rem;
+  color: var(--hw-muted);
+  margin: 0.25rem 0 0;
+}
+
+/* Deploy + reset */
+.hw-btn-deploy {
+  font-weight: 700 !important;
+  letter-spacing: 0.02em;
+  border: none !important;
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.hw-btn-deploy:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+.hw-btn-deploy:active:not(:disabled) {
+  transform: translateY(0);
+}
+.hw-btn-reset {
+  border-radius: 10px !important;
+  border-color: rgba(125, 211, 252, 0.85) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Chart cards */
+.hw-chart-mission .card-header h5 {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--hw-text);
+}
+.hw-chart-mission .card-header .text-muted {
+  font-size: 0.78rem;
+}
+
+/* Quest log table */
+.hw-quest-log-wrap .card-header h4 {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.hw-gamified #table-count-badge {
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: linear-gradient(135deg, #bae6fd, #e0f2fe) !important;
+  color: #0c4a6e !important;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+}
+.hw-gamified .hw-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.hw-gamified .hw-sortable:hover {
+  background: rgba(224, 242, 254, 0.85) !important;
+  color: #0369a1 !important;
+}
+.hw-gamified .hw-sort-icon {
+  opacity: 0.55;
+  font-size: 0.75em;
+}
+
+/* Task type pills (teacher table rows) */
+.hw-type-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid transparent;
+}
+.hw-type-pill--quiz {
+  background: linear-gradient(180deg, #dbeafe, #bfdbfe);
+  color: #1e3a8a;
+  border-color: rgba(59, 130, 246, 0.35);
+}
+.hw-type-pill--hw {
+  background: linear-gradient(180deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+.hw-type-pill--project {
+  background: linear-gradient(180deg, #fce7f3, #fbcfe8);
+  color: #9d174d;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+.hw-type-pill--activity {
+  background: linear-gradient(180deg, #ede9fe, #ddd6fe);
+  color: #5b21b6;
+  border-color: rgba(139, 92, 246, 0.35);
+}
+.hw-type-pill--game {
+  background: linear-gradient(180deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+.hw-type-pill--assignment {
+  background: linear-gradient(180deg, #e0f2fe, #bae6fd);
+  color: #075985;
+  border-color: rgba(14, 165, 233, 0.4);
+}
+.hw-type-pill--default {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+/* ── Admin overview ─────────────────────────────────────────────── */
+.hw-gamified.hw-admin-unified {
+  padding-bottom: 1.75rem;
+}
+.hw-gamified .hw-admin-hero {
+  border-radius: var(--hw-rr-lg);
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(125deg, #dbeafe 0%, #e0f2fe 30%, #f8fafc 100%);
+  border: 1px solid var(--hw-border);
+  box-shadow: 0 8px 26px rgba(14, 165, 233, 0.1);
+}
+.hw-gamified .filter-bar {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1px solid rgba(147, 197, 253, 0.55);
+  border-radius: var(--hw-rr);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);
+}
+.hw-gamified .fb-select {
+  border-radius: 10px;
+  border-color: rgba(186, 230, 253, 0.95);
+  background: rgba(255, 255, 255, 0.95);
+}
+.hw-gamified .fb-select:focus,
+.hw-gamified .fb-select:hover {
+  border-color: var(--hw-sky-deep);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+.hw-gamified .filter-reset {
+  border-radius: 10px;
+  border-color: rgba(125, 211, 252, 0.85);
+}
+.hw-gamified .hw-btn-apply {
+  height: 38px;
+  padding: 0 1.1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.hw-gamified .hw-btn-apply:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.38);
+}
+
+body.dark-theme .hw-gamified .hw-btn-apply {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.hw-gamified .ov-wrap {
+  border-radius: var(--hw-rr);
+  overflow: hidden;
+  border: 1px solid rgba(147, 197, 253, 0.55);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 40%, #f0f9ff 100%);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+}
+.hw-gamified .ov-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.hw-gamified .ov-tbl tbody td {
+  padding: 11px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #e8edf5;
+  vertical-align: middle;
+  background: #fff;
+}
+.hw-gamified .ov-tbl tbody td:last-child {
+  border-right: none;
+}
+.hw-gamified .ov-tbl tbody tr:nth-child(even) td {
+  background: #fafbff;
+}
+.hw-gamified .ov-tbl thead th {
+  background: linear-gradient(180deg, #e0f2fe 0%, #dbeafe 100%);
+  color: #0c4a6e;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.25);
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-right: 1px solid #c7d2e0;
+  white-space: nowrap;
+}
+.hw-gamified .ov-tbl thead th:last-child {
+  border-right: none;
+}
+.hw-gamified .ov-tbl tbody tr:hover td {
+  background: rgba(224, 242, 254, 0.65) !important;
+}
+
+.hw-gamified .ab {
+  background: none;
+  border: 1.5px solid var(--bb);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--bs);
+  font-size: 12px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.hw-gamified .ab:hover {
+  border-color: var(--br);
+  color: var(--br);
+}
+
+/* Filter bar layout (nice-select + flex) */
+.hw-gamified .filter-bar .nice-select {
+  float: none !important;
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: 38px;
+  line-height: 36px;
+  font-size: 12px;
+}
+.hw-stat-slab {
+  border-radius: var(--hw-rr);
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  padding: 1rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 55%, #e0f2fe 100%);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.08);
+  height: 100%;
+}
+.hw-stat-slab__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+.hw-stat-slab__value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--hw-text);
+  line-height: 1.1;
+}
+.hw-stat-slab__label {
+  font-size: 0.68rem;
+  color: var(--hw-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────── */
+body.dark-theme .hw-game-title {
+  color: #f1f5f9;
+}
+body.dark-theme .hw-game-lead {
+  color: #94a3b8;
+}
+body.dark-theme .hw-section-chip {
+  background: rgba(30, 58, 138, 0.4);
+  border-color: rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+}
+body.dark-theme .hw-mission-title {
+  color: #f1f5f9;
+}
+body.dark-theme .hw-mission-desc {
+  color: #94a3b8;
+}
+body.dark-theme .hw-chart-mission .card-header .text-muted {
+  color: #94a3b8 !important;
+}
+
+body.dark-theme .homework-index-page.hw-gamified,
+body.dark-theme .page-content.hw-admin-unified.hw-gamified {
+  background: linear-gradient(180deg, #0f172a 0%, #172554 45%, #0f172a 100%);
+}
+
+body.dark-theme .hw-gamified {
+  --hw-text: #f1f5f9;
+  --hw-muted: #94a3b8;
+  --hw-border: rgba(96, 165, 250, 0.32);
+}
+
+body.dark-theme .hw-gamified.homework-index-page .card.ot-card {
+  background: linear-gradient(145deg, #1e293b 0%, #1e3a5f 45%, #172554 100%);
+  border-color: rgba(96, 165, 250, 0.35);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+body.dark-theme .hw-gamified.homework-index-page .card.ot-card .card-header {
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.5) 0%, rgba(15, 23, 42, 0.25) 100%);
+  border-bottom-color: rgba(96, 165, 250, 0.22);
+}
+body.dark-theme .hw-gamified.homework-index-page .card.ot-card .card-body {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(30, 58, 138, 0.15) 100%);
+}
+body.dark-theme .hw-gamified.homework-index-page #results-container {
+  background: linear-gradient(168deg, #0f172a 0%, #172554 35%, #1e293b 72%, #0f172a 100%);
+  border-color: rgba(59, 130, 246, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .hw-game-hero {
+  background: linear-gradient(125deg, #172554 0%, #1e3a5f 40%, #0f172a 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+body.dark-theme .hw-game-eyebrow {
+  color: #7dd3fc;
+}
+body.dark-theme .hw-game-badge {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #bae6fd;
+}
+
+body.dark-theme .hw-gamified .hw-admin-hero {
+  background: linear-gradient(125deg, #172554 0%, #1e293b 50%, #0f172a 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+body.dark-theme .hw-gamified .filter-bar {
+  background: linear-gradient(180deg, #1e293b 0%, #172554 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+body.dark-theme .hw-gamified .fb-select {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(71, 85, 105, 0.8);
+  color: #e2e8f0;
+}
+body.dark-theme .hw-gamified .ov-wrap {
+  background: linear-gradient(180deg, #1e293b 0%, #172554 50%, #0f172a 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+body.dark-theme .hw-gamified .ov-tbl thead th {
+  background: linear-gradient(180deg, #1e3a5f 0%, #172554 100%);
+  color: #bae6fd;
+  border-bottom-color: rgba(96, 165, 250, 0.25);
+}
+body.dark-theme .hw-gamified .ov-tbl tbody td {
+  background: rgba(15, 23, 42, 0.35);
+  color: #e2e8f0;
+  border-color: rgba(51, 65, 85, 0.6);
+}
+body.dark-theme .hw-gamified .ov-tbl tbody tr:nth-child(even) td {
+  background: rgba(30, 41, 59, 0.5);
+}
+body.dark-theme .hw-gamified .hw-stat-slab {
+  background: linear-gradient(135deg, #1e293b 0%, #172554 60%, #1e3a5f 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+body.dark-theme .hw-gamified #table-count-badge {
+  background: linear-gradient(135deg, #1e3a5f, #172554) !important;
+  color: #bae6fd !important;
+  border-color: rgba(56, 189, 248, 0.35);
+}

@@ -2,14 +2,14 @@
 @php
   $typeMap = ['homework'=>'hw','quiz'=>'quiz','project'=>'project','activity'=>'activity','game'=>'game','assignment'=>'assignment'];
   $typeKey = $typeMap[$row->task_type ?? 'homework'] ?? 'hw';
-  $badgeClass = match ($typeKey) {
-    'quiz' => 'bg-primary',
-    'hw' => 'bg-success',
-    'project' => 'bg-danger',
-    'activity' => 'bg-info text-dark',
-    'game' => 'bg-warning text-dark',
-    'assignment' => 'bg-secondary',
-    default => 'bg-secondary',
+  $pillClass = match ($typeKey) {
+    'quiz' => 'hw-type-pill--quiz',
+    'hw' => 'hw-type-pill--hw',
+    'project' => 'hw-type-pill--project',
+    'activity' => 'hw-type-pill--activity',
+    'game' => 'hw-type-pill--game',
+    'assignment' => 'hw-type-pill--assignment',
+    default => 'hw-type-pill--default',
   };
   $isOverdue = $row->submission_date && \Carbon\Carbon::parse($row->submission_date)->isPast();
   $dueSort = ($row->submission_date ?? null)
@@ -32,7 +32,7 @@
   </td>
   <td data-sort="{{ e($sortSubject) }}">{{ $row->subject->name ?? '—' }}</td>
   <td data-sort="{{ e($sortType) }}">
-    <span class="badge {{ $badgeClass }}">{{ $row->task_type ?? '—' }}</span>
+    <span class="hw-type-pill {{ $pillClass }}">{{ $row->task_type ?? '—' }}</span>
   </td>
   <td data-sort="{{ e($dueSort) }}">
     {{ $row->submission_date ?? '—' }}
