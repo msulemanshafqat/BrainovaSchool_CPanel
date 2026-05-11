@@ -604,9 +604,10 @@ class HomeworkRepository implements HomeworkInterface
         // Build score trend line data
         $trendData = $this->getScoreTrendForFilters($homeworks);
 
-        // Build table rows HTML
+        // Build table rows HTML (asterisk = has submitted work still awaiting marks)
         $tableHtml = view('backend.homework.partials.filtered-table', [
-            'homeworks' => $homeworks,
+            'homeworks'                 => $homeworks,
+            'homeworkIdsPendingMarks'   => $evaluationStatus['homework_ids_pending_marks'] ?? [],
         ])->render();
 
         return [
@@ -725,6 +726,7 @@ class HomeworkRepository implements HomeworkInterface
     {
         $homeworksPendingEvaluation = 0;
         $submissionsAwaitingMarks    = 0;
+        $homeworkIdsPendingMarks     = [];
 
         foreach ($homeworks as $hw) {
             $awaitingHere = (int) DB::table('homework_students')
@@ -739,12 +741,14 @@ class HomeworkRepository implements HomeworkInterface
 
             if ($awaitingHere > 0) {
                 $homeworksPendingEvaluation++;
+                $homeworkIdsPendingMarks[] = (int) $hw->id;
             }
         }
 
         return [
             'homeworks_pending_evaluation' => $homeworksPendingEvaluation,
             'submissions_awaiting_marks'   => $submissionsAwaitingMarks,
+            'homework_ids_pending_marks'   => $homeworkIdsPendingMarks,
         ];
     }
 

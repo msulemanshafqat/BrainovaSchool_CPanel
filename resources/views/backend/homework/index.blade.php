@@ -137,7 +137,12 @@
           <div>
             <span class="hw-section-chip"><i class="fa-solid fa-scroll"></i> Stage 2</span>
             <h4 class="mb-0">{{ @$data['title'] }} — quest log</h4>
-            <div id="hw-evaluation-status" class="mt-2 small" role="status" aria-live="polite"></div>
+            <div class="hw-eval-column mt-2">
+              <div id="hw-evaluation-status" class="hw-evaluation-status small" role="status" aria-live="polite"></div>
+              <p class="hw-eval-legend small mb-0 mt-2">
+                Tasks with <span class="hw-marking-asterisk" aria-hidden="true">*</span> after the title have submitted work still awaiting marks.
+              </p>
+            </div>
           </div>
           <span id="table-count-badge" class="badge bg-secondary rounded-pill px-3 py-2">— records</span>
         </div>
@@ -357,8 +362,8 @@ function renderHwEvaluationStatus(es) {
   var sa = parseInt(es.submissions_awaiting_marks, 10) || 0;
   if (sa === 0) {
     $el.html(
-      '<span class="d-inline-block px-2 py-1 rounded border border-success bg-success bg-opacity-10 text-success">' +
-      '<i class="fa-solid fa-circle-check me-1"></i>' +
+      '<span class="hw-eval-banner hw-eval-banner--clear">' +
+      '<i class="fa-solid fa-circle-check me-1" aria-hidden="true"></i>' +
       '<strong>Evaluation:</strong> no submitted work is awaiting marks.' +
       '</span>'
     );
@@ -367,8 +372,8 @@ function renderHwEvaluationStatus(es) {
   var taskWord = hp === 1 ? 'task' : 'tasks';
   var subWord = sa === 1 ? 'submission' : 'submissions';
   $el.html(
-    '<span class="d-inline-block px-2 py-1 rounded border border-warning bg-warning bg-opacity-10 text-dark">' +
-    '<i class="fa-solid fa-pen-to-square me-1"></i>' +
+    '<span class="hw-eval-banner hw-eval-banner--backlog">' +
+    '<i class="fa-solid fa-pen-to-square me-1" aria-hidden="true"></i>' +
     '<strong>Evaluation backlog:</strong> ' + sa + ' ' + subWord + ' need marks across ' + hp + ' homework ' + taskWord + '.' +
     '</span>'
   );

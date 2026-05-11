@@ -399,6 +399,65 @@ body.dark-theme .hw-gamified .hw-btn-apply {
   line-height: 36px;
   font-size: 12px;
 }
+
+/* Evaluation status + asterisk legend (quest log header) */
+.hw-gamified .hw-eval-column {
+  max-width: 52rem;
+}
+.hw-gamified .hw-evaluation-status {
+  min-height: 0;
+}
+.hw-gamified .hw-eval-banner {
+  display: inline-block;
+  padding: 0.45rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  border: 1px solid transparent;
+}
+.hw-gamified .hw-eval-banner--clear {
+  color: #0c4a6e;
+  background: linear-gradient(135deg, rgba(224, 242, 254, 0.95), rgba(239, 246, 255, 0.98));
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.12);
+}
+.hw-gamified .hw-eval-banner--clear .fa-circle-check {
+  color: #0284c7;
+}
+.hw-gamified .hw-eval-banner--backlog {
+  color: #0c4a6e;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 45%, #eff6ff 100%);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.12);
+}
+.hw-gamified .hw-eval-banner--backlog .fa-pen-to-square {
+  color: #2563eb;
+}
+.hw-gamified .hw-eval-legend {
+  color: #475569;
+  border-left: 3px solid rgba(56, 189, 248, 0.55);
+  padding-left: 0.6rem;
+}
+.hw-gamified .hw-eval-legend .hw-marking-asterisk {
+  font-size: 1em;
+  margin-left: 0;
+  margin-right: 0.05em;
+}
+
+/* Quest log — marking backlog indicator (same logic as evaluation banner) */
+.hw-gamified .hw-marking-asterisk {
+  color: #d97706;
+  font-weight: 900;
+  font-size: 1.2em;
+  margin-left: 0.2em;
+  line-height: 1;
+  vertical-align: middle;
+}
+.hw-gamified .hw-row-needs-marking td.serial,
+.hw-gamified .hw-row-needs-marking td.hw-quest-num {
+  box-shadow: inset 3px 0 0 #f59e0b;
+}
+
 .hw-stat-slab {
   border-radius: var(--hw-rr);
   border: 1px solid rgba(147, 197, 253, 0.5);
@@ -435,6 +494,10 @@ body.dark-theme .hw-gamified .hw-btn-apply {
 }
 
 /* ── Dark theme ─────────────────────────────────────────────────── */
+body.dark-theme .hw-gamified .hw-marking-asterisk {
+  color: #fbbf24;
+}
+
 body.dark-theme .hw-game-title {
   color: #f1f5f9;
 }
@@ -537,4 +600,25 @@ body.dark-theme .hw-gamified #table-count-badge {
   background: linear-gradient(135deg, #1e3a5f, #172554) !important;
   color: #bae6fd !important;
   border-color: rgba(56, 189, 248, 0.35);
+}
+
+body.dark-theme .hw-gamified .hw-eval-banner--clear {
+  color: #e0f2fe;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.55), rgba(15, 23, 42, 0.4));
+  border-color: rgba(56, 189, 248, 0.35);
+}
+body.dark-theme .hw-gamified .hw-eval-banner--clear .fa-circle-check {
+  color: #38bdf8;
+}
+body.dark-theme .hw-gamified .hw-eval-banner--backlog {
+  color: #e0f2fe;
+  background: linear-gradient(135deg, #1e3a5f 0%, #172554 55%, #1e293b 100%);
+  border-color: rgba(96, 165, 250, 0.4);
+}
+body.dark-theme .hw-gamified .hw-eval-banner--backlog .fa-pen-to-square {
+  color: #7dd3fc;
+}
+body.dark-theme .hw-gamified .hw-eval-legend {
+  color: #94a3b8;
+  border-left-color: rgba(56, 189, 248, 0.4);
 }

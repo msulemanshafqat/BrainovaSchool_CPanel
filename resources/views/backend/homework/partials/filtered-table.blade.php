@@ -1,5 +1,9 @@
+@php
+  $pendingMarkIds = collect($homeworkIdsPendingMarks ?? [])->flip()->all();
+@endphp
 @forelse($homeworks as $row)
 @php
+  $needsMarking = isset($pendingMarkIds[$row->id]);
   $typeMap = ['homework'=>'hw','quiz'=>'quiz','project'=>'project','activity'=>'activity','game'=>'game','assignment'=>'assignment'];
   $typeKey = $typeMap[$row->task_type ?? 'homework'] ?? 'hw';
   $pillClass = match ($typeKey) {
@@ -22,10 +26,10 @@
   $sortSubject = \Illuminate\Support\Str::lower(trim((string) ($row->subject->name ?? '')));
   $sortType = (string) ($row->task_type ?? '');
 @endphp
-<tr data-hw-row-id="{{ $row->id }}">
+<tr data-hw-row-id="{{ $row->id }}" @if($needsMarking) class="hw-row-needs-marking" @endif>
   <td class="serial hw-quest-num">{{ $loop->iteration }}</td>
   <td data-sort="{{ e($sortTitle) }}">
-    <strong>{{ $row->title ?? '—' }}</strong>
+    <strong>{{ $row->title ?? '—' }}</strong>@if($needsMarking)<span class="hw-marking-asterisk" title="Has submitted work awaiting marks" role="img" aria-label="Awaiting marks">*</span>@endif
   </td>
   <td data-sort="{{ e($sortClassSection) }}">
     {{ $row->class->name ?? '—' }} / {{ $row->section->name ?? '—' }}
