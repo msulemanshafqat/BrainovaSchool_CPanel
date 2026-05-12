@@ -105,20 +105,28 @@
             </div>
             @if (auth()->user()->role_id == 5)
             <div class="col-xl-3 col-lg-3 col-md-6">
-                @if (hasPermission('homework_read'))
-                <a href="{{ route('homework.index') }}">
-                @endif
-                    <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24">
+                @if (hasPermission('subject_assign_read'))
+                    <a href="{{ route('assign-subject.index') }}">
+                        <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24">
+                            <div class="icon style3">
+                                <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery3.svg') }}" alt="">
+                            </div>
+                            <div class="summeryContent">
+                                <h4>{{ ($data['teacher_assigned_subjects'] ?? collect())->count() }}</h4>
+                                <h1>{{ ___('dashboard.subjects') }}</h1>
+                            </div>
+                        </div>
+                    </a>
+                @else
+                    <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24" role="group" aria-label="{{ ___('dashboard.subjects') }}">
                         <div class="icon style3">
                             <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery3.svg') }}" alt="">
                         </div>
                         <div class="summeryContent">
                             <h4>{{ ($data['teacher_assigned_subjects'] ?? collect())->count() }}</h4>
-                            <h1>{{ ___('dashboard.assigned_subjects') }}</h1>
+                            <h1>{{ ___('dashboard.subjects') }}</h1>
                         </div>
                     </div>
-                @if (hasPermission('homework_read'))
-                </a>
                 @endif
             </div>
             @endif
