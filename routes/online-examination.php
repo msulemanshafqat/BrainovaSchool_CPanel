@@ -39,7 +39,7 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::put('/update/{id}',      'update')->name('question-bank.update')->middleware('PermissionCheck:question_bank_update');
                     Route::delete('/delete/{id}',   'delete')->name('question-bank.delete')->middleware('PermissionCheck:question_bank_delete');
                     Route::any('/search',           'search')->name('question-bank.search')->middleware('PermissionCheck:question_bank_read');
-                    Route::get('/get-question-group','getQuestionGroup');
+                    Route::get('/get-question-group', 'getQuestionGroup')->middleware('PermissionCheck:question_bank_read');
                 });
                 Route::controller(OnlineExamController::class)->prefix('online-exam')->group(function () {
                     Route::get('/',                 'index')->name('online-exam.index')->middleware('PermissionCheck:online_exam_read');

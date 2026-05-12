@@ -76,6 +76,7 @@ class Kernel extends HttpKernel
         'not.auth.routes' => \App\Http\Middleware\NotAuthenticateRoutes::class,
         'lang' => \App\Http\Middleware\LanguageMiddleware::class,
         'PermissionCheck' => \App\Http\Middleware\PermissionCheck::class,
+        'DenyTeacherRole' => \App\Http\Middleware\DenyTeacherRole::class,
         'FeatureCheck' => \App\Http\Middleware\FeatureCheck::class,
         'XssSanitizer' => \App\Http\Middleware\XssSanitization::class,
         'AdminPanel' => \App\Http\Middleware\AdminPanel::class,

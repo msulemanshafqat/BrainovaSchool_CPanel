@@ -39,7 +39,7 @@ class RoleRepository implements RoleInterface
             $roleStore->name        = $request->name;
             $roleStore->slug        = Str::slug($request->name);
             $roleStore->status      = $request->status;
-            $roleStore->permissions = $request->permissions;
+            $roleStore->permissions = is_array($request->permissions) ? $request->permissions : [];
             $roleStore->save();
             return true;
         } catch (\Throwable $th) {
@@ -61,7 +61,7 @@ class RoleRepository implements RoleInterface
             $roleUpdate              = $this->model->findOrfail($id);
             $roleUpdate->name        = $request->name;
             $roleUpdate->status      = $request->status;
-            $roleUpdate->permissions = $request->permissions;
+            $roleUpdate->permissions = is_array($request->permissions) ? $request->permissions : [];
             $roleUpdate->save();
 
             // Keep users.permissions aligned with the role template (middleware also intersects role ∩ user).

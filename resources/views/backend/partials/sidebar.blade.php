@@ -469,22 +469,30 @@
                         <!-- second layer child menu list start  -->
 
                         <ul class="child-menu-list">
-                            <li class="sidebar-menu-item {{ set_menu(['online-exam-type*']) }}">
-                                <a href="{{ route('online-exam-type.index') }}">{{ ___('settings.type') }}</a>
-                            </li>
-                            <li class="sidebar-menu-item {{ set_menu(['question-group*']) }}">
-                                <a
-                                    href="{{ route('question-group.index') }}">{{ ___('online-examination.question_group') }}</a>
-                            </li>
-                            <li class="sidebar-menu-item {{ set_menu(['question-bank*']) }}">
-                                <a
-                                    href="{{ route('question-bank.index') }}">{{ ___('online-examination.question_bank') }}</a>
-                            </li>
-                            <li
-                                class="sidebar-menu-item {{ set_menu(['online-exam', 'online-exam/create', 'online-exam/edit*']) }}">
-                                <a
-                                    href="{{ route('online-exam.index') }}">{{ ___('online-examination.online_exam') }}</a>
-                            </li>
+                            @if (hasPermission('online_exam_type_read'))
+                                <li class="sidebar-menu-item {{ set_menu(['online-exam-type*']) }}">
+                                    <a href="{{ route('online-exam-type.index') }}">{{ ___('settings.type') }}</a>
+                                </li>
+                            @endif
+                            @if (hasPermission('question_group_read'))
+                                <li class="sidebar-menu-item {{ set_menu(['question-group*']) }}">
+                                    <a
+                                        href="{{ route('question-group.index') }}">{{ ___('online-examination.question_group') }}</a>
+                                </li>
+                            @endif
+                            @if (hasPermission('question_bank_read'))
+                                <li class="sidebar-menu-item {{ set_menu(['question-bank*']) }}">
+                                    <a
+                                        href="{{ route('question-bank.index') }}">{{ ___('online-examination.question_bank') }}</a>
+                                </li>
+                            @endif
+                            @if (hasPermission('online_exam_read'))
+                                <li
+                                    class="sidebar-menu-item {{ set_menu(['online-exam', 'online-exam/create', 'online-exam/edit*']) }}">
+                                    <a
+                                        href="{{ route('online-exam.index') }}">{{ ___('online-examination.online_exam') }}</a>
+                                </li>
+                            @endif
                         </ul>
                     </li>
                 @endif
@@ -501,14 +509,16 @@
                                 <li class="sidebar-menu-item {{ set_menu(['homework','homework-question-group']) }}">
                                     <a href="{{ route('homework.index') }}">{{ ___('common.Homeworks') }}</a>
                                 </li>
-
+                            @endif
+                            @if (hasPermission('homework_read') && hasPermission('question_group_read'))
                                 <li class="sidebar-menu-item {{ set_menu(['homework-question-group*']) }}">
                                     <a href="{{ route('homework.question-group') }}">{{ ___('common.Question Group') }}</a>
                                 </li>
-                                 <li class="sidebar-menu-item {{ set_menu(['homework-question-list*']) }}">
+                            @endif
+                            @if (hasPermission('homework_read') && (int) auth()->user()->role_id !== 5)
+                                <li class="sidebar-menu-item {{ set_menu(['homework-question-list*']) }}">
                                     <a href="{{ route('homework.question-list') }}">{{ ___('common.Question List') }}</a>
                                 </li>
-
                             @endif
                         </ul>
                     </li>
