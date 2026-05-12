@@ -23,7 +23,7 @@ function homeworkSubmit(event) {
 
 
   $.ajax({
-      url: '/stundet/panel/homework/submit', // Your server-side script handling the upload
+      url: '/student/panel/homework/submit', // Your server-side script handling the upload
       type: 'POST',
       headers: {
         'X-CSRF-TOKEN': csrfToken // Include the CSRF token in the headers

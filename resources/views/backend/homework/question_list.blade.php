@@ -1,10 +1,10 @@
 @extends('backend.master')
 @section('title')
     {{ @$data['title'] }}
-    echo "naz";
+ 
 @endsection
 @section('content')
- echo "naz1";
+ 
     <div class="page-content">
 
         {{-- bradecrumb Area S t a r t --}}
