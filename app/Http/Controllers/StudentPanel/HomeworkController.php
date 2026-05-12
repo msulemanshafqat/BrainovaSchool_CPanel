@@ -181,17 +181,20 @@ class HomeworkController extends Controller
         $hintsUsed   = is_array($request->hints) ? $request->hints : [];
         $earnedMarks = 0.0;
 
-        foreach ($answers as $questionId => $selectedAnswer) {
-            $question = DB::table('homework_quiz_questions')
-                ->where('id', $questionId)
-                ->where('homework_id', $homeworkId)
-                ->first();
+        $allQuestionRows = DB::table('homework_quiz_questions')
+            ->where('homework_id', $homeworkId)
+            ->orderBy('id')
+            ->get();
 
-            if (!$question) {
-                continue;
-            }
+        $quizAnswerRows = [];
+        $now            = now();
 
-            $picked   = strtolower(trim((string) $selectedAnswer));
+        foreach ($allQuestionRows as $question) {
+            $questionId = (int) $question->id;
+            $rawAnswer  = $answers[$questionId] ?? $answers[(string) $questionId] ?? null;
+            $selected   = is_string($rawAnswer) ? trim($rawAnswer) : '';
+
+            $picked   = strtolower($selected);
             $expected = strtolower(trim((string) ($question->correct_answer ?? '')));
 
             $isCorrect = $picked !== '' && $picked === $expected;
@@ -204,6 +207,18 @@ class HomeworkController extends Controller
                 }
                 $earnedMarks += $points;
             }
+
+            if (Schema::hasTable('homework_quiz_answers')) {
+                $quizAnswerRows[] = [
+                    'homework_id'      => $homeworkId,
+                    'student_id'       => $student->id,
+                    'question_id'      => $questionId,
+                    'selected_answer'  => $selected !== '' ? $selected : null,
+                    'is_correct'       => $isCorrect ? 1 : 0,
+                    'created_at'       => $now,
+                    'updated_at'       => $now,
+                ];
+            }
         }
 
         $earnedMarks = round($earnedMarks, 2);
@@ -211,15 +226,21 @@ class HomeworkController extends Controller
         DB::beginTransaction();
         try {
             // Record submission — no file upload for quizzes, homework column is nullable
-DB::table('homework_students')->insert([
-    'student_id'  => $student->id,
-    'homework_id' => $homeworkId,
-    'homework'    => null,
-    'marks'       => $earnedMarks,
-    'date'        => now()->format('Y-m-d'),
-    'created_at'  => now(),
-    'updated_at'  => now(),
-]);
+            DB::table('homework_students')->insert([
+                'student_id'  => $student->id,
+                'homework_id' => $homeworkId,
+                'homework'    => null,
+                'marks'       => $earnedMarks,
+                'date'        => now()->format('Y-m-d'),
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+
+            if ($quizAnswerRows !== []) {
+                foreach (array_chunk($quizAnswerRows, 100) as $chunk) {
+                    DB::table('homework_quiz_answers')->insert($chunk);
+                }
+            }
 
             // Brainova E6 Points Hook — skip if column missing (avoids SQL error on some DBs)
             $e6Points = (int) round($earnedMarks * (float) config('brainova.e6_points_per_mark', 10));

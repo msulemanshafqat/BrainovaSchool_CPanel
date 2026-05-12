@@ -10,6 +10,7 @@ use App\Traits\CommonHelperTrait;
 use App\Traits\ReturnFormatTrait;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class HomeworkRepository implements HomeworkInterface
 {
@@ -373,52 +374,100 @@ class HomeworkRepository implements HomeworkInterface
     // =========================================================================
 
     /**
-     * Returns per-question analytics for a quiz homework.
+     * Returns quiz analytics: class-wide average score, per-student scores for charts,
+     * and per-question accuracy / option distribution.
      *
-     * For each question we calculate:
-     *   - total_attempts  : number of students who answered
-     *   - correct_count   : number of correct answers
-     *   - accuracy_pct    : percentage correct (0–100)
-     *   - option_counts   : how many students chose each option (a–d + null/skipped)
-     *
-     * Data source: homework_quiz_answers (populated when students submit the quiz).
-     * Completely separate from online-exam question_banks / answers tables.
+     * submitted_students: rows in homework_students for this quiz.
+     * Per-question stats use homework_quiz_answers (written on each submit).
      */
     public function getQuizAnalytics(int $homeworkId): array
     {
-        // Load questions for this quiz
+        $homework = DB::table('homework')->where('id', $homeworkId)->first();
+        $maxMarks = isset($homework->marks) && is_numeric($homework->marks)
+            ? (float) $homework->marks
+            : 0.0;
+
+        $submissions = DB::table('homework_students as hs')
+            ->join('students as s', 's.id', '=', 'hs.student_id')
+            ->where('hs.homework_id', $homeworkId)
+            ->orderByDesc('hs.marks')
+            ->orderBy('s.first_name')
+            ->get([
+                'hs.student_id',
+                'hs.marks',
+                DB::raw("TRIM(CONCAT(COALESCE(s.first_name,''),' ',COALESCE(s.last_name,''))) as student_name"),
+            ]);
+
+        $submittedCount = $submissions->count();
+        $marksValues    = $submissions->pluck('marks')->filter(fn ($m) => $m !== null && $m !== '' && is_numeric($m))->map(fn ($m) => (float) $m);
+
+        $avgScore = $marksValues->isNotEmpty() ? round($marksValues->avg(), 2) : null;
+        $avgPct   = ($maxMarks > 0 && $marksValues->isNotEmpty())
+            ? round(($marksValues->avg() / $maxMarks) * 100, 1)
+            : null;
+
+        $studentScores = $submissions->map(function ($row) use ($maxMarks) {
+            $m   = isset($row->marks) && is_numeric($row->marks) ? (float) $row->marks : null;
+            $pct = ($maxMarks > 0 && $m !== null) ? round(($m / $maxMarks) * 100, 1) : null;
+
+            return [
+                'student_id'   => (int) $row->student_id,
+                'student_name' => $row->student_name ?: ('#' . $row->student_id),
+                'marks'        => $m,
+                'pct'          => $pct,
+            ];
+        })->values()->all();
+
+        // Histogram buckets (0–10, 11–20, …) for score % — used when enough students
+        $histogramLabels = [];
+        $histogramData   = [];
+        if ($maxMarks > 0 && $marksValues->isNotEmpty()) {
+            $bins = array_fill(0, 10, 0);
+            foreach ($marksValues as $mv) {
+                $p = ($mv / $maxMarks) * 100;
+                $idx = (int) floor($p / 10);
+                if ($idx > 9) {
+                    $idx = 9;
+                }
+                if ($idx < 0) {
+                    $idx = 0;
+                }
+                $bins[$idx]++;
+            }
+            for ($b = 0; $b < 10; $b++) {
+                $histogramLabels[] = ($b * 10) . '–' . (($b + 1) * 10) . '%';
+                $histogramData[]   = $bins[$b];
+            }
+        }
+
         $questions = DB::table('homework_quiz_questions')
             ->where('homework_id', $homeworkId)
             ->orderBy('id')
             ->get();
 
-        // Load all individual student answers for this quiz in one query
-        $allAnswers = DB::table('homework_quiz_answers')
-            ->where('homework_id', $homeworkId)
-            ->get()
-            ->groupBy('question_id');
-
-        // Total unique students who submitted this quiz
-        $totalStudents = DB::table('homework_students')
-            ->where('homework_id', $homeworkId)
-            ->count();
+        $allAnswers = collect();
+        if (Schema::hasTable('homework_quiz_answers')) {
+            $allAnswers = DB::table('homework_quiz_answers')
+                ->where('homework_id', $homeworkId)
+                ->get()
+                ->groupBy('question_id');
+        }
 
         $result = [];
 
         foreach ($questions as $q) {
             $qAnswers = $allAnswers->get($q->id, collect());
 
-            $attempts      = $qAnswers->count();
-            $correctCount  = $qAnswers->where('is_correct', 1)->count();
-            $accuracyPct   = $attempts > 0 ? round(($correctCount / $attempts) * 100) : 0;
+            $attempts     = $qAnswers->count();
+            $correctCount = $qAnswers->where('is_correct', 1)->count();
+            $accuracyPct  = $attempts > 0 ? round(($correctCount / $attempts) * 100) : 0;
 
-            // Count how many students chose each option
             $optionCounts = [
                 'a'       => $qAnswers->where('selected_answer', $q->option_a)->count(),
                 'b'       => $qAnswers->where('selected_answer', $q->option_b)->count(),
                 'c'       => $qAnswers->where('selected_answer', $q->option_c)->count(),
                 'd'       => $qAnswers->where('selected_answer', $q->option_d)->count(),
-                'skipped' => $totalStudents - $attempts,
+                'skipped' => max(0, $submittedCount - $attempts),
             ];
 
             $result[] = [
@@ -437,10 +486,22 @@ class HomeworkRepository implements HomeworkInterface
             ];
         }
 
+        $totalQuestions = count($result);
+        $avgAccuracy    = $totalQuestions > 0
+            ? round(array_sum(array_column($result, 'accuracy_pct')) / $totalQuestions)
+            : 0;
+
         return [
-            'questions'      => $result,
-            'total_students' => $totalStudents,
-            'homework'       => DB::table('homework')->where('id', $homeworkId)->first(),
+            'homework'             => $homework,
+            'questions'            => $result,
+            'submitted_students'    => $submittedCount,
+            'max_marks'            => $maxMarks,
+            'avg_score'            => $avgScore,
+            'avg_score_pct'        => $avgPct,
+            'student_scores'       => $studentScores,
+            'histogram_labels'     => $histogramLabels,
+            'histogram_data'       => $histogramData,
+            'avg_question_accuracy' => $avgAccuracy,
         ];
     }
 
