@@ -187,17 +187,85 @@ body.default-theme .page-content.hw-admin-unified.hw-gamified {
   background: rgba(255, 255, 255, 0.85) !important;
 }
 
-/* Chart cards */
-.hw-chart-mission .card-header h5 {
-  font-weight: 800;
-  font-size: 1rem;
-  color: var(--hw-text);
+/* Chart insight cards — light, airy dashboard tiles */
+.hw-gamified .hw-chart-mission.card.ot-card {
+  border-radius: 16px;
+  border: 1px solid rgba(186, 230, 253, 0.85);
+  background: linear-gradient(165deg, #ffffff 0%, #f8fbff 38%, #f0f9ff 72%, #eff6ff 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 10px 32px rgba(14, 165, 233, 0.08),
+    0 2px 8px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
 }
-.hw-chart-mission .card-header .text-muted {
+.hw-gamified .hw-chart-mission .card-header {
+  background: transparent !important;
+  border-bottom: none !important;
+  padding: 1.15rem 1.25rem 0.35rem;
+}
+.hw-gamified .hw-chart-mission__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.hw-gamified .hw-chart-mission__icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #0369a1;
+  background: linear-gradient(145deg, #e0f2fe 0%, #bae6fd 55%, #f0f9ff 100%);
+  border: 1px solid rgba(125, 211, 252, 0.65);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);
+}
+.hw-gamified .hw-chart-mission__icon--line {
+  color: #1d4ed8;
+  background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 50%, #eff6ff 100%);
+  border-color: rgba(96, 165, 250, 0.45);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
+}
+.hw-gamified .hw-chart-mission__text {
+  min-width: 0;
+}
+.hw-gamified .hw-chart-mission__eyebrow {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0284c7;
+  margin: 0 0 0.35rem;
+}
+.hw-gamified .hw-chart-mission__title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin: 0 0 0.4rem;
+  line-height: 1.25;
+}
+.hw-gamified .hw-chart-mission__desc {
   font-size: 0.78rem;
+  line-height: 1.45;
+  color: #64748b;
+  margin: 0;
+  max-width: 36rem;
+}
+.hw-gamified .hw-chart-mission__canvas {
+  padding: 0.5rem 1rem 1.15rem;
+  min-height: 248px;
+  position: relative;
+}
+.hw-gamified .hw-chart-mission__canvas canvas {
+  max-height: 220px;
+}
+.hw-gamified .hw-chart-mission .card-body {
+  background: transparent !important;
 }
 
-/* Quest log table */
 .hw-quest-log-wrap .card-header h4 {
   font-weight: 800;
   font-size: 1.1rem;
@@ -452,7 +520,7 @@ body.dark-theme .hw-gamified .hw-btn-apply {
 /* Quest log — marking backlog indicator (same logic as evaluation banner) */
 .hw-gamified .hw-marking-asterisk {
   color: #d97706;
-  font-weight: 900;
+  font-weight: 600;
   font-size: 1.2em;
   margin-left: 0.2em;
   line-height: 1;
@@ -520,8 +588,32 @@ body.dark-theme .hw-mission-title {
 body.dark-theme .hw-mission-desc {
   color: #94a3b8;
 }
-body.dark-theme .hw-chart-mission .card-header .text-muted {
-  color: #94a3b8 !important;
+body.dark-theme .hw-chart-mission__title {
+  color: #f1f5f9;
+}
+body.dark-theme .hw-chart-mission__desc {
+  color: #94a3b8;
+}
+body.dark-theme .hw-chart-mission__eyebrow {
+  color: #7dd3fc;
+}
+body.dark-theme .hw-gamified .hw-chart-mission.card.ot-card {
+  background: linear-gradient(165deg, #1e293b 0%, #172554 45%, #1e3a5f 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+body.dark-theme .hw-gamified .hw-chart-mission__icon {
+  color: #bae6fd;
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.55) 0%, rgba(15, 23, 42, 0.35) 100%);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+body.dark-theme .hw-gamified .hw-chart-mission__icon--line {
+  color: #93c5fd;
+  background: linear-gradient(145deg, rgba(37, 99, 235, 0.35) 0%, rgba(30, 41, 59, 0.5) 100%);
+  border-color: rgba(96, 165, 250, 0.35);
+}
+body.dark-theme .hw-gamified .hw-chart-mission .card-body {
+  background: transparent !important;
 }
 
 body.dark-theme .homework-index-page.hw-gamified,

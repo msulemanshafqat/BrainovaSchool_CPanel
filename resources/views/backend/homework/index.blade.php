@@ -32,9 +32,6 @@
       @if(hasPermission('homework_create'))
       <div class="col-lg-auto">
         <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-          <a href="{{ route('homework.download-sample') }}" class="btn btn-outline-secondary btn-sm px-3">
-            <i class="fa-solid fa-download me-1"></i>CSV template
-          </a>
           <a href="{{ route('homework.create') }}" class="btn btn-lg ot-btn-primary">
             <span><i class="fa-solid fa-plus"></i></span>
             <span>{{ ___('common.add') }}</span>
@@ -107,24 +104,34 @@
     <div class="row g-3 mb-3">
       <div class="col-md-6">
         <div class="card ot-card h-100 hw-chart-mission">
-          <div class="card-header border-0 pb-0">
-            <span class="hw-section-chip"><i class="fa-solid fa-chart-pie"></i> Intel</span>
-            <h5 class="mb-0">{{ ___('common.status') ?? 'Status' }}</h5>
-            <p class="text-muted small mb-0">Submissions vs pending</p>
+          <div class="card-header border-0 hw-chart-mission__header">
+            <div class="hw-chart-mission__icon" aria-hidden="true">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="hw-chart-mission__text">
+              <p class="hw-chart-mission__eyebrow">Hand-ins</p>
+              <h5 class="hw-chart-mission__title">Submission snapshot</h5>
+              <p class="hw-chart-mission__desc">Submitted, still waiting, and overdue—one ring chart for your current filters.</p>
+            </div>
           </div>
-          <div class="card-body pt-2" style="min-height:260px">
+          <div class="card-body hw-chart-mission__canvas">
             <canvas id="donut-chart-filtered"></canvas>
           </div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="card ot-card h-100 hw-chart-mission">
-          <div class="card-header border-0 pb-0">
-            <span class="hw-section-chip"><i class="fa-solid fa-chart-line"></i> Power curve</span>
-            <h5 class="mb-0">Trend</h5>
-            <p class="text-muted small mb-0">Graded average and submission rate</p>
+          <div class="card-header border-0 hw-chart-mission__header">
+            <div class="hw-chart-mission__icon hw-chart-mission__icon--line" aria-hidden="true">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="hw-chart-mission__text">
+              <p class="hw-chart-mission__eyebrow">Momentum</p>
+              <h5 class="hw-chart-mission__title">Scores &amp; participation</h5>
+              <p class="hw-chart-mission__desc">Average marks trend with the share of students who submitted—spot engagement dips early.</p>
+            </div>
           </div>
-          <div class="card-body pt-2" style="min-height:260px">
+          <div class="card-body hw-chart-mission__canvas">
             <canvas id="line-chart-filtered"></canvas>
           </div>
         </div>
