@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\Status;
 use App\Http\Controllers\Controller;
 use App\Models\HomeworkStudent;
 use App\Http\Requests\StudentPanel\HomeworkSubmit;
@@ -45,6 +46,11 @@ class HomeworkController extends Controller
     public function homeworkAnswer($id)
     {
         $data = $this->repo->show($id);
+        if (!$data) {
+            return redirect()->route('student-panel-homeworks.index')
+                ->with('error', 'This homework is not available.');
+        }
+
         return view('student-panel.homework-question-view', compact('data'));
     }
 
@@ -87,6 +93,12 @@ class HomeworkController extends Controller
         $submission = HomeworkStudent::where('student_id', $student->id)
             ->where('homework_id', $id)
             ->first();
+
+        // Inactive tasks are hidden from the list; allow access only to review a prior submission.
+        if ((int) ($homework->status ?? 0) !== Status::ACTIVE && !$submission) {
+            return redirect()->route('student-panel-homeworks.index')
+                ->with('error', 'This quiz is not available.');
+        }
 
         // Load questions — shuffled for live quiz, ordered for review
         if ($submission) {
@@ -155,10 +167,10 @@ class HomeworkController extends Controller
         }
 
         $homework = DB::table('homework')->where('id', $homeworkId)->first();
-        if (!$homework) {
+        if (!$homework || (int) ($homework->status ?? 0) !== Status::ACTIVE) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Quiz not found.',
+                'message' => 'Quiz not found or no longer available.',
             ], 404);
         }
 

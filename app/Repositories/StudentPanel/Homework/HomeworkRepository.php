@@ -28,6 +28,7 @@ class HomeworkRepository implements HomeworkInterface
     public function index()
     {
         return $this->model::with(['subject', 'upload'])
+            ->active()
             ->where('classes_id', Auth::user()->student?->session_class_student?->classes_id)
             ->where('section_id', Auth::user()->student?->session_class_student?->section_id)
             ->where('session_id', setting('session'))
@@ -39,7 +40,7 @@ class HomeworkRepository implements HomeworkInterface
     {
         // Note: examQuestions loads from homework_questions → question_banks (online-exam).
         // Homework quiz questions live in homework_quiz_questions — handled separately.
-        return $this->model::find($id);
+        return $this->model::active()->find($id);
     }
 
     /**
@@ -55,6 +56,24 @@ class HomeworkRepository implements HomeworkInterface
         DB::beginTransaction();
         try {
             $student = Auth::user()->student;
+            $scs     = $student?->session_class_student;
+
+            if (!$student || !$scs) {
+                DB::rollBack();
+                throw new \RuntimeException('Homework is not available.');
+            }
+
+            $homework = $this->model::active()
+                ->where('id', $request->homework_id)
+                ->where('session_id', setting('session'))
+                ->where('classes_id', $scs->classes_id)
+                ->where('section_id', $scs->section_id)
+                ->first();
+
+            if (!$homework) {
+                DB::rollBack();
+                throw new \RuntimeException('Homework is not available.');
+            }
 
             $homework_student = HomeworkStudent::where('student_id', $student->id)
                 ->where('homework_id', $request->homework_id)

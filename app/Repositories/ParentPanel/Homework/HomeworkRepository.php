@@ -105,8 +105,9 @@ class HomeworkRepository implements HomeworkInterface
                 return $data;
             }
 
-            // Load all homework for this child's class/section
+            // Load active homework only for this child's class/section
             $homeworks = $this->model::with(['subject', 'class', 'section', 'upload'])
+                ->active()
                 ->where('session_id', setting('session'))
                 ->where('classes_id', $classSection->classes_id)
                 ->where('section_id', $classSection->section_id)

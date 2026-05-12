@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Status;
 use App\Models\Upload;
 use App\Models\HomeworkStudent;
 use App\Models\Academic\Classes;
@@ -16,6 +17,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Homework extends BaseModel
 {
     use HasFactory;
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', Status::ACTIVE);
+    }
 
     public function class()
     {
