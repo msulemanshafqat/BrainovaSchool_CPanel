@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Str;
 use App\Interfaces\RoleInterface;
 
@@ -62,6 +63,16 @@ class RoleRepository implements RoleInterface
             $roleUpdate->status      = $request->status;
             $roleUpdate->permissions = $request->permissions;
             $roleUpdate->save();
+
+            // Keep users.permissions aligned with the role template (middleware also intersects role ∩ user).
+            $permPayload = $roleUpdate->permissions ?? [];
+            User::where('role_id', (int) $id)->chunkById(200, function ($users) use ($permPayload) {
+                foreach ($users as $user) {
+                    $user->permissions = $permPayload;
+                    $user->saveQuietly();
+                }
+            });
+
             return true;
         } catch (\Throwable $th) {
             return false;

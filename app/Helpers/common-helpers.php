@@ -236,17 +236,52 @@ if (!function_exists('globalAsset')) {
 }
 
 
-// Permission check
+// Permission check — uses role + user rows together (see authEffectivePermissions).
+if (!function_exists('authEffectivePermissions')) {
+    /**
+     * Permissions granted to the current user: intersection of the role template and
+     * the user's stored list. That way tightening a role takes effect even if
+     * users.permissions was copied long ago and never updated.
+     */
+    function authEffectivePermissions(): array
+    {
+        if (!Auth::check()) {
+            return [];
+        }
+
+        $user = Auth::user();
+        $user->loadMissing('role');
+
+        $rolePerms = $user->role?->permissions;
+        $rolePerms = is_array($rolePerms) ? $rolePerms : [];
+
+        $userPerms = $user->permissions;
+        if (!is_array($userPerms) || $userPerms === []) {
+            return $rolePerms;
+        }
+
+        return array_values(array_intersect($rolePerms, $userPerms));
+    }
+}
+
+if (!function_exists('authHasPermission')) {
+    function authHasPermission($keyword): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+        if ((int) Auth::user()->role_id === 1) {
+            return true;
+        }
+
+        return in_array($keyword, authEffectivePermissions(), true);
+    }
+}
+
 if (!function_exists('hasPermission')) {
     function hasPermission($keyword)
     {
-        if (Auth::check() && Auth::user()->role_id == 1) {
-            return true;
-        }
-        if (in_array($keyword, Auth::user()->permissions ?? [])) {
-            return true;
-        }
-        return false;
+        return authHasPermission($keyword);
     }
 }
 

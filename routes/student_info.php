@@ -28,11 +28,11 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::get('show/{id}',         'show')->name('student.show')->middleware('PermissionCheck:student_read');
                     Route::PUT('update',            'update')->name('student.update')->middleware('PermissionCheck:student_update', 'DemoCheck');
                     Route::delete('/delete/{id}',   'delete')->name('student.delete')->middleware('PermissionCheck:student_delete', 'DemoCheck');
-                    Route::get('/get-children/{parentId}', 'getChildren')->name('student.getChildren');
+                    Route::get('/get-children/{parentId}', 'getChildren')->name('student.getChildren')->middleware('PermissionCheck:student_read');
 
 
-                    Route::get('/add-new-document',          'addNewDocument');
-                    Route::get('/get-students',              'getStudents');
+                    Route::get('/add-new-document',          'addNewDocument')->middleware('PermissionCheck:student_create');
+                    Route::get('/get-students',              'getStudents')->middleware('PermissionCheck:student_read');
                     Route::get('/import',           'import')->name('student.import')->middleware('PermissionCheck:student_create');
                     Route::post('/import-submit', 'importSubmit')->name('student.importSubmit')->middleware('PermissionCheck:student_create');
                     Route::get('/sample-download',          'sampleDownload')->name('student.sampleDownload')->middleware('PermissionCheck:student_create');
@@ -55,8 +55,8 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::get('/',                 'index')->name('promote_students.index')->middleware('PermissionCheck:promote_students_read');
                     Route::post('/search',          'search')->name('promote_students.search')->middleware('PermissionCheck:promote_students_read');
                     Route::post('/store',           'store')->name('promote_students.store')->middleware('PermissionCheck:promote_students_create', 'DemoCheck');
-                    Route::get('/get-class',        'getClass');
-                    Route::get('/get-sections',     'getSections');
+                    Route::get('/get-class',        'getClass')->middleware('PermissionCheck:promote_students_read');
+                    Route::get('/get-sections',     'getSections')->middleware('PermissionCheck:promote_students_read');
                 });
                 Route::controller(DisabledStudentController::class)->prefix('disabled/students')->group(function () {
                     Route::get('/',                 'index')->name('disabled_students.index')->middleware('PermissionCheck:disabled_students_read');
@@ -72,7 +72,7 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::get('edit/{id}',         'edit')->name('parent.edit')->middleware('PermissionCheck:parent_update');
                     Route::PUT('update/{id}',       'update')->name('parent.update')->middleware('PermissionCheck:parent_update', 'DemoCheck');
                     Route::delete('/delete/{id}',   'delete')->name('parent.delete')->middleware('PermissionCheck:parent_delete', 'DemoCheck');
-                    Route::get('/get-parent',       'getParent');
+                    Route::get('/get-parent',       'getParent')->middleware('PermissionCheck:parent_read');
                 });
             });
         });

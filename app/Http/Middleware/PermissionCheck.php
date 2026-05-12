@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PermissionCheck
 {
@@ -17,17 +16,10 @@ class PermissionCheck
      */
     public function handle(Request $request, Closure $next, $permission)
     {
-        // Allow access if user is authenticated and is admin
-        if (Auth::check() && Auth::user()->role_id == 1) {
+        if (authHasPermission($permission)) {
             return $next($request);
         }
 
-        // Allow access if user has the required permission
-        if (Auth::check() && in_array($permission, Auth::user()->permissions)) {
-            return $next($request);
-        }
-
-        // Deny access
         return abort(403, 'Access Denied');
     }
 
