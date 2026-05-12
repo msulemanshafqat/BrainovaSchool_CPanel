@@ -18,6 +18,7 @@ use App\Models\StudentInfo\ParentGuardian;
 use App\Models\StudentInfo\SessionClassStudent;
 use App\Models\StudentInfo\Student;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Academic\Subject;
 use App\Models\Academic\SubjectAssignChildren;
 
 class DashboardRepository implements DashboardInterface
@@ -25,6 +26,7 @@ class DashboardRepository implements DashboardInterface
     public function index()
     {
         $sessionId = setting('session');
+        $data['teacher_assigned_subjects'] = collect();
         $data['student'] = SessionClassStudent::where('session_id', $sessionId)->count();
         $data['parent']  = ParentGuardian::count();
         $data['teacher'] = Staff::where('role_id',5)->count();
@@ -48,9 +50,33 @@ class DashboardRepository implements DashboardInterface
                 ->value('cnt');
 
             $data['student'] = $this->countSessionStudentsForTeacherAssignments($staffId, $sessionId);
+            $data['teacher_assigned_subjects'] = $this->teacherAssignedSubjectsForStaff($staffId, $sessionId);
         }
 
         return $data;
+    }
+
+    /**
+     * Distinct subjects this staff member teaches in the current session (subject assign children).
+     */
+    private function teacherAssignedSubjectsForStaff(int $staffId, $sessionId)
+    {
+        $childTable = (new SubjectAssignChildren())->getTable();
+        $subjectIds = SubjectAssignChildren::query()
+            ->where($childTable . '.staff_id', $staffId)
+            ->join('subject_assigns', 'subject_assigns.id', '=', $childTable . '.subject_assign_id')
+            ->where('subject_assigns.session_id', $sessionId)
+            ->distinct()
+            ->pluck($childTable . '.subject_id');
+
+        if ($subjectIds->isEmpty()) {
+            return collect();
+        }
+
+        return Subject::query()
+            ->whereIn('id', $subjectIds)
+            ->orderBy('name')
+            ->get();
     }
 
     /**

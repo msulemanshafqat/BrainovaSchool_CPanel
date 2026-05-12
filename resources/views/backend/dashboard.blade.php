@@ -103,9 +103,47 @@
                     @endif
                 @endif
             </div>
+            @if (auth()->user()->role_id == 5)
+            <div class="col-xl-3 col-lg-3 col-md-6">
+                @if (hasPermission('homework_read'))
+                <a href="{{ route('homework.index') }}">
+                @endif
+                    <div class="ot_crm_summeryBox2 d-flex align-items-center mb-24">
+                        <div class="icon style3">
+                            <img class="img-fluid" src="{{ global_asset('backend/assets/images/crm/crm_summery3.svg') }}" alt="">
+                        </div>
+                        <div class="summeryContent">
+                            <h4>{{ ($data['teacher_assigned_subjects'] ?? collect())->count() }}</h4>
+                            <h1>{{ ___('dashboard.assigned_subjects') }}</h1>
+                        </div>
+                    </div>
+                @if (hasPermission('homework_read'))
+                </a>
+                @endif
+            </div>
+            @endif
         @endif
 
-        {{-- Fees collesction --}}
+        @if (auth()->check() && auth()->user()->role_id == 5 && auth()->user()->staff)
+        <div class="col-12 mb-24">
+            <div class="ot-card">
+                <div class="card-header card_header_border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="card-title mb-0">
+                        <h4 class="mb-0">{{ ___('dashboard.my_assigned_subjects') }}</h4>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @php $assignedSubjects = $data['teacher_assigned_subjects'] ?? collect(); @endphp
+                    @forelse ($assignedSubjects as $subj)
+                        <span class="badge bg-light text-dark border me-2 mb-2 py-2 px-3" style="font-weight:600;font-size:0.8125rem">{{ $subj->name }}@if(!empty($subj->code))<span class="text-muted fw-normal"> — {{ $subj->code }}</span>@endif</span>
+                    @empty
+                        <p class="text-muted mb-0 small">{{ ___('dashboard.no_assigned_subjects_this_session') }}</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if (hasPermission('fees_collesction_read'))
             <div class="col-xxl-8 col-xl-12 ">
                 <div class="ot-card chart-card2 ot_heightFull mb-24">
