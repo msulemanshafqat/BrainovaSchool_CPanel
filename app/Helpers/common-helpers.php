@@ -249,7 +249,18 @@ if (!function_exists('authEffectivePermissions')) {
             return [];
         }
 
+        static $cache = null;
+        static $cacheKey = null;
+
+        $request = function_exists('request') ? request() : null;
+        $requestPart = $request ? spl_object_id($request) : 'cli';
         $user = Auth::user();
+        $key = $requestPart . ':' . $user->getKey();
+
+        if ($cacheKey === $key && is_array($cache)) {
+            return $cache;
+        }
+
         $user->loadMissing('role');
 
         $rolePerms = $user->role?->permissions;
@@ -257,10 +268,14 @@ if (!function_exists('authEffectivePermissions')) {
 
         $userPerms = $user->permissions;
         if (!is_array($userPerms) || $userPerms === []) {
-            return $rolePerms;
+            $cacheKey = $key;
+
+            return $cache = $rolePerms;
         }
 
-        return array_values(array_intersect($rolePerms, $userPerms));
+        $cacheKey = $key;
+
+        return $cache = array_values(array_intersect($rolePerms, $userPerms));
     }
 }
 

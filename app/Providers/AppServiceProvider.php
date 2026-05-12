@@ -72,59 +72,13 @@ class AppServiceProvider extends ServiceProvider
 
             $this->app['events']->listen(TenancyBootstrapped::class, function ($event) {
                 view()->composer('*', function ($view) {
-
-                    try {
-
-                        $subscriber = Subscribe::count();
-                        $sections = PageSections::with('upload')->get();
-
-                        $sectionArr = [];
-                        foreach ($sections as $section) {
-                            $sectionArr[$section->key] = $section;
-                        }
-
-                        $view->with([
-                            'sections' => $sectionArr,
-                            'subscriber' => $subscriber,
-                        ]);
-                    } catch (\Exception $e) {
-                        $view->with([
-                            'sections' => [],
-                            'subscriber' => 0,
-                        ]);
-                    }
-
-
+                    $view->with($this->pageSectionsAndSubscriber());
                 });
-
             });
         else:
             view()->composer('*', function ($view) {
-
-                try {
-
-                    $subscriber = Subscribe::count();
-                    $sections = PageSections::with('upload')->get();
-
-                    $sectionArr = [];
-                    foreach ($sections as $section) {
-                        $sectionArr[$section->key] = $section;
-                    }
-
-                    $view->with([
-                        'sections' => $sectionArr,
-                        'subscriber' => $subscriber,
-                    ]);
-                } catch (\Exception $e) {
-                    $view->with([
-                        'sections' => [],
-                        'subscriber' => 0,
-                    ]);
-                }
+                $view->with($this->pageSectionsAndSubscriber());
             });
-
-
-
 
         endif;
 
@@ -185,5 +139,44 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrap();
     }
 
+    /**
+     * Subscribe + page sections for global view composer. Cached once per HTTP request
+     * so wildcard composers do not re-query on every nested @include.
+     */
+    protected function pageSectionsAndSubscriber(): array
+    {
+        static $payload = null;
+        static $requestId = null;
+
+        $currentId = request() ? spl_object_id(request()) : null;
+        if ($requestId !== $currentId) {
+            $requestId = $currentId;
+            $payload = null;
+        }
+
+        if ($payload !== null) {
+            return $payload;
+        }
+
+        try {
+            $subscriber = Subscribe::count();
+            $sections = PageSections::with('upload')->get();
+
+            $sectionArr = [];
+            foreach ($sections as $section) {
+                $sectionArr[$section->key] = $section;
+            }
+
+            return $payload = [
+                'sections' => $sectionArr,
+                'subscriber' => $subscriber,
+            ];
+        } catch (\Throwable $e) {
+            return $payload = [
+                'sections' => [],
+                'subscriber' => 0,
+            ];
+        }
+    }
 
 }
