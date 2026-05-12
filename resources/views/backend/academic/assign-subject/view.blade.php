@@ -24,7 +24,11 @@
                                     {{ $row->subject->name }}<br>
                                 </td>
                                 <td>
-                                    {{ $row->teacher->first_name }} {{ $row->teacher->last_name }}<br>
+                                    @if ($row->teacher)
+                                        {{ trim($row->teacher->first_name . ' ' . $row->teacher->last_name) }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach

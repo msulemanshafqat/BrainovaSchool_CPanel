@@ -142,5 +142,8 @@
 @endsection
 
 @push('script')
+    <script>
+        window.ASSIGN_SUBJECT_SHOW_URL = @json(route('assign-subject.show'));
+    </script>
     @include('backend.academic.assign-subject.delete-ajax')
 @endpush

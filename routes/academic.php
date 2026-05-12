@@ -91,7 +91,7 @@ Route::middleware(saasMiddleware())->group(function () {
                     Route::put('/update/{id}',      'update')->name('assign-subject.update')->middleware('PermissionCheck:subject_assign_update', 'DemoCheck');
                     Route::delete('/delete/{id}',   'delete')->name('assign-subject.delete')->middleware('PermissionCheck:subject_assign_delete', 'DemoCheck');
                     Route::get('/add-subject-teacher','addSubjectTeacher');
-                    Route::get('/show',              'show');
+                    Route::get('/show',              'show')->name('assign-subject.show')->middleware('PermissionCheck:subject_assign_read');
                     Route::get('/get-subjects',     'getSubjects');
                     Route::get('/check-section',     'checkSection');
                     Route::get('/check-exam-assign/{id}','checkExamAssign');

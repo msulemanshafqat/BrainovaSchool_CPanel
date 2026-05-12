@@ -88,9 +88,18 @@ class SubjectAssignController extends Controller
         return back()->with('danger', $result['message']);
     }
 
-    public function show(Request $request){
+    public function show(Request $request)
+    {
+        $subjectAssignId = $request->query('id', $request->input('id'));
+        if ($subjectAssignId === null || $subjectAssignId === '') {
+            abort(404);
+        }
 
-        $data['subject_assign_children'] = SubjectAssignChildren::where('subject_assign_id', $request->id)->get();
+        $data['subject_assign_children'] = SubjectAssignChildren::query()
+            ->with(['subject', 'teacher'])
+            ->where('subject_assign_id', $subjectAssignId)
+            ->orderBy('subject_id')
+            ->get();
 
         return view('backend.academic.assign-subject.view', compact('data'))->render();
     }

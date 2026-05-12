@@ -1293,7 +1293,10 @@ function marksDistribution(id) {
 
 
 function viewSubjectTeacher(id) {
-    var url = $('#url').val();
+    var base =
+        typeof window.ASSIGN_SUBJECT_SHOW_URL === 'string' && window.ASSIGN_SUBJECT_SHOW_URL.length
+            ? window.ASSIGN_SUBJECT_SHOW_URL
+            : (($('#url').val() || '').replace(/\/$/, '') + '/assign-subject/show');
     var formData = {
         id: id,
     }
@@ -1304,7 +1307,7 @@ function viewSubjectTeacher(id) {
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
-        url: url + '/assign-subject/show',
+        url: base,
         success: function (data) {
             $("#basicModal .modal-dialog").html(data);
         },
