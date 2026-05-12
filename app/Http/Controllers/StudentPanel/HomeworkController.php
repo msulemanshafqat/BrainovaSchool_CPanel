@@ -211,13 +211,15 @@ class HomeworkController extends Controller
         DB::beginTransaction();
         try {
             // Record submission — no file upload for quizzes, homework column is nullable
-            HomeworkStudent::create([
-                'student_id'  => $student->id,
-                'homework_id' => $homeworkId,
-                'homework'    => null,
-                'marks'       => $earnedMarks,
-                'date'        => now()->format('Y-m-d'),
-            ]);
+DB::table('homework_students')->insert([
+    'student_id'  => $student->id,
+    'homework_id' => $homeworkId,
+    'homework'    => null,
+    'marks'       => $earnedMarks,
+    'date'        => now()->format('Y-m-d'),
+    'created_at'  => now(),
+    'updated_at'  => now(),
+]);
 
             // Brainova E6 Points Hook — skip if column missing (avoids SQL error on some DBs)
             $e6Points = (int) round($earnedMarks * (float) config('brainova.e6_points_per_mark', 10));
