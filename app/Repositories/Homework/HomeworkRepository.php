@@ -76,6 +76,11 @@ class HomeworkRepository implements HomeworkInterface
     {
         $query = $this->model::query()->where('session_id', setting('session'));
 
+        $user = auth()->user();
+        if ($user && (int) $user->role_id !== 1) {
+            $query->whereIn('subject_id', teacherSubjects());
+        }
+
         if (!empty($request->class)) {
             $query->where('classes_id', $request->class);
         }
@@ -1037,16 +1042,25 @@ class HomeworkRepository implements HomeworkInterface
  */
 public function getSubjectsByClassSection(int $classId, int $sectionId): array
 {
-    $subjects = DB::table('subject_assigns as sa')
+    $query = DB::table('subject_assigns as sa')
         ->join('subject_assign_childrens as sac', 'sac.subject_assign_id', '=', 'sa.id')
         ->join('subjects', 'subjects.id', '=', 'sac.subject_id')
         ->where('sa.classes_id', $classId)
         ->where('sa.section_id', $sectionId)
         ->where('sa.session_id', setting('session'))
-        ->distinct()
-        ->get(['subjects.id', 'subjects.name']);
+        ->distinct();
 
-    return $subjects->toArray();
+    // Teachers (non-admin): only subjects assigned to this staff member — same scope as homework lists / filtered report.
+    $user = auth()->user();
+    if ($user && (int) $user->role_id !== 1) {
+        $allowed = teacherSubjects();
+        if ($allowed === []) {
+            return [];
+        }
+        $query->whereIn('subjects.id', $allowed);
+    }
+
+    return $query->get(['subjects.id', 'subjects.name'])->toArray();
 }
 
 
