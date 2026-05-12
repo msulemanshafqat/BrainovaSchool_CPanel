@@ -37,11 +37,14 @@ class HomeworkRepository implements HomeworkInterface
 
     public function getPaginateAll()
     {
-        return $this->model::latest()
-            ->where('session_id', setting('session'))
-            ->whereIn('subject_id', teacherSubjects())
-            ->orderByDesc('id')
-            ->paginate(10);
+        $query = $this->model::latest()
+            ->where('session_id', setting('session'));
+
+        if (auth()->user() && !isHomeworkFilterAdmin()) {
+            $query->whereIn('subject_id', teacherSubjects());
+        }
+
+        return $query->orderByDesc('id')->paginate(10);
     }
 
     /**
@@ -77,7 +80,7 @@ class HomeworkRepository implements HomeworkInterface
         $query = $this->model::query()->where('session_id', setting('session'));
 
         $user = auth()->user();
-        if ($user && (int) $user->role_id !== 1) {
+        if ($user && !isHomeworkFilterAdmin()) {
             $query->whereIn('subject_id', teacherSubjects());
         }
 
@@ -346,15 +349,16 @@ class HomeworkRepository implements HomeworkInterface
      */
     public function getStats(): array
     {
-        $subjectIds = teacherSubjects();
-        $sessionId  = setting('session');
+        $sessionId = setting('session');
+        $query     = $this->model::where('session_id', $sessionId);
 
-        $hwIds = $this->model::where('session_id', $sessionId)
-            ->whereIn('subject_id', $subjectIds)
-            ->pluck('id');
+        if (auth()->user() && !isHomeworkFilterAdmin()) {
+            $query->whereIn('subject_id', teacherSubjects());
+        }
 
-        $byType = $this->model::where('session_id', $sessionId)
-            ->whereIn('subject_id', $subjectIds)
+        $hwIds = (clone $query)->pluck('id');
+
+        $byType = (clone $query)
             ->selectRaw('task_type, COUNT(*) as cnt')
             ->groupBy('task_type')
             ->pluck('cnt', 'task_type')
@@ -653,8 +657,8 @@ class HomeworkRepository implements HomeworkInterface
             $query->where('task_type', $filters['task_type']);
         }
 
-        // Apply teacher permission scope if not admin
-        if (!auth()->user() || auth()->user()->role_id != 1) { // role_id 1 = Admin
+        // Apply teacher permission scope (Super Admin + Admin see all homework)
+        if (auth()->user() && !isHomeworkFilterAdmin()) {
             $query->whereIn('subject_id', teacherSubjects());
         }
 
@@ -1013,15 +1017,26 @@ class HomeworkRepository implements HomeworkInterface
         */
  public function getSectionsByClass(int $classId): array
 {
-    $sections = DB::table('subject_assigns as sa')
+    $query = DB::table('subject_assigns as sa')
         ->join('sections', 'sections.id', '=', 'sa.section_id')
         ->where('sa.classes_id', $classId)
         ->where('sa.session_id', setting('session'))
-        ->where('sections.status', 1)
-        ->distinct()
-        ->get(['sections.id', 'sections.name']);
+        ->where('sections.status', 1);
 
-    return $sections->toArray();
+    $user = auth()->user();
+    if ($user && !isHomeworkFilterAdmin()) {
+        $allowed = teacherSubjects();
+        if ($allowed === []) {
+            return [];
+        }
+        $query->join('subject_assign_childrens as sac', 'sac.subject_assign_id', '=', 'sa.id')
+            ->whereIn('sac.subject_id', $allowed)
+            ->distinct();
+    } else {
+        $query->distinct();
+    }
+
+    return $query->get(['sections.id', 'sections.name'])->toArray();
 }
 
     /**
@@ -1052,7 +1067,7 @@ public function getSubjectsByClassSection(int $classId, int $sectionId): array
 
     // Teachers (non-admin): only subjects assigned to this staff member — same scope as homework lists / filtered report.
     $user = auth()->user();
-    if ($user && (int) $user->role_id !== 1) {
+    if ($user && !isHomeworkFilterAdmin()) {
         $allowed = teacherSubjects();
         if ($allowed === []) {
             return [];

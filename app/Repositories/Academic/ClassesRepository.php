@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Academic\SubjectAssignChildren;
 use App\Interfaces\Academic\ClassesInterface;
 use App\Models\ClassTranslate;
+use Illuminate\Support\Facades\Auth;
 
 class ClassesRepository implements ClassesInterface
 {
@@ -27,6 +28,36 @@ class ClassesRepository implements ClassesInterface
     public function assignedAll()
     {
         return ClassSetup::active()->where('session_id', setting('session'))->get();
+    }
+
+    public function assignedForHomework()
+    {
+        $sessionId = setting('session');
+        $base      = ClassSetup::active()->where('session_id', $sessionId);
+
+        $user = Auth::user();
+        if ($user && isHomeworkFilterAdmin()) {
+            return $base->get();
+        }
+
+        $subjectIds = teacherSubjects();
+        if ($subjectIds === []) {
+            return $base->whereRaw('1 = 0')->get();
+        }
+
+        $classIds = DB::table('subject_assigns as sa')
+            ->join('subject_assign_childrens as sac', 'sac.subject_assign_id', '=', 'sa.id')
+            ->where('sa.session_id', $sessionId)
+            ->whereIn('sac.subject_id', $subjectIds)
+            ->distinct()
+            ->pluck('sa.classes_id')
+            ->filter();
+
+        if ($classIds->isEmpty()) {
+            return $base->whereRaw('1 = 0')->get();
+        }
+
+        return $base->whereIn('classes_id', $classIds)->get();
     }
 
     public function all()

@@ -90,7 +90,7 @@ class HomeworkController extends Controller
     public function index()
     {
         $data['title']     = ___('examination.homework');
-        $data['classes']   = $this->classRepo->assignedAll();
+        $data['classes']   = $this->classRepo->assignedForHomework();
         $data['homeworks'] = $this->repo->getPaginateAll();
         $data['stats']     = $this->repo->getStats();
 
@@ -100,7 +100,7 @@ class HomeworkController extends Controller
     public function search(Request $request)
     {
         $data['title']     = ___('examination.homework');
-        $data['classes']   = $this->classRepo->assignedAll();
+        $data['classes']   = $this->classRepo->assignedForHomework();
         $data['homeworks'] = $this->repo->search($request);
         $data['stats']     = $this->repo->getStats();
 
@@ -110,7 +110,7 @@ class HomeworkController extends Controller
     public function create()
     {
         $data['title']   = ___('examination.homework');
-        $data['classes'] = $this->classSetupRepo->all();
+        $data['classes'] = $this->classRepo->assignedForHomework();
 
         return view('backend.homework.create', compact('data'));
     }
@@ -129,9 +129,19 @@ class HomeworkController extends Controller
     public function edit($id, Request $request)
     {
         $data['homework'] = $this->repo->show($id);
-        $data['classes']  = $this->classSetupRepo->all();
-        $data['sections'] = $this->classSetupRepo->getSections($data['homework']->classes_id);
-        $data['title']    = ___('examination.homework');
+        $data['classes']  = $this->classRepo->assignedForHomework();
+        $classesId        = $data['homework']->classes_id;
+
+        $user = auth()->user();
+        if ($user && isHomeworkFilterAdmin()) {
+            $data['sections'] = $this->classSetupRepo->getSections($classesId);
+        } elseif ($user && $user->staff) {
+            $data['sections'] = $this->classSetupRepo->getSectionsForTeacher($classesId, (int) $user->staff->id);
+        } else {
+            $data['sections'] = collect();
+        }
+
+        $data['title'] = ___('examination.homework');
 
         $request->merge([
             'classes_id' => $data['homework']->classes_id,

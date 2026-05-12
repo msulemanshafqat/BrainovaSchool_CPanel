@@ -638,6 +638,22 @@ function teacherSubjects()
         ->toArray();
 }
 
+if (!function_exists('isHomeworkFilterAdmin')) {
+    /**
+     * Super Admin (1) and Admin (2): see all classes/sections/subjects on homework screens.
+     */
+    function isHomeworkFilterAdmin(): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $rid = (int) Auth::user()->role_id;
+
+        return $rid === \App\Enums\RoleEnum::SUPERADMIN || $rid === \App\Enums\RoleEnum::ADMIN;
+    }
+}
+
 
 
 if (!function_exists('get_base_url')) {

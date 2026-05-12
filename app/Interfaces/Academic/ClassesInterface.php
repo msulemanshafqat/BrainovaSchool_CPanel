@@ -7,6 +7,12 @@ interface ClassesInterface
 
     public function assignedAll();
 
+    /**
+     * Active class setups for the current session, scoped to the logged-in teacher’s
+     * subject assignments (non-admins). Admins get the full session list.
+     */
+    public function assignedForHomework();
+
     public function all();
 
     public function getAll();
