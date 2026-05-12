@@ -11,16 +11,26 @@
 --}}
 
 {{-- Header: homework title, total marks, export button --}}
+@php
+    $hwIsActive = (int) ($data['homework']->status ?? 0) === \App\Enums\Status::ACTIVE;
+@endphp
 <div class="d-flex align-items-start justify-content-between mb-4 pb-3 border-bottom flex-wrap gap-2">
     <div>
         <h6 class="mb-1 text-muted text-uppercase fw-bold" style="font-size:11px;letter-spacing:.08em">
             {{ ucfirst($data['homework']->task_type ?? 'homework') }}
         </h6>
-        <h5 class="mb-0 fw-bold">{{ $data['homework']->title ?? 'Evaluation' }}</h5>
-        <small class="text-muted">
-            {{ $data['homework']->subject->name ?? '' }} —
-            Due: {{ $data['homework']->submission_date ?? '—' }}
-        </small>
+        <h5 class="mb-1 fw-bold">{{ $data['homework']->title ?? 'Evaluation' }}</h5>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <small class="text-muted">
+                {{ $data['homework']->subject->name ?? '' }} —
+                Due: {{ $data['homework']->submission_date ?? '—' }}
+            </small>
+            @if($hwIsActive)
+                <span class="badge rounded-pill bg-success px-2 py-1" style="font-size:11px;font-weight:700">Active</span>
+            @else
+                <span class="badge rounded-pill bg-secondary px-2 py-1" style="font-size:11px;font-weight:700">Inactive</span>
+            @endif
+        </div>
     </div>
     <div class="d-flex align-items-center gap-3 flex-wrap">
         {{-- Total marks badge so teacher always knows the ceiling while grading --}}
