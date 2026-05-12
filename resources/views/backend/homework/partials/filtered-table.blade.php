@@ -40,6 +40,11 @@
   </td>
   <td data-sort="{{ e($dueSort) }}">
     {{ $row->submission_date ?? '—' }}
+    @if((int) ($row->status ?? 0) === \App\Enums\Status::ACTIVE)
+      <span class="badge bg-success ms-1">Active</span>
+    @else
+      <span class="badge bg-secondary ms-1">Inactive</span>
+    @endif
     @if($isOverdue)
       <span class="badge bg-warning text-dark ms-1">Late</span>
     @endif

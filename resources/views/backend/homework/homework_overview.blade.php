@@ -264,7 +264,7 @@
         <td style="white-space:nowrap;font-size:12.5px;color:#334155">
           {{ $row->submission_date ?? '—' }}
           @if($isOverdue)
-          <br><span style="font-size:10px;background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;font-weight:700">Late</span>
+            <span class="badge bg-warning text-dark ms-1">Late</span>
           @endif
         </td>
 

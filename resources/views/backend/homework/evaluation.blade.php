@@ -26,9 +26,9 @@
                 Due: {{ $data['homework']->submission_date ?? '—' }}
             </small>
             @if($hwIsActive)
-                <span class="badge rounded-pill bg-success px-2 py-1" style="font-size:11px;font-weight:700">Active</span>
+                <span class="badge bg-success ms-1">Active</span>
             @else
-                <span class="badge rounded-pill bg-secondary px-2 py-1" style="font-size:11px;font-weight:700">Inactive</span>
+                <span class="badge bg-secondary ms-1">Inactive</span>
             @endif
         </div>
     </div>
