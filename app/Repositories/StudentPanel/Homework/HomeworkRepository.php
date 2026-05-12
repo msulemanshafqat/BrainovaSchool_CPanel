@@ -23,7 +23,7 @@ class HomeworkRepository implements HomeworkInterface
     /**
      * Returns all homework for the student's current class/section.
      * Uses get() (not paginate) so the portal can group by subject and
-     * compute per-subject chart data across the full dataset.
+     * build charts (completion by subject, overall score trend) on the full set.
      */
     public function index()
     {

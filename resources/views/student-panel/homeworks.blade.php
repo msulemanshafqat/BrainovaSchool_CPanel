@@ -53,10 +53,10 @@
   $hwDone     = $homeworks->filter(fn($h) => $h->check_submitted);
 
   // ── Chart data ────────────────────────────────────────────────────────────
-  // Line chart: per-subject average score earned vs total marks available
+  // Line chart: overall running average (all subjects), ordered by when work was graded
   // Donut chart: completion slice per subject (each subject gets its own colour)
   $chartPalette = ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899','#14b8a6'];
-  $cLabels=[];$cAvgScore=[];$cMaxScore=[];$cDone=[];$cTotal=[];$cColors=[];
+  $cLabels=[];$cDone=[];$cTotal=[];$cColors=[];
   $ci = 0;
   foreach($grouped as $sid => $items){
     $subName = $items->first()->subject->name ?? 'S';
@@ -64,14 +64,36 @@
     $cTotal[]  = $items->count();
     $cColors[] = $chartPalette[$ci % count($chartPalette)];
     $d=0; foreach($items as $h){ if($h->check_submitted) $d++; } $cDone[]=$d;
-    // Average score: mean of marks earned across graded submissions
-    $scored = $items->filter(fn($h)=>$h->check_submitted && $h->check_submitted->marks !== null);
-    $cAvgScore[] = $scored->count() > 0
-        ? round($scored->map(fn($h)=>$h->check_submitted->marks)->avg(), 1)
-        : null;  // null = no graded submissions yet for this subject
-    // Max possible: average of homework->marks for this subject
-    $cMaxScore[] = round($items->avg('marks') ?? 0, 1);
     $ci++;
+  }
+
+  $gradedChrono = $homeworks
+    ->filter(fn($h) => $h->check_submitted && $h->check_submitted->marks !== null)
+    ->sortBy(function ($h) {
+      $s = $h->check_submitted;
+      $ts = $s->updated_at ?? $s->created_at ?? null;
+      if ($ts) {
+        return \Carbon\Carbon::parse($ts)->timestamp;
+      }
+      return \Carbon\Carbon::parse($h->submission_date ?? $h->created_at ?? '1970-01-01')->timestamp;
+    })
+    ->values();
+
+  $progressLabels = [];
+  $progressAvgEarned = [];
+  $progressAvgMax = [];
+  $cumMarks = 0.0;
+  $cumMax = 0.0;
+  $step = 0;
+  foreach ($gradedChrono as $h) {
+    $earned = (float) $h->check_submitted->marks;
+    $maxMarks = (float) ($h->marks ?? 0);
+    $cumMarks += $earned;
+    $cumMax += $maxMarks;
+    $step++;
+    $progressLabels[] = '#' . $step;
+    $progressAvgEarned[] = round($cumMarks / $step, 1);
+    $progressAvgMax[] = round($cumMax / $step, 1);
   }
 @endphp
 
@@ -317,16 +339,16 @@
   ═══════════════════════════════════════════════════════════════════════ --}}
   <div class="col-lg-4 d-flex flex-column gap-3">
 
-    {{-- LINE CHART: Per-subject average score vs maximum possible marks.
-         Gives the student a clear view of which subjects they're scoring well in
-         and where they need to improve. Null values = not yet graded, shown as gaps. --}}
+    {{-- LINE CHART: Overall running average after each graded piece of work (all subjects). --}}
     <div style="background:#fff;border:1.5px solid #d1d9e6;border-radius:12px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
-      <div class="cc-t"><i class="fa-solid fa-chart-line" style="margin-right:5px"></i>Score Progress by Subject</div>
-      {{--<div style="font-size:10.5px;color:#94a3b8;margin-bottom:10px;margin-top:-10px">Your average score vs maximum marks per subject</div>--}}
-      @if(count($cLabels) > 0)
+      <div class="cc-t"><i class="fa-solid fa-chart-line" style="margin-right:5px"></i>Overall score progress</div>
+      <div style="font-size:10.5px;color:#94a3b8;margin-bottom:10px;margin-top:-8px;line-height:1.35">
+        Running average of your marks vs average max marks. Each point adds the next graded assignment (order: when it was marked).
+      </div>
+      @if(count($progressLabels) > 0)
         <canvas id="pC" height="210"></canvas>
       @else
-        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">No data yet — submit some work to see your progress.</p>
+        <p style="text-align:center;color:#94a3b8;font-size:13px;padding:16px 0">No graded results yet. After your teacher marks your submissions, your overall trend will show here.</p>
       @endif
     </div>
 
@@ -490,18 +512,16 @@ document.querySelectorAll('.status-body').forEach(function(b) {
   }
 });
 
-// ── CHART 1: Line chart — per-subject score progress ─────────────────────────
-// Shows average earned marks vs average max marks per subject.
-// Null data points (no graded submissions yet) appear as gaps in the line.
-@if(count($cLabels) > 0)
+// ── CHART 1: Line chart — overall running average (graded work, all subjects) ─
+@if(count($progressLabels) > 0)
 new Chart(document.getElementById('pC'), {
   type: 'line',
   data: {
-    labels: @json($cLabels),
+    labels: @json($progressLabels),
     datasets: [
       {
-        label: 'Avg Score Earned',
-        data:  @json($cAvgScore),
+        label: 'Average marks earned',
+        data:  @json($progressAvgEarned),
         borderColor:     '#2563eb',
         backgroundColor: 'rgba(37,99,235,.10)',
         borderWidth: 2.5,
@@ -510,11 +530,11 @@ new Chart(document.getElementById('pC'), {
         pointHoverRadius: 7,
         fill: true,
         tension: 0.35,
-        spanGaps: false,   // gaps where no graded data exists
+        spanGaps: false,
       },
       {
-        label: 'Max Possible',
-        data:  @json($cMaxScore),
+        label: 'Average max marks',
+        data:  @json($progressAvgMax),
         borderColor:     '#d1d5db',
         backgroundColor: 'transparent',
         borderWidth: 1.5,
@@ -536,7 +556,7 @@ new Chart(document.getElementById('pC'), {
         grid:  { color: '#f1f5f9' }
       },
       x: {
-        ticks: { font: { size: 10 } },
+        ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 },
         grid:  { display: false }
       }
     },
@@ -545,9 +565,7 @@ new Chart(document.getElementById('pC'), {
       tooltip: {
         callbacks: {
           label: function(ctx) {
-            return ctx.raw === null
-              ? ' Not graded yet'
-              : ' ' + ctx.dataset.label + ': ' + ctx.raw;
+            return ' ' + ctx.dataset.label + ': ' + ctx.raw;
           }
         }
       }
