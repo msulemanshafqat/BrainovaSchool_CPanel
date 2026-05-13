@@ -77,6 +77,7 @@ class Kernel extends HttpKernel
         'lang' => \App\Http\Middleware\LanguageMiddleware::class,
         'PermissionCheck' => \App\Http\Middleware\PermissionCheck::class,
         'DenyTeacherRole' => \App\Http\Middleware\DenyTeacherRole::class,
+        'DenyTeacherAndStudent' => \App\Http\Middleware\DenyTeacherAndStudent::class,
         'FeatureCheck' => \App\Http\Middleware\FeatureCheck::class,
         'XssSanitizer' => \App\Http\Middleware\XssSanitization::class,
         'AdminPanel' => \App\Http\Middleware\AdminPanel::class,

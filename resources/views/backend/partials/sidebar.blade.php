@@ -800,7 +800,7 @@
 
 
                 <!-- Language layout start -->
-                @if (hasPermission('language_read') && hasFeature('language'))
+                @if (!cannotAccessSchoolSettings() && hasPermission('language_read') && hasFeature('language'))
                     <li class="sidebar-menu-item {{ set_menu(['languages*']) }}">
                         <a href="{{ route('languages.index') }}" class="parent-item-content">
                             <i class="las la-language"></i>
@@ -877,6 +877,7 @@
 
                 <!-- Website setup start -->
                 @if (
+                    !cannotAccessSchoolSettings() &&
                     (hasPermission('page_sections_read') ||
                         hasPermission('slider_read') ||
                         hasPermission('about_read') ||
@@ -988,6 +989,7 @@
                     @include('forums::menus.forums_menu')
                 @endif
                 <!-- Live Chat end-->
+                @if (!cannotAccessSchoolSettings())
                 <li class="sidebar-menu-item {{ set_menu(['app-settings*']) }}">
                     <a class="parent-item-content has-arrow">
                         <i class="las la-photo-video"></i>
@@ -1013,6 +1015,7 @@
                         @endif
                     </ul>
                 </li>
+                @endif
                 <!-- Settings layout start -->
                 @if (
                     (hasPermission('general_settings_read') ||
@@ -1043,7 +1046,7 @@
                                 </li>
                             @endif
 
-                            @if (!hasPermission('notification-settings_read'))
+                            @if (!cannotAccessSchoolSettings() && !hasPermission('notification-settings_read'))
                                 <li class="sidebar-menu-item {{ set_menu(['settings.notification-settings']) }}">
                                     <a
                                         href="{{ route('settings.notification-settings') }}">{{ ___('settings.notification_setting') }}</a>
@@ -1099,7 +1102,7 @@
                                 </li>
                             @endif
 
-                            @if (hasPermission('email_settings_read'))
+                            @if (!cannotAccessSchoolSettings() && hasPermission('email_settings_read'))
                                 <li class="sidebar-menu-item {{ set_menu(['settings.notification-settings']) }}">
                                     <a
                                         href="{{ route('settings.notification-settings') }}">{{ ___('settings.notification_setting') }}</a>

@@ -300,6 +300,36 @@ if (!function_exists('hasPermission')) {
     }
 }
 
+if (!function_exists('schoolSettingsBlockedRoleSlugs')) {
+    /**
+     * Role slugs that must not access school CMS / system settings (routes + sidebar).
+     * Includes "gurdian" (DB seeder spelling) and "guardian" if renamed.
+     *
+     * @return list<string>
+     */
+    function schoolSettingsBlockedRoleSlugs(): array
+    {
+        return ['teacher', 'student', 'gurdian', 'guardian'];
+    }
+}
+
+if (!function_exists('cannotAccessSchoolSettings')) {
+    /**
+     * True for Teacher, Student, or Parent/Guardian roles (sidebar + policy checks).
+     */
+    function cannotAccessSchoolSettings(): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        Auth::user()->loadMissing('role');
+        $slug = Auth::user()->role?->slug;
+
+        return $slug !== null && $slug !== '' && in_array($slug, schoolSettingsBlockedRoleSlugs(), true);
+    }
+}
+
 
 // Date format
 if (!function_exists('dateFormat')) {

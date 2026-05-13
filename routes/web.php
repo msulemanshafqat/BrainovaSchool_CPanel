@@ -249,7 +249,7 @@ Route::middleware(saasMiddleware())->group(function () {
                         Route::put('/password/update/store', 'passwordUpdateStore')->name('passwordUpdateStore')->middleware('DemoCheck');
                     });
 
-                    Route::controller(LanguageController::class)->middleware('FeatureCheck:language')->prefix('languages')->group(function () {
+                    Route::controller(LanguageController::class)->middleware(['FeatureCheck:language', 'DenyTeacherAndStudent'])->prefix('languages')->group(function () {
                         Route::get('/',                         'index')->name('languages.index')->middleware('PermissionCheck:language_read');
                         Route::get('/create',                   'create')->name('languages.create')->middleware('PermissionCheck:language_create');
                         Route::post('/store',                   'store')->name('languages.store')->middleware('PermissionCheck:language_create', 'DemoCheck');
@@ -299,7 +299,7 @@ Route::middleware(saasMiddleware())->group(function () {
                         Route::put('/general-settings/translate/update',                'translateUpdate')->name('settings.general-settings.translate.update')->middleware('PermissionCheck:general_settings_update');
                     });
 
-                    Route::controller(AppSettingController::class)->prefix('/app-settings')->group(function () {
+                    Route::controller(AppSettingController::class)->middleware('DenyTeacherAndStudent')->prefix('/app-settings')->group(function () {
                         // Route::get('/mobile-app-settings',  'appSettings')->name('settings.app-settings');
                         Route::get('/student-app-settings',  'studentAppSettings')->name('settings.student-app-settings');
                         Route::get('/teacher-app-settings',  'teacherAppSettings')->name('settings.teacher-app-settings');
@@ -310,7 +310,7 @@ Route::middleware(saasMiddleware())->group(function () {
 
                     });
 
-                    Route::controller(NotificaticaSettingController::class)->middleware('FeatureCheck:setting')->prefix('/')->group(function () {
+                    Route::controller(NotificaticaSettingController::class)->middleware(['FeatureCheck:setting', 'DenyTeacherAndStudent'])->prefix('/')->group(function () {
 
                         Route::get('/notification-settings',             'notificationSettings')->name('settings.notification-settings');
                         Route::post('/notification-settings',            'updateNotificationSetting')->name('settings.notification-settings.update')->middleware('PermissionCheck:general_settings_update', 'DemoCheck');

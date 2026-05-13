@@ -20,7 +20,7 @@ use App\Http\Controllers\WebsiteSetup\PagesController;
 Route::middleware(saasMiddleware())->group(function () {
     Route::group(['middleware' => ['XssSanitizer']], function () {
         Route::group(['middleware' => ['lang', 'CheckSubscription', 'FeatureCheck:website_setup']], function () {
-            Route::group(['middleware' => ['auth.routes']], function () {
+            Route::group(['middleware' => ['auth.routes', 'DenyTeacherAndStudent']], function () {
 
                 Route::controller(SectionsController::class)->prefix('page-sections')->group(function () {
                     Route::get('/',                         'index')->name('sections.index')->middleware('PermissionCheck:page_sections_read');
