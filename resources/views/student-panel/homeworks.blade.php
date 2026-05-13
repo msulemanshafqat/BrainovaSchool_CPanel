@@ -26,7 +26,7 @@
 .sp-ok   { background:#d1fae5;color:#065f46;border-radius:20px;padding:2px 9px;font-size:11.5px;font-weight:700;display:inline-block; }
 .sp-wait { background:#f1f5f9;color:#64748b;border-radius:20px;padding:2px 9px;font-size:11.5px;display:inline-block; }
 .od-badge{ background:#fee2e2;color:#dc2626;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;display:inline-block; }
-.cc-t { font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:700;margin-bottom:14px; }
+.cc-t { font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:700;margin-bottom:20px;display:block; }
 </style>
 @endpush
 
@@ -337,12 +337,12 @@
   {{-- ═══════════════════════════════════════════════════════════════════════
        RIGHT SIDEBAR — Charts + Deadlines
   ═══════════════════════════════════════════════════════════════════════ --}}
-  <div class="col-lg-4 d-flex flex-column gap-3">
+  <div class="col-lg-4 d-flex flex-column gap-4">
 
     {{-- LINE CHART: Overall running average after each graded piece of work (all subjects). --}}
     <div style="background:#fff;border:1.5px solid #d1d9e6;border-radius:12px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
       <div class="cc-t"><i class="fa-solid fa-chart-line" style="margin-right:5px"></i>Overall score progress</div>
-      <div style="font-size:10.5px;color:#94a3b8;margin-bottom:10px;margin-top:-8px;line-height:1.35">
+      <div style="font-size:10.5px;color:#94a3b8;margin-bottom:14px;line-height:1.45">
         Running average of your marks vs average max marks. Each point adds the next graded assignment (order: when it was marked).
       </div>
       @if(count($progressLabels) > 0)
@@ -403,7 +403,7 @@
       <div class="cc-t"><i class="fa-solid fa-calendar-clock" style="margin-right:5px"></i>Upcoming Deadlines</div>
       @foreach($upcoming as $u)
       @php $days = (int) round(now()->diffInDays(\Carbon\Carbon::parse($u->submission_date), false)); @endphp
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f1f5f9">
         <div>
           <div style="font-size:13px;font-weight:600;color:#0f172a">{{ \Str::limit($u->title ?? $u->subject->name ?? '', 26) }}</div>
           <div style="font-size:11px;color:#64748b">{{ $u->subject->name ?? '' }}</div>
