@@ -1,51 +1,18 @@
 @extends('backend.master')
 @section('title') {{ @$data['title'] }} @endsection
 
-@push('style')
+@push('css')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-.qa-portal { font-family: 'Plus Jakarta Sans', sans-serif; }
-:root {
-    --bp:#1d4ed8; --bpl:#dbeafe; --bg:#059669; --bgl:#d1fae5;
-    --br:#dc2626; --brl:#fee2e2; --ba:#f59e0b; --bs:#64748b;
-    --bb:#e2e8f0; --bt:#0f172a; --rr:12px;
-}
-.qa-card { background:#fff; border-radius:var(--rr); border:1px solid var(--bb); padding:18px 20px; }
-.q-card {
-    background:#fff; border-radius:var(--rr); border:1px solid var(--bb);
-    padding:20px; margin-bottom:16px; position:relative; overflow:hidden;
-}
-.q-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; }
-.q-card.acc-high::before  { background:var(--bg); }
-.q-card.acc-mid::before   { background:var(--ba); }
-.q-card.acc-low::before   { background:var(--br); }
-.q-num {
-    display:inline-flex; align-items:center; justify-content:center;
-    width:28px; height:28px; border-radius:50%; background:var(--bpl);
-    color:var(--bp); font-size:12px; font-weight:800; flex-shrink:0;
-}
-.opt-bar-wrap { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
-.opt-label { font-size:12px; font-weight:700; width:22px; flex-shrink:0; }
-.opt-bar-bg { flex:1; background:#f1f5f9; border-radius:6px; height:18px; overflow:hidden; position:relative; }
-.opt-bar-fill { height:100%; border-radius:6px; transition:width .4s; }
-.opt-correct .opt-bar-fill { background:var(--bg); }
-.opt-wrong   .opt-bar-fill { background:#94a3b8; }
-.opt-most-wrong .opt-bar-fill { background:var(--br); }
-.opt-count { font-size:11.5px; color:var(--bs); min-width:30px; text-align:right; }
-.opt-pct   { font-size:11px; color:var(--bs); min-width:36px; text-align:right; }
-.acc-badge {
-    display:inline-block; padding:3px 10px; border-radius:20px;
-    font-size:11px; font-weight:700; text-transform:uppercase;
-}
-.acc-h { background:var(--bgl); color:#065f46; }
-.acc-m { background:#fef3c7; color:#92400e; }
-.acc-l { background:var(--brl); color:var(--br); }
-.chart-wrap { position:relative; min-height:220px; }
-</style>
+<link rel="stylesheet" href="{{ global_asset('backend/assets/css/homework-teacher-gamified.css') }}">
+<link rel="stylesheet" href="{{ global_asset('backend/assets/css/quiz-analytics-gamified.css') }}">
 @endpush
 
 @section('content')
-<div class="page-content qa-portal">
+<div class="page-content homework-index-page hw-gamified qa-portal qa-gamified">
+<div class="qa-gam-inner">
 
 @php
     $a               = $data['analytics'];
@@ -64,60 +31,68 @@
     $easiestQ        = $totalQ ? collect($questions)->sortByDesc('accuracy_pct')->first() : null;
 @endphp
 
-<div class="page-header">
-    <div class="row align-items-center">
-        <div class="col-sm-8">
+<div class="qa-hero">
+    <div class="row align-items-center g-3">
+        <div class="col-lg-8">
             <h4 class="bradecrumb-title mb-1">Quiz analytics</h4>
-            <ol class="breadcrumb">
+            <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('homework.index') }}">Homework</a></li>
-                <li class="breadcrumb-item active">Analytics</li>
+                <li class="breadcrumb-item active" aria-current="page">Analytics</li>
             </ol>
         </div>
-        <div class="col-sm-4 text-end">
-            <a href="{{ route('homework.export-results', $homework->id) }}" class="btn btn-sm btn-outline-secondary me-2">
-                <i class="fa-solid fa-download me-1"></i>Export CSV
-            </a>
-            <a href="{{ route('homework.index') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fa-solid fa-arrow-left me-1"></i>Back
-            </a>
+        <div class="col-lg-4">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <a href="{{ route('homework.export-results', $homework->id) }}" class="btn btn-sm qa-gam-btn-outline">
+                    <i class="fa-solid fa-download me-1"></i>Export CSV
+                </a>
+                <a href="{{ route('homework.index') }}" class="btn btn-sm qa-gam-btn-ice">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Back
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
-{{-- Summary: cumulative average across all students who submitted --}}
-<div class="qa-card mb-4">
+{{-- Summary --}}
+<div class="qa-card qa-summary-card mb-4">
     <div class="row align-items-stretch g-3">
         <div class="col-lg-5">
-            <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Quiz</div>
-            <h5 class="fw-bold mb-1">{{ $homework->title ?? 'Untitled quiz' }}</h5>
-            <div class="text-muted" style="font-size:13px">
+            <div class="qa-eyebrow">Quiz</div>
+            <h5 class="fw-bold mb-2" style="color:var(--bt)">{{ $homework->title ?? 'Untitled quiz' }}</h5>
+            <div class="text-muted" style="font-size:13px;line-height:1.5">
                 Max marks: <strong>{{ $maxMarks > 0 ? rtrim(rtrim(number_format($maxMarks, 2, '.', ''), '0'), '.') : '—' }}</strong>
-                &nbsp;|&nbsp; Questions: <strong>{{ $totalQ }}</strong>
-                &nbsp;|&nbsp; Submissions: <strong>{{ $submitted }}</strong>
+                <span class="d-none d-sm-inline">&nbsp;|&nbsp;</span><br class="d-sm-none">
+                Questions: <strong>{{ $totalQ }}</strong>
+                <span class="d-none d-sm-inline">&nbsp;|&nbsp;</span><br class="d-sm-none">
+                Submissions: <strong>{{ $submitted }}</strong>
             </div>
         </div>
         <div class="col-lg-7">
-            <div class="row g-3 text-center">
-                <div class="col-6 col-md-3">
-                    <div style="font-size:26px;font-weight:800;color:var(--bp)">
-                        {{ $avgScore !== null ? rtrim(rtrim(number_format($avgScore, 2, '.', ''), '0'), '.') : '—' }}
+            <div class="row g-2 g-md-3 align-items-stretch">
+                <div class="col-6 col-md-3 d-flex">
+                    <div class="qa-stat-tile w-100">
+                        <div class="qa-stat-val" style="color:var(--bp)">{{ $avgScore !== null ? rtrim(rtrim(number_format($avgScore, 2, '.', ''), '0'), '.') : '—' }}</div>
+                        <div class="qa-stat-lbl">Avg score (all)</div>
                     </div>
-                    <div style="font-size:11px;color:var(--bs);text-transform:uppercase;letter-spacing:.05em">Avg score (all)</div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div style="font-size:26px;font-weight:800;color:#7c3aed">
-                        {{ $avgScorePct !== null ? $avgScorePct . '%' : '—' }}
+                <div class="col-6 col-md-3 d-flex">
+                    <div class="qa-stat-tile w-100">
+                        <div class="qa-stat-val" style="color:#7c3aed">{{ $avgScorePct !== null ? $avgScorePct . '%' : '—' }}</div>
+                        <div class="qa-stat-lbl">Avg % of max</div>
                     </div>
-                    <div style="font-size:11px;color:var(--bs);text-transform:uppercase;letter-spacing:.05em">Avg % of max</div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div style="font-size:26px;font-weight:800;color:var(--ba)">{{ $avgQuestionAcc }}%</div>
-                    <div style="font-size:11px;color:var(--bs);text-transform:uppercase;letter-spacing:.05em">Avg item accuracy</div>
+                <div class="col-6 col-md-3 d-flex">
+                    <div class="qa-stat-tile w-100">
+                        <div class="qa-stat-val" style="color:var(--ba)">{{ $avgQuestionAcc }}%</div>
+                        <div class="qa-stat-lbl">Avg item accuracy</div>
+                    </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div style="font-size:26px;font-weight:800;color:var(--bg)">{{ $submitted > 0 ? $submitted : '—' }}</div>
-                    <div style="font-size:11px;color:var(--bs);text-transform:uppercase;letter-spacing:.05em">Students</div>
+                <div class="col-6 col-md-3 d-flex">
+                    <div class="qa-stat-tile w-100">
+                        <div class="qa-stat-val" style="color:var(--bg)">{{ $submitted > 0 ? $submitted : '—' }}</div>
+                        <div class="qa-stat-lbl">Students</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -134,16 +109,16 @@
 
 @if(count($histLabels) && array_sum($histData) > 0)
 <div class="qa-card mb-4">
-    <h6 class="mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--bs);font-weight:700">
+    <h6 class="qa-section-title mb-3">
         <i class="fa-solid fa-chart-simple me-1"></i>Score distribution (% of max marks)
     </h6>
-    <div class="chart-wrap"><canvas id="histChart" height="90"></canvas></div>
+    <div class="chart-wrap"><canvas id="histChart"></canvas></div>
 </div>
 @endif
 
 @if(count($studentScores))
 <div class="qa-card mb-4">
-    <h6 class="mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--bs);font-weight:700">
+    <h6 class="qa-section-title mb-3">
         <i class="fa-solid fa-chart-bar me-1"></i>Each student’s score (% of max)
     </h6>
     <div class="chart-wrap" style="min-height:{{ max(220, min(count($studentScores) * 28, 520)) }}px">
@@ -152,12 +127,12 @@
 </div>
 
 <div class="qa-card mb-4">
-    <h6 class="mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--bs);font-weight:700">
+    <h6 class="qa-section-title mb-3">
         <i class="fa-solid fa-table me-1"></i>Scores by student
     </h6>
     <div class="table-responsive">
-        <table class="table table-sm table-bordered align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-sm table-bordered align-middle mb-0 qa-score-table">
+            <thead>
                 <tr>
                     <th>#</th>
                     <th>Student</th>
@@ -184,19 +159,21 @@
 
 @if($totalQ > 0)
 <div class="qa-card mb-4">
-    <div class="row g-3">
-        <div class="col-md-6">
-            <h6 class="mb-2" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--bs);font-weight:700">
+    <div class="row g-3 align-items-stretch">
+        <div class="col-md-7 col-lg-8 d-flex flex-column">
+            <h6 class="qa-section-title mb-2">
                 <i class="fa-solid fa-bullseye me-1"></i>Item accuracy by question
             </h6>
-            <div class="chart-wrap"><canvas id="accChart" height="100"></canvas></div>
+            <div class="chart-wrap flex-grow-1" style="min-height:260px">
+                <canvas id="accChart"></canvas>
+            </div>
         </div>
-        <div class="col-md-6 d-flex flex-column justify-content-center">
-            <div class="text-center py-3">
+        <div class="col-md-5 col-lg-4 d-flex flex-column justify-content-center gap-3">
+            <div class="qa-insight-box text-center py-3">
                 <div class="text-muted small text-uppercase fw-bold mb-1">Hardest item</div>
                 <div class="fs-3 fw-bold text-danger">{{ $hardestQ ? $hardestQ['accuracy_pct'] . '%' : '—' }}</div>
             </div>
-            <div class="text-center py-3 border-top">
+            <div class="qa-insight-box text-center py-3">
                 <div class="text-muted small text-uppercase fw-bold mb-1">Easiest item</div>
                 <div class="fs-3 fw-bold text-success">{{ $easiestQ ? $easiestQ['accuracy_pct'] . '%' : '—' }}</div>
             </div>
@@ -242,7 +219,7 @@
 <div class="q-card {{ $cls }}">
     <div class="d-flex align-items-start gap-3 mb-3">
         <span class="q-num">{{ $i + 1 }}</span>
-        <div class="flex-grow-1">
+        <div class="flex-grow-1 min-w-0">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                 <p class="mb-0 fw-semibold" style="font-size:14px;color:var(--bt)">{{ $q['question'] }}</p>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
@@ -289,7 +266,7 @@
         <div class="opt-bar-wrap" style="opacity:.65">
             <span class="opt-label text-muted">—</span>
             <div class="opt-bar-bg opt-wrong" style="flex:1">
-                <div class="opt-bar-fill" style="width:{{ min(100, $skipPct) }}%;background:#cbd5e1"></div>
+                <div class="opt-bar-fill" style="width:{{ min(100, $skipPct) }}%;background:#94a3b8"></div>
             </div>
             <span class="opt-count">{{ $q['option_counts']['skipped'] }}</span>
             <span class="opt-pct text-muted">({{ $skipPct }}%)</span>
@@ -301,6 +278,7 @@
 @endforeach
 @endif
 
+</div>
 </div>
 @endsection
 
@@ -319,8 +297,8 @@
                 datasets: [{
                     label: 'Students',
                     data: histData,
-                    backgroundColor: '#6366f1',
-                    borderRadius: 6,
+                    backgroundColor: '#0284c7',
+                    borderRadius: 8,
                 }]
             },
             options: {
@@ -328,8 +306,8 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                    x: { grid: { display: false } }
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(14,165,233,0.12)' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } }
                 }
             }
         });
@@ -348,7 +326,7 @@
                     label: '% of max marks',
                     data: pcts,
                     backgroundColor: pcts.map(p => p >= 70 ? '#059669' : (p >= 40 ? '#f59e0b' : '#dc2626')),
-                    borderRadius: 4,
+                    borderRadius: 6,
                 }]
             },
             options: {
@@ -360,8 +338,8 @@
                     tooltip: { callbacks: { label: c => ' ' + c.raw + '%' } }
                 },
                 scales: {
-                    x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } },
-                    y: { ticks: { font: { size: 11 } } }
+                    x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(14,165,233,0.1)' } },
+                    y: { ticks: { font: { size: 11 } }, grid: { display: false } }
                 }
             }
         });
@@ -379,14 +357,14 @@
                     label: 'Accuracy %',
                     data: questions.map(q => q.accuracy_pct),
                     backgroundColor: questions.map(q => q.accuracy_pct >= 70 ? '#059669' : (q.accuracy_pct >= 40 ? '#f59e0b' : '#dc2626')),
-                    borderRadius: 5,
+                    borderRadius: 8,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } },
+                    y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(14,165,233,0.12)' } },
                     x: { ticks: { font: { size: 11 } }, grid: { display: false } }
                 },
                 plugins: {

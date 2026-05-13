@@ -1,0 +1,348 @@
+/**
+ * Backend — Quiz analytics (ice / #e0f2fe gamified, aligned with parent homework + teacher homework theme)
+ */
+.page-content.qa-portal.qa-gamified {
+  --hw-base: #e0f2fe;
+  --hw-base-deep: #bae6fd;
+  --hw-mist: #f0f9ff;
+  --hw-cloud: #f8fbff;
+  --bp: #0369a1;
+  --bpl: #e0f2fe;
+  --bg: #059669;
+  --bgl: #d1fae5;
+  --br: #dc2626;
+  --brl: #fee2e2;
+  --ba: #f59e0b;
+  --bs: #64748b;
+  --bb: rgba(14, 165, 233, 0.22);
+  --bt: #0f172a;
+  --rr: 14px;
+  --hw-glow: rgba(56, 189, 248, 0.35);
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  padding-bottom: 2rem;
+}
+
+.qa-gamified .qa-gam-inner {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.qa-gamified .qa-hero {
+  position: relative;
+  border-radius: var(--rr);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: linear-gradient(125deg, #e0f2fe 0%, #f0f9ff 42%, #ffffff 100%);
+  border: 1px solid var(--bb);
+  box-shadow: 0 8px 26px rgba(14, 165, 233, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+}
+
+.qa-gamified .qa-hero::after {
+  content: "";
+  position: absolute;
+  top: -45%;
+  right: -6%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, transparent 68%);
+  pointer-events: none;
+}
+
+.qa-gamified .qa-hero .row {
+  position: relative;
+  z-index: 1;
+}
+
+.qa-gamified .qa-hero .bradecrumb-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--bt);
+}
+
+.qa-gamified .qa-hero .breadcrumb {
+  margin-bottom: 0;
+  font-size: 0.8125rem;
+}
+
+.qa-gamified .qa-hero .breadcrumb-item a {
+  color: var(--bp);
+}
+
+.qa-gamified .qa-gam-btn-outline {
+  border: 1px solid rgba(14, 165, 233, 0.45);
+  color: #0369a1;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.qa-gamified .qa-gam-btn-outline:hover {
+  background: var(--hw-mist);
+  border-color: #38bdf8;
+  color: #0c4a6e;
+}
+
+.qa-gamified .qa-gam-btn-ice {
+  border: 1px solid var(--bb);
+  background: linear-gradient(180deg, #ffffff 0%, var(--hw-mist) 100%);
+  color: var(--bp);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.qa-gamified .qa-gam-btn-ice:hover {
+  box-shadow: 0 4px 14px var(--hw-glow);
+  border-color: #7dd3fc;
+}
+
+.qa-gamified .qa-card {
+  background: linear-gradient(165deg, #ffffff 0%, var(--hw-cloud) 50%, rgba(224, 242, 254, 0.35) 100%);
+  border-radius: var(--rr);
+  border: 1px solid var(--bb);
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 6px 22px rgba(14, 165, 233, 0.08);
+}
+
+.qa-gamified .qa-summary-card {
+  padding: 1.25rem 1.35rem;
+}
+
+.qa-gamified .qa-eyebrow {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--bs);
+  margin-bottom: 0.35rem;
+}
+
+.qa-gamified .qa-section-title {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bs);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.qa-gamified .qa-stat-tile {
+  height: 100%;
+  min-height: 5.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--bb);
+  background: linear-gradient(160deg, #ffffff 0%, var(--hw-mist) 100%);
+  padding: 0.75rem 0.65rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.qa-gamified .qa-stat-tile .qa-stat-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--bt);
+}
+
+.qa-gamified .qa-stat-tile .qa-stat-lbl {
+  font-size: 0.625rem;
+  color: var(--bs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  max-width: 100%;
+}
+
+.qa-gamified .chart-wrap {
+  position: relative;
+  min-height: 220px;
+  width: 100%;
+}
+
+.qa-gamified .qa-score-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(186, 230, 253, 0.85);
+}
+
+.qa-gamified .qa-score-table thead th {
+  background: linear-gradient(180deg, rgba(224, 242, 254, 0.9) 0%, rgba(240, 249, 255, 0.95) 100%);
+  color: #0c4a6e;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  border-color: rgba(186, 230, 253, 0.75);
+  padding: 0.65rem 0.75rem;
+}
+
+.qa-gamified .qa-score-table tbody td {
+  border-color: rgba(226, 232, 240, 0.9);
+  font-size: 0.8125rem;
+  padding: 0.55rem 0.75rem;
+  vertical-align: middle;
+}
+
+.qa-gamified .qa-score-table tbody tr:nth-child(even) {
+  background: rgba(240, 249, 255, 0.45);
+}
+
+.qa-gamified .q-card {
+  background: linear-gradient(165deg, #ffffff 0%, #f8fbff 55%, rgba(224, 242, 254, 0.25) 100%);
+  border-radius: var(--rr);
+  border: 1px solid var(--bb);
+  padding: 1.15rem 1.2rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.06);
+}
+
+.qa-gamified .q-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.qa-gamified .q-card.acc-high::before {
+  background: var(--bg);
+}
+.qa-gamified .q-card.acc-mid::before {
+  background: var(--ba);
+}
+.qa-gamified .q-card.acc-low::before {
+  background: var(--br);
+}
+
+.qa-gamified .q-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--hw-base) 0%, var(--hw-base-deep) 100%);
+  color: var(--bp);
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.12);
+}
+
+.qa-gamified .opt-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.45rem;
+}
+
+.qa-gamified .opt-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: 1.5rem;
+  flex-shrink: 0;
+}
+
+.qa-gamified .opt-bar-bg {
+  flex: 1;
+  background: rgba(241, 245, 249, 0.95);
+  border-radius: 8px;
+  height: 18px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(186, 230, 253, 0.5);
+}
+
+.qa-gamified .opt-correct .opt-bar-fill {
+  background: var(--bg);
+}
+.qa-gamified .opt-wrong .opt-bar-fill {
+  background: #94a3b8;
+}
+.qa-gamified .opt-most-wrong .opt-bar-fill {
+  background: var(--br);
+}
+
+.qa-gamified .opt-count {
+  font-size: 0.72rem;
+  color: var(--bs);
+  min-width: 1.75rem;
+  text-align: right;
+}
+
+.qa-gamified .opt-pct {
+  font-size: 0.6875rem;
+  color: var(--bs);
+  min-width: 2.25rem;
+  text-align: right;
+}
+
+.qa-gamified .acc-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.qa-gamified .acc-h {
+  background: var(--bgl);
+  color: #065f46;
+}
+.qa-gamified .acc-m {
+  background: #fef3c7;
+  color: #92400e;
+}
+.qa-gamified .acc-l {
+  background: var(--brl);
+  color: var(--br);
+}
+
+.qa-gamified .qa-insight-box {
+  border-radius: 12px;
+  border: 1px solid var(--bb);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, var(--hw-mist) 100%);
+  padding: 0.85rem 1rem;
+}
+
+@media (max-width: 575.98px) {
+  .qa-gamified .qa-stat-tile {
+    min-height: 0;
+  }
+}
+
+body.dark-theme .qa-gamified .qa-hero {
+  background: linear-gradient(125deg, rgba(30, 41, 59, 0.95) 0%, #0f172a 100%);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+body.dark-theme .qa-gamified .qa-hero .bradecrumb-title {
+  color: #f1f5f9;
+}
+
+body.dark-theme .qa-gamified .qa-card,
+body.dark-theme .qa-gamified .q-card {
+  background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
+  border-color: rgba(56, 189, 248, 0.18);
+}
+
+body.dark-theme .qa-gamified .qa-stat-tile {
+  background: rgba(30, 41, 59, 0.85);
+}
+
+body.dark-theme .qa-gamified .qa-stat-tile .qa-stat-val {
+  color: #f1f5f9;
+}
