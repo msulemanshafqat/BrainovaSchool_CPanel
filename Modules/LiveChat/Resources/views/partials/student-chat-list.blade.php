@@ -10,7 +10,8 @@
 
     <a class="single-chat  @if ($user->id == $user_id) active @endif {{ $seenClass }}"
        id="receiver_id_{{ $user->user_id }}"
-        href="{{ route('student_livechat.chat', encryptFunction(@$user->user_id)) }}">
+        href="{{ route('student_livechat.chat', encryptFunction(@$user->user_id)) }}"
+        data-teacher-name="{{ e(trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')))) }}">
         <div class="chat-cap d-flex gap-3">
             <div class="user-img">
                 <img src="{{ @globalAsset($user->upload->path) }}" height="40" width="40" alt="img" class="img-cover">
