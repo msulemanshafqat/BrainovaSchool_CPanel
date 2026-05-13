@@ -1,47 +1,28 @@
 @extends('parent-panel.partials.master')
 @section('title') {{ ___('common.Homework List') }} @endsection
 
-@push('style')
+@push('css')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-.pp{font-family:'Plus Jakarta Sans',sans-serif}
-:root{--p:#1d4ed8;--pl:#dbeafe;--a:#f59e0b;--al:#fef3c7;--g:#059669;--gl:#d1fae5;--r:#dc2626;--rl:#fee2e2;--sl:#64748b;--bd:#e2e8f0;--rr:12px}
-.child-card{background:#fff;border:2px solid var(--bd);border-radius:var(--rr);padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
-.child-card.sel,.child-card:hover{border-color:var(--p);box-shadow:0 4px 14px rgba(29,78,216,.12)}
-.child-av{width:44px;height:44px;border-radius:50%;background:var(--pl);color:var(--p);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0}
-.sc{background:#fff;border-radius:var(--rr);border:1px solid var(--bd);padding:16px 18px;display:flex;align-items:center;gap:12px}
-.si{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}
-.sv{font-size:24px;font-weight:800;line-height:1;color:#0f172a}
-.sl-t{font-size:11px;color:var(--sl);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
-.cc{background:#fff;border:1px solid var(--bd);border-radius:var(--rr);padding:20px}
-.cc-t{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--sl);font-weight:700;margin-bottom:14px}
-.hw-row{background:#fff;border-radius:10px;border:1px solid var(--bd);padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:box-shadow .15s}
-.hw-row:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
-.hw-row-icon{width:36px;height:36px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px}
-.sbg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase}
-.tq{background:#dbeafe;color:#1e40af}.tbg-hw{background:#d1fae5;color:#065f46}.tp{background:#fce7f3;color:#9d174d}
-.ta{background:#ede9fe;color:#5b21b6}.tg{background:#fef3c7;color:#92400e}.ts{background:#e0f2fe;color:#075985}
-.score-pill{background:var(--gl);color:#065f46;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}
-.od-pill{background:var(--rl);color:var(--r);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700}
-.subj-indicator{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;margin-bottom:6px;font-size:12.5px}
-.subj-strong{background:var(--gl);border:1px solid #6ee7b7}
-.subj-weak{background:var(--rl);border:1px solid #fca5a5}
-.subj-mid{background:#f8fafc;border:1px solid var(--bd)}
-.alert-bar{background:var(--rl);border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--r);display:flex;align-items:center;gap:8px;margin-bottom:16px}
-</style>
+<link rel="stylesheet" href="{{ global_asset('backend') }}/assets/css/parent-homework-gamified.css">
 @endpush
 
 @section('content')
-<div class="page-content pp">
+<div class="page-content pp pp-hw-gamified">
+<div class="pp-hw-inner">
 
 {{-- $sLabels defined unconditionally so @push('script') never crashes when no student selected --}}
 @php $sLabels=[]; $sDone=[]; $sTotal=[]; $sAvg=[]; @endphp
 
-<div class="page-header">
-  <div class="row">
-    <div class="col-sm-6">
+<div class="pp-hw-hero">
+  <div class="row align-items-center g-2">
+    <div class="col-12 col-md">
       <h4 class="bradecrumb-title mb-1">{{ ___('settings.homework_list') }}</h4>
-      <ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li><li class="breadcrumb-item active">Homework</li></ol>
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Homework</li>
+      </ol>
     </div>
   </div>
 </div>
@@ -49,29 +30,25 @@
 {{-- CHILD SELECTOR --}}
 <div class="card ot-card mb-4">
   <div class="card-body">
-    <h6 class="mb-3 fw-bold" style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--sl)">Select Your Child</h6>
+    <h6 class="pp-hw-section-title mb-0">Select your child</h6>
     <form action="{{ route('parent-panel-homeworks.search') }}" method="post" id="cf">
       @csrf
       <input type="hidden" name="student" id="sel_student">
 
-      {{-- FIX: Guard against $data['students'] being null/false.
-           ?? [] prevents "Trying to access array offset on false" crash
-           when the parent has no children linked in the database. --}}
       @if(!empty($data['students'] ?? []))
-        <div class="d-flex gap-3 flex-wrap">
+        <div class="d-flex gap-3 flex-wrap align-items-stretch">
           @foreach($data['students'] ?? [] as $item)
             @php $sel=(old('student',Session::get('student_id'))==$item->id); @endphp
-            <div class="child-card {{ $sel?'sel':'' }}" style="min-width:180px" onclick="selChild({{ $item->id }},this)">
+            <div class="child-card {{ $sel?'sel':'' }}" style="min-width:min(100%,200px);max-width:280px" onclick="selChild({{ $item->id }},this)">
               <div class="child-av">{{ strtoupper(substr($item->first_name,0,1)) }}</div>
-              <div>
-                <div style="font-weight:700;font-size:14px">{{ $item->first_name }} {{ $item->last_name }}</div>
+              <div class="text-start min-w-0">
+                <div style="font-weight:700;font-size:14px;line-height:1.25">{{ $item->first_name }} {{ $item->last_name }}</div>
                 <div style="font-size:11.5px;color:var(--sl)">{{ $item->admission_no??'' }}</div>
               </div>
             </div>
           @endforeach
         </div>
       @else
-        {{-- Shown when the parent account has no children linked --}}
         <p class="text-muted mb-0" style="font-size:13px">
           <i class="fa-solid fa-circle-info me-2"></i>
           No children are linked to this account. Please contact the school administrator.
@@ -84,7 +61,6 @@
 
 @if(!empty($data['student']))
 @php
-  // $hw is a Collection so filter() works on all records
   $hw      = $data['homeworks'] ?? collect();
   $total   = $hw->count();
   $done    = $hw->filter(fn($h)=>$h->submission_record)->count();
@@ -94,7 +70,6 @@
   $avg     = $scores->count()>0 ? round($scores->avg(),1) : null;
   $bySubj  = $hw->groupBy('subject_id');
 
-  // Build chart arrays + weak/strong subject detection
   $subjStats = [];
   foreach($bySubj as $sid=>$items){
     $sLabels[] = $items->first()->subject->name??'S';
@@ -108,38 +83,43 @@
   $pct = $total>0 ? round(($done/$total)*100) : 0;
 @endphp
 
-{{-- Overdue alert --}}
 @if($overdue>0)
 <div class="alert-bar">
   <i class="fa-solid fa-triangle-exclamation"></i>
-  <strong>{{ $overdue }}</strong> task{{ $overdue>1?'s':'' }} are past due and have not been submitted yet.
-  Please remind {{ $data['student']->first_name }} to complete them.
+  <span><strong>{{ $overdue }}</strong> task{{ $overdue>1?'s':'' }} are past due and have not been submitted yet.
+  Please remind {{ $data['student']->first_name }} to complete them.</span>
 </div>
 @endif
 
 {{-- STATS ROW --}}
-<div class="row g-3 mb-4">
-  <div class="col-6 col-md-3"><div class="sc"><div class="si" style="background:var(--pl);color:var(--p)"><i class="fa-solid fa-layer-group"></i></div><div><div class="sv">{{$total}}</div><div class="sl-t">Total Tasks</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="sc"><div class="si" style="background:var(--gl);color:var(--g)"><i class="fa-solid fa-circle-check"></i></div><div><div class="sv">{{$done}}</div><div class="sl-t">Submitted</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="sc"><div class="si" style="background:var(--al);color:var(--a)"><i class="fa-solid fa-hourglass-half"></i></div><div><div class="sv">{{$pending}}</div><div class="sl-t">Pending</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="sc"><div class="si" style="background:#f5f3ff;color:#7c3aed"><i class="fa-solid fa-star"></i></div><div><div class="sv">{{$avg??'—'}}</div><div class="sl-t">Avg Score</div></div></div></div>
+<div class="row g-3 mb-4 align-items-stretch">
+  <div class="col-6 col-md-3 d-flex"><div class="sc w-100"><div class="si" style="background:var(--pl);color:var(--p)"><i class="fa-solid fa-layer-group"></i></div><div class="min-w-0"><div class="sv">{{$total}}</div><div class="sl-t">Total Tasks</div></div></div></div>
+  <div class="col-6 col-md-3 d-flex"><div class="sc w-100"><div class="si" style="background:var(--gl);color:var(--g)"><i class="fa-solid fa-circle-check"></i></div><div class="min-w-0"><div class="sv">{{$done}}</div><div class="sl-t">Submitted</div></div></div></div>
+  <div class="col-6 col-md-3 d-flex"><div class="sc w-100"><div class="si" style="background:var(--al);color:var(--a)"><i class="fa-solid fa-hourglass-half"></i></div><div class="min-w-0"><div class="sv">{{$pending}}</div><div class="sl-t">Pending</div></div></div></div>
+  <div class="col-6 col-md-3 d-flex"><div class="sc w-100"><div class="si" style="background:#e0e7ff;color:#4f46e5"><i class="fa-solid fa-star"></i></div><div class="min-w-0"><div class="sv">{{$avg??'—'}}</div><div class="sl-t">Avg Score</div></div></div></div>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-8">
-    <div class="cc">
-      <div class="cc-t"><i class="fa-solid fa-chart-column me-1"></i>Performance by Subject</div>
-      @if(count($sLabels)>0)<canvas id="sc1" height="230"></canvas>
-      @else<p class="text-center text-muted py-4" style="font-size:13px">No graded results yet</p>@endif
+<div class="row g-3 mb-4 align-items-stretch">
+  <div class="col-lg-8 d-flex">
+    <div class="cc w-100">
+      <div class="cc-t"><i class="fa-solid fa-chart-column me-1"></i>Performance by subject</div>
+      @if(count($sLabels)>0)
+        <div class="pp-hw-chart-wrap flex-grow-1">
+          <canvas id="sc1"></canvas>
+        </div>
+      @else
+        <p class="text-center text-muted py-4 mb-0 flex-grow-1 d-flex align-items-center justify-content-center" style="font-size:13px">No graded results yet</p>
+      @endif
     </div>
   </div>
-  <div class="col-md-4">
-    <div class="cc" style="height:100%">
-      <div class="cc-t"><i class="fa-solid fa-signal me-1"></i>Subject Strength</div>
+  <div class="col-lg-4 d-flex">
+    <div class="cc w-100">
+      <div class="cc-t"><i class="fa-solid fa-signal me-1"></i>Subject strength</div>
       @php
         $sorted = collect($subjStats)->filter(fn($s)=>$s['avg']!==null)->sortByDesc('avg');
       @endphp
       @if($sorted->isNotEmpty())
+        <div class="flex-grow-1">
         @foreach($sorted as $s)
         @php
           $pctScore = $s['avg'] > 0 ? min(100, round($s['avg'])) : 0;
@@ -154,12 +134,13 @@
           </span>
         </div>
         @endforeach
+        </div>
       @else
-        <p class="text-muted text-center py-3" style="font-size:12.5px">No scored results yet</p>
+        <p class="text-muted text-center py-3 mb-0 flex-grow-1" style="font-size:12.5px">No scored results yet</p>
       @endif
       @if($avg!==null)
-      <div style="background:var(--gl);border-radius:8px;padding:10px 14px;margin-top:10px">
-        <div style="font-size:11px;color:#065f46;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Overall Average</div>
+      <div style="background:var(--gl);border-radius:10px;padding:10px 14px;margin-top:auto;border:1px solid rgba(16,185,129,0.25)">
+        <div style="font-size:11px;color:#065f46;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Overall average</div>
         <div style="font-size:22px;font-weight:800;color:var(--g)">{{ $avg }}</div>
       </div>
       @endif
@@ -169,7 +150,7 @@
 
 {{-- HOMEWORK LIST --}}
 <div class="card ot-card">
-  <div class="card-header d-flex justify-content-between align-items-center">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h5 class="mb-0">Homework — <span style="color:var(--p)">{{ $data['student']->first_name }}</span></h5>
     <span class="text-muted" style="font-size:13px">{{ $total }} tasks this term</span>
   </div>
@@ -189,12 +170,12 @@
       $ti = $imap[$row->task_type??'homework'] ?? ['tbg-hw','book-open','d1fae5'];
     @endphp
     <div class="hw-row">
-      <div class="hw-row-icon" style="background:#{{$ti[2]}};color:var(--sl)">
+      <div class="hw-row-icon" style="background:#{{$ti[2]}};color:#0f172a">
         <i class="fa-solid fa-{{$ti[1]}}"></i>
       </div>
-      <div class="flex-grow-1" style="min-width:0">
+      <div class="flex-grow-1 min-w-0">
         <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-          <div>
+          <div class="min-w-0">
             <div style="font-weight:700;font-size:13.5px;color:#0f172a">{{ $row->title??'—' }}</div>
             <div style="font-size:11.5px;color:var(--sl);margin-top:2px">
               <span class="sbg {{ $ti[0] }}">{{ $row->task_type??'hw' }}</span>
@@ -211,7 +192,7 @@
             @endif
           </div>
         </div>
-        <div class="d-flex gap-3 mt-2 flex-wrap" style="font-size:11.5px;color:var(--sl)">
+        <div class="d-flex gap-3 mt-2 flex-wrap align-items-center" style="font-size:11.5px;color:var(--sl)">
           <span><i class="fa-solid fa-calendar-days me-1"></i>{{ $row->date }}</span>
           <span><i class="fa-solid fa-clock me-1"></i>Due: <strong>{{ $row->submission_date??'—' }}</strong></span>
           <span><i class="fa-solid fa-bullseye me-1"></i>{{ $row->marks??'—' }} marks</span>
@@ -237,6 +218,7 @@
 @endif
 
 </div>
+</div>
 @endsection
 
 @push('script')
@@ -249,18 +231,30 @@ function selChild(id, el) {
   document.getElementById('cf').submit();
 }
 @if(!empty($data['student']) && count($sLabels) > 0)
-new Chart(document.getElementById('sc1'),{
-  type:'bar',
-  data:{
-    labels:@json($sLabels),
-    datasets:[
-      {label:'Avg Score', data:@json($sAvg), backgroundColor:'#1d4ed8', borderRadius:5},
-      {label:'Submitted', data:@json($sDone), backgroundColor:'#10b981', borderRadius:5},
-      {label:'Total',     data:@json($sTotal),backgroundColor:'#dbeafe', borderRadius:5}
-    ]
-  },
-  options:{responsive:true,scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'#f1f5f9'}},x:{ticks:{font:{size:10}},grid:{display:false}}},plugins:{legend:{labels:{font:{size:10},padding:8}}}}
-});
+(function(){
+  var el = document.getElementById('sc1');
+  if (!el || typeof Chart === 'undefined') return;
+  new Chart(el,{
+    type:'bar',
+    data:{
+      labels:@json($sLabels),
+      datasets:[
+        {label:'Avg score', data:@json($sAvg), backgroundColor:'#0284c7', borderRadius:6},
+        {label:'Submitted', data:@json($sDone), backgroundColor:'#22c55e', borderRadius:6},
+        {label:'Total',     data:@json($sTotal),backgroundColor:'#bae6fd', borderRadius:6}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{
+        y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(14,165,233,0.12)'}},
+        x:{ticks:{font:{size:10}},grid:{display:false}}
+      },
+      plugins:{legend:{labels:{font:{size:10},padding:10}}}
+    }
+  });
+})();
 @endif
 </script>
 @endpush
