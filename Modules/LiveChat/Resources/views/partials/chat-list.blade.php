@@ -3,9 +3,7 @@
 
     <a class="single-chat active" href="{{ route('livechat.chat', $data['user']->id) }}">
         <div class="chat-cap">
-            <div class="user-img">
-                <img src="{{ @globalAsset($data['user']->image->original) }}" alt="img" class="img-cover">
-            </div>
+            <div class="user-img" aria-hidden="true"></div>
             <div class="user-chat-caption">
                 <h5 class="user-name">{{ @$data['user']->name }}</h5>
                 <p class="chat">{{ @$data['user']->role->name }}</p>
@@ -23,9 +21,7 @@
     <a class="single-chat @if ($user->id == $data['user_id']) active @endif"
         href="{{ route('livechat.chat', $user->id) }}">
         <div class="chat-cap">
-            <div class="user-img">
-                <img src="{{ @showImage($user->image->original) }}" alt="img" class="img-cover">
-            </div>
+            <div class="user-img" aria-hidden="true"></div>
             <div class="user-chat-caption">
                 <h5 class="user-name">{{ @$user->name }}</h5>
                 <p class="chat">{{ @$user->role->name }}</p>

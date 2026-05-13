@@ -45,7 +45,7 @@ class ParentLivechatAPIController extends Controller
             $result = $this->livechat->store($request);
 
             if ($result->original) {
-                return $this->responseWithSuccess($result->original['message'], @globalAsset(auth()->user()->image->original));
+                return $this->responseWithSuccess($result->original['message'], '');
             } else {
                 return $this->responseWithError(___('alert.something_went_wrong_please_try_again'), [], 400);
             }
@@ -62,20 +62,20 @@ class ParentLivechatAPIController extends Controller
         if (empty($user)) {
             return $this->responseWithError('User not found');
         }
-        $this->livechat->readMessages($id);
+        $this->livechat->readMessages(encryptFunction($user->user_id));
 
         $authUser = auth()->user();
 
         $data['sender'] = [
             'id' => $authUser->id,
             'name' => $authUser->name,
-            'avatar' => @globalAsset($authUser->upload->path),
+            'avatar' => '',
         ];
 
         $data['receiver'] = [
             'id' => $user->user_id,
             'name' => $user->first_name . ' ' . $user->last_name,
-            'avatar' => @globalAsset($user->upload->path),
+            'avatar' => '',
         ];
 
         $messages = $this->livechat->model()->UserReceiverIdOrReceiverUserId($user->user_id)->orderBy('created_at', 'ASC')->get();

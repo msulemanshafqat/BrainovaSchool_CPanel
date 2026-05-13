@@ -19,7 +19,7 @@
             'buttons' => 1,
         ])
         {{-- breadecrumb Area E n d --}}
-        <input type="text" hidden id="receiver_id" value="{{ encryptFunction(auth()->id()) }}">
+        <input type="text" hidden id="receiver_id" value="{{ auth()->id() }}">
         <input type="text" hidden id="app_key" value="{{ env('PUSHER_APP_KEY') }}">
         <audio id="message_sound">
             <source src="{{ asset('modules/livechat/file/sound.mp3') }}" type="audio/mpeg">
@@ -35,10 +35,7 @@
                         <div class="chat-admin">
                             <!-- Profile -->
                             <div class="profile-wrap">
-                                <div class="user-img">
-                                    <img src="{{ @showImage(auth()->user()->image->original) }}" alt="img"
-                                        class="img-cover">
-                                </div>
+                                <div class="user-img" aria-hidden="true"></div>
                                 <div class="user-chat-caption">
                                     <h5 class="user-name">{{ auth()->user()->name }}</h5>
                                     <p class="chat-status">{{ ___('live_chat.Active') }}</p>
@@ -62,10 +59,7 @@
                         <!-- curren-chat-user -->
                         <div class="current-chat-user">
                             <div class="chat-cap">
-                                <div class="user-img">
-                                    <img src="{{ @showImage($data['user']->image->original) }}" alt="img"
-                                        class="img-cover">
-                                </div>
+                                <div class="user-img" aria-hidden="true"></div>
                                 <div class="user-chat-caption" id="current_user"
                                     data-id="{{ encryptFunction($data['user']->id) }}">
                                     <h5><a href="javascript:;" class="user-name">{{ $data['user']->name }}</a></h5>
@@ -84,10 +78,7 @@
                                     @if (@$message->sender->id == auth()->user()->id)
                                         <div class="single-chat adminMessage" id="message-{{ $message->id }}">
                                             <div class="chatText">
-                                                <div class="chatImg">
-                                                    <img src="{{ @showImage(@$message->sender->image->original) }}"
-                                                        alt="img" class="img-cover">
-                                                </div>
+                                                <div class="chatImg" aria-hidden="true"></div>
                                                 <div class="chatCaption">
                                                     <p class="chatPera"> {{ $message->message }}</p>
                                                 </div>
@@ -96,10 +87,7 @@
                                     @else
                                         <div class="single-chat userMessage" id="message-{{ $message->id }}">
                                             <div class="chatText">
-                                                <div class="chatImg">
-                                                    <img src="{{ @showImage(@$message->receiver->image->original) }}"
-                                                        alt="img" class="img-cover">
-                                                </div>
+                                                <div class="chatImg" aria-hidden="true"></div>
                                                 <div class="chatCaption">
                                                     <p class="chatPera">{{ $message->message }}</p>
                                                 </div>

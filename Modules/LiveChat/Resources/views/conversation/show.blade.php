@@ -25,11 +25,7 @@
                     <div class="chat-admin">
                         <!-- Profile -->
                         <div class="profile-wrap">
-                            <div class="user-img">
-                                <img height="40" width="40"
-                                    src="{{ @globalAsset(auth()->user()->upload->path, '40X40.webp') }}" alt="img"
-                                    class="img-cover">
-                            </div>
+                            <div class="user-img" aria-hidden="true"></div>
                             <div class="user-chat-caption">
                                 <h5 class="user-name">{{ auth()->user()->name }}</h5>
                                 <p class="chat-status">{{ ___('live_chat.Active') }}</p>
@@ -55,14 +51,8 @@
                 <div class="current-chat-user pb-2">
                     <div class="chat-cap d-flex gap-3 mb-3 align-items-center">
                         <div class="users position-relative me-3">
-                            <div class="user-img position-absolute border border-secondary">
-                                <img src="{{ @globalAsset(@$user1->upload->path ?? '', '40X40.webp') }}" height="40"
-                                    width="40" alt="img" class="img-cover first">
-                            </div>
-                            <div class="user-img position-absolute border border-secondary ms-3 mt-3 shadow-sm">
-                                <img src="{{ @globalAsset($user2->upload->path ?? '', '40X40.webp') }}" height="40"
-                                    width="40" alt="img" class="img-cover second">
-                            </div>
+                            <div class="user-img position-absolute border border-secondary" aria-hidden="true"></div>
+                            <div class="user-img position-absolute border border-secondary ms-3 mt-3 shadow-sm" aria-hidden="true"></div>
                         </div>
                         <div class="user-chat-caption ms-5">
                             <h3 class="mb-0">{{ $user1->name . ' - ' . $user2->name }}</h3>
@@ -81,10 +71,7 @@
                                 @if ($user1->id == $message->sender->id)
                                     <div class="single-chat adminMessage sender" id="message-{{ $message->id }}">
                                         <div class="chatText">
-                                            <div class="chatImg">
-                                                <img src="{{ @globalAsset(@$message->sender->upload->path, '40X40.webp') }}"
-                                                    alt="img" class="img-cover">
-                                            </div>
+                                            <div class="chatImg" aria-hidden="true"></div>
                                             <div class="chatCaption">
                                                 <p>{{ $message->sender->name }}</p>
                                                 <p class="chatPera">
@@ -99,10 +86,7 @@
                                 @else
                                     <div class="single-chat userMessage receiver" id="message-{{ $message->id }}">
                                         <div class="chatText">
-                                            <div class="chatImg">
-                                                <img src="{{ @globalAsset(@$message->receiver->upload->path, '40X40.webp') }}"
-                                                    alt="img" class="img-cover">
-                                            </div>
+                                            <div class="chatImg" aria-hidden="true"></div>
                                             <div class="chatCaption">
                                                 <p>{{ $message->sender->name }}</p>
                                                 <p class="chatPera">

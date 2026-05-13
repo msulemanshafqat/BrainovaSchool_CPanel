@@ -51,10 +51,7 @@
                     <div class="chat-admin">
                         <!-- Profile -->
                         <div class="profile-wrap">
-                            <div class="user-img">
-                                <img src="{{ @globalAsset(auth()->user()->student->upload->path, '40X40.webp') }}"
-                                    alt="" class="img-cover">
-                            </div>
+                            <div class="user-img" aria-hidden="true"></div>
                             <div class="user-chat-caption">
                                 <h5 class="user-name mb-0">{{ auth()->user()->name }}</h5>
                                 <p class="chat-status mb-0">{{ ___('live_chat.Active') }}</p>
@@ -84,10 +81,7 @@
                     <div class="current-chat-user">
                         <div class="chat-cap d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
-                                <div class="user-img flex-shrink-0">
-                                    <img src="{{ @globalAsset(optional($user->upload)->path) }}"
-                                        alt="" class="img-cover">
-                                </div>
+                                <div class="user-img flex-shrink-0" aria-hidden="true"></div>
                                 <div class="user-chat-caption min-w-0" id="current_user" data-id="{{ encryptFunction(@$user->user_id) }}">
                                     <span class="lc-brainova-chip">Brainova</span>
                                     <h4 class="mb-0 mt-1">
@@ -109,10 +103,7 @@
                                 @if (@$message->sender->id == auth()->user()->id)
                                     <div class="single-chat adminMessage" id="message-{{ $message->id }}">
                                         <div class="chatText">
-                                            <div class="chatImg">
-                                                <img src="{{ @globalAsset(@$message->sender->upload->path, '40X40.webp') }}"
-                                                    alt="img" class="img-cover">
-                                            </div>
+                                            <div class="chatImg" aria-hidden="true"></div>
                                             <div class="chatCaption">
                                                 <p class="chatPera"> {{ $message->message }}</p>
                                                 <small class="time"> {{ \Carbon\Carbon::parse($message->created_at)->diffForHumans() }}</small>
@@ -122,10 +113,7 @@
                                 @else
                                     <div class="single-chat userMessage" id="message-{{ $message->id }}">
                                         <div class="chatText">
-                                            <div class="chatImg">
-                                                <img src="{{ @globalAsset(@$message->receiver->upload->path, '40X40.webp') }}"
-                                                    alt="img" class="img-cover">
-                                            </div>
+                                            <div class="chatImg" aria-hidden="true"></div>
                                             <div class="chatCaption">
                                                 <p class="chatPera">{{ $message->message }}</p>
                                                 <small class="time"> {{ \Carbon\Carbon::parse($message->created_at)->diffForHumans() }}</small>

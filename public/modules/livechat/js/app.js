@@ -49,9 +49,7 @@ function htmlShow(data, className) {
     let chatActiveUser = $('#chat_active_user').val();
     let html = `<div class="single-chat ${className}" id="message">
             <div class="chatText">
-                <div class="chatImg">
-                    <img src="${data.image}" alt="img" class="img-cover">
-                </div>
+                <div class="chatImg" aria-hidden="true"></div>
                 <div class="chatCaption">
                     <p class="chatPera"> ${data.message}</p>
                     <p class="time"> ${data.created_at}</p>

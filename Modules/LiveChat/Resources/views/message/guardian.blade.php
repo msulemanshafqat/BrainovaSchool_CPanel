@@ -17,10 +17,7 @@
                     <div class="chat-admin">
                         <!-- Profile -->
                         <div class="profile-wrap">
-                            <div class="user-img">
-                                <img src="{{ @globalAsset(auth()->user()->upload->path, '40X40.webp') }}" alt="img"
-                                    class="img-cover">
-                            </div>
+                            <div class="user-img" aria-hidden="true"></div>
                             <div class="user-chat-caption">
                                 <h5 class="user-name">{{ auth()->user()->name }}</h5>
                                 <p class="chat-status">{{ ___('live_chat.Active') }}</p>
@@ -39,7 +36,7 @@
 
                 </div>
             </div>
-            <input type="text" hidden id="receiver_id" value="{{ encryptFunction(auth()->id()) }}">
+            <input type="text" hidden id="receiver_id" value="{{ auth()->id() }}">
             <input type="text" hidden id="app_key" value="{{ env('PUSHER_APP_KEY') }}">
             <input type="text" hidden id="cluster" value="{{ env('PUSHER_APP_CLUSTER') }}">
             <div class="col-xxl-9 col-xl-8 col-lg-6 col-md-7 col-sm-7">
@@ -47,12 +44,9 @@
                     <!-- curren-chat-user -->
                     <div class="current-chat-user">
                         <div class="chat-cap">
-                            <div class="user-img">
-                                <img src="{{ @globalAsset($user->upload->path, '40X40.webp') }}" alt="img"
-                                    class="img-cover">
-                            </div>
+                            <div class="user-img" aria-hidden="true"></div>
                             <div class="user-chat-caption" id="current_user"
-                                data-id="{{ encryptFunction(@$user->id) }}">
+                                data-id="{{ encryptFunction(@$user->user_id) }}">
                                 <h5><a href="javascript:;" class="user-name">{{ @$user->first_name }} {{ @$user->last_name }}</a></h5>
                             </div>
                         </div>
@@ -69,10 +63,7 @@
                                 @if (@$message->sender->id == auth()->user()->id)
                                     <div class="single-chat adminMessage" id="message-{{ $message->id }}">
                                         <div class="chatText">
-                                            <div class="chatImg">
-                                                <img src="{{ @globalAsset(@$message->sender->image->original, '40X40.webp') }}"
-                                                    alt="img" class="img-cover">
-                                            </div>
+                                            <div class="chatImg" aria-hidden="true"></div>
                                             <div class="chatCaption">
                                                 <p class="chatPera"> {{ $message->message }}</p>
                                                 <small class="time"> {{ \Carbon\Carbon::parse($message->created_at)->diffForHumans() }}</small>
@@ -82,10 +73,7 @@
                                 @else
                                     <div class="single-chat userMessage" id="message-{{ $message->id }}">
                                         <div class="chatText">
-                                            <div class="chatImg">
-                                                <img src="{{ @globalAsset(@$message->receiver->image->original, '40X40.webp') }}"
-                                                    alt="img" class="img-cover">
-                                            </div>
+                                            <div class="chatImg" aria-hidden="true"></div>
                                             <div class="chatCaption">
                                                 <p class="chatPera">{{ $message->message }}</p>
                                                 <small class="time"> {{ \Carbon\Carbon::parse($message->created_at)->diffForHumans() }}</small>

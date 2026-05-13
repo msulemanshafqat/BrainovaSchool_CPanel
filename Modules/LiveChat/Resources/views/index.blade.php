@@ -29,10 +29,7 @@
                         <div class="chat-admin">
                             <!-- Profile -->
                             <div class="profile-wrap">
-                                <div class="user-img">
-                                    <img src="{{ @showImage(auth()->user()->image->original) }}" alt="img"
-                                        class="img-cover">
-                                </div>
+                                <div class="user-img" aria-hidden="true"></div>
                                 <div class="user-chat-caption">
                                     <h5 class="user-name">{{ auth()->user()->name }}</h5>
                                     <p class="chat-status">{{ ___('live_chat.Active') }}</p>

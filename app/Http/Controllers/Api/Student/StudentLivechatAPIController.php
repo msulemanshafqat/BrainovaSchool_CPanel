@@ -46,7 +46,7 @@ class StudentLivechatAPIController extends Controller
             $result = $this->livechat->store($request);
 
             if ($result->original) {
-                return $this->responseWithSuccess($result->original['message'], @globalAsset(auth()->user()->image->original));
+                return $this->responseWithSuccess($result->original['message'], '');
             } else {
                 return $this->responseWithError(___('alert.something_went_wrong_please_try_again'), [], 400);
             }
@@ -77,7 +77,7 @@ class StudentLivechatAPIController extends Controller
             $data['sender'] = [
                 'id' => $authUser->id,
                 'name' => $authUser->name,
-                'avatar' => @globalAsset($authUser->upload->path),
+                'avatar' => '',
             ];
 
             if ($user instanceof ParentGuardian) {
@@ -85,13 +85,13 @@ class StudentLivechatAPIController extends Controller
                 $data['receiver'] = [
                     'id' => $user->user_id,
                     'name' => $receiverName,
-                    'avatar' => @globalAsset(optional($user->user)->upload->path),
+                    'avatar' => '',
                 ];
             } else {
                 $data['receiver'] = [
                     'id' => $user->user_id,
                     'name' => $user->first_name . ' ' . $user->last_name,
-                    'avatar' => @globalAsset($user->upload->path),
+                    'avatar' => '',
                 ];
             }
 

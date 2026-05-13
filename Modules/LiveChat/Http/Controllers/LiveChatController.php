@@ -313,10 +313,26 @@ class LiveChatController extends Controller
                 $userId = $data['userId'];
 
                 if ($userId) {
-                    $staff = Staff::find(decryptFunction($userId));
-                    if ($staff) {
-                        $userId = $staff->id;
-                        $user = $staff;
+                    try {
+                        $decrypted = decryptFunction($userId);
+                    } catch (\Throwable $e) {
+                        $decrypted = null;
+                    }
+
+                    if ($decrypted !== null) {
+                        $staff = Staff::where('user_id', $decrypted)->first();
+                        if ($staff) {
+                            $userId = $staff->id;
+                            $user = $staff->load('upload');
+                        } else {
+                            $admin = User::whereIn('role_id', [RoleEnum::SUPERADMIN, RoleEnum::ADMIN])
+                                ->where('id', $decrypted)
+                                ->first();
+                            if ($admin) {
+                                $userId = $admin->id;
+                                $user = $admin->load('upload');
+                            }
+                        }
                     }
                 }
             }

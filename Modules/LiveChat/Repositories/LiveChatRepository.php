@@ -2,6 +2,7 @@
 
 namespace Modules\LiveChat\Repositories;
 
+use App\Enums\RoleEnum;
 use App\Models\Academic\SubjectAssign;
 use App\Models\Academic\SubjectAssignChildren;
 use App\Models\Setting;
@@ -76,7 +77,6 @@ class LiveChatRepository implements LiveChatInterface
                 ], 400);
             }
             DB::commit(); // commit database transaction
-            $result['data']['image'] = @globalAsset(auth()->user()->upload->path, '40X40.webp');
             return response()->json([
                 'message' => ___('alert.message_send'),
                 'data' => $result['data'],
@@ -148,8 +148,14 @@ class LiveChatRepository implements LiveChatInterface
     public function readMessages($id)
     {
         try {
-            Log::info('Reading messages from:' . decryptFunction($id));
-            $this->model()->where('receiver_id', decryptFunction($id))->update(['is_seen' => 1]);
+            $partnerUserId = (int) decryptFunction($id);
+            $authId        = (int) auth()->id();
+
+            $this->messageModel::query()
+                ->where('receiver_id', $authId)
+                ->where('sender_id', $partnerUserId)
+                ->update(['is_seen' => 1]);
+
             return $this->responseWithSuccess(___('alert.message_read'), [], 200);
         } catch (\Throwable $th) {
             return $this->responseWithError($th->getMessage(), [], 400);
@@ -348,6 +354,30 @@ class LiveChatRepository implements LiveChatInterface
             ->addSelect(DB::raw('(SELECT MAX(created_at) FROM messages WHERE receiver_id = staff.user_id) as last_message_time'))
             ->orderBy('last_message_time', 'desc')
             ->get();
+
+        $authUserId = (int) auth()->id();
+
+        $admins = User::query()
+            ->whereIn('role_id', [RoleEnum::SUPERADMIN, RoleEnum::ADMIN])
+            ->with('upload')
+            ->when($request->filled('key'), function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->key . '%');
+            })
+            ->get();
+
+        foreach ($admins as $admin) {
+            $meta = $this->liveChatThreadMetaForUserPair($authUserId, (int) $admin->id);
+            $admin->setRelation('lastMessage', $meta['last']);
+            $admin->setAttribute('_unread_count', $meta['unread']);
+        }
+
+        $users = $users->merge($admins)->sortByDesc(function ($u) {
+            if ($u instanceof Staff) {
+                return (int) ($u->last_message_time ?? optional($u->lastMessage)->created_at?->timestamp ?? 0);
+            }
+
+            return optional($u->lastMessage)->created_at?->timestamp ?? 0;
+        })->values();
 
         return [
             'users' => $users,

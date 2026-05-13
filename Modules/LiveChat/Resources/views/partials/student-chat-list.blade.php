@@ -16,10 +16,6 @@
         $unreadCount = $isStaff
             ? (int) ($user->unreadMessages->count() ?? 0)
             : (int) ($user->_unread_count ?? 0);
-
-        $imgPath = $isStaff
-            ? (optional($user->upload)->path ?? null)
-            : (optional($user->user)->upload->path ?? null);
     @endphp
 
     <a class="single-chat  @if ($user->id == $user_id) active @endif {{ $seenClass }}"
@@ -27,9 +23,7 @@
         href="{{ route('student_livechat.chat', encryptFunction(@$user->user_id)) }}"
         data-contact-name="{{ e($displayName) }}">
         <div class="chat-cap d-flex gap-3">
-            <div class="user-img">
-                <img src="{{ @globalAsset($imgPath, '40X40.webp') }}" height="40" width="40" alt="" class="img-cover">
-            </div>
+            <div class="user-img" aria-hidden="true"></div>
             <div class="user-chat-caption">
                 <h5 class="user-name mb-0">{{ $displayName }}</h5>
                 <p class="chat mb-0">{{ @$user->lastMessage->message ?? 'No Message' }}</p>

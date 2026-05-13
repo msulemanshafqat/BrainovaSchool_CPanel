@@ -76,9 +76,7 @@
                     <div class="chat-left-sidebar h-100">
                         <div class="chat-admin">
                             <div class="profile-wrap">
-                                <div class="user-img">
-                                    <img src="{{ @globalAsset(auth()->user()->upload->path, '40X40.webp') }}" alt="" class="img-cover">
-                                </div>
+                                <div class="user-img" aria-hidden="true"></div>
                                 <div class="user-chat-caption">
                                     <h5 class="user-name mb-0">{{ auth()->user()->name }}</h5>
                                     <p class="chat-status mb-0">{{ ___('live_chat.Active') }}</p>

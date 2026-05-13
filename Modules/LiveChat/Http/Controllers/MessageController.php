@@ -44,7 +44,7 @@ class MessageController extends Controller
             $request->merge(['user_id' => $id]);
             $result = $this->message->store($request);
             if ($result->original['result']) {
-                return $this->responseWithSuccess($result->original['message'], @globalAsset(auth()->user()->image->original)); // return success response
+                return $this->responseWithSuccess($result->original['message'], ''); // return success response
             } else {
                 return $this->responseWithError(___('alert.something_went_wrong_please_try_again'), [], 400); // return error response
             }
@@ -180,11 +180,39 @@ class MessageController extends Controller
 
     public function guardianChat($id)
     {
-        $user = Staff::where('user_id', decryptFunction($id))->first();
+        $decryptedId = decryptFunction($id);
+
+        $staff = Staff::with('upload')->where('user_id', $decryptedId)->first();
+
+        if ($staff) {
+            $user = $staff;
+        } else {
+            $adminUser = User::query()
+                ->whereIn('role_id', [RoleEnum::SUPERADMIN, RoleEnum::ADMIN])
+                ->with('upload')
+                ->where('id', $decryptedId)
+                ->first();
+
+            if (! $adminUser) {
+                abort(404, 'User not found.');
+            }
+
+            $name = trim((string) ($adminUser->name ?? ''));
+            $parts = preg_split('/\s+/', $name, 2, PREG_SPLIT_NO_EMPTY);
+            $adminUser->first_name = $parts[0] ?? $name;
+            $adminUser->last_name = $parts[1] ?? '';
+            $adminUser->user_id = $adminUser->id;
+            $user = $adminUser;
+        }
+
         $this->message->readMessages($id);
-        $data['messages'] = $this->message->model()->UserReceiverIdOrReceiverUserId($user->user_id)->orderBy('created_at','ASC')->get();
+        $data['messages'] = $this->message->model()
+            ->UserReceiverIdOrReceiverUserId($user->user_id)
+            ->orderBy('created_at', 'ASC')
+            ->get();
         $data['title'] = ___('student_info.Live_Chat');
         $data['user'] = $user;
+
         return view('livechat::message.guardian')->with($data);
     }
 

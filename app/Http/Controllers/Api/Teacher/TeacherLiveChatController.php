@@ -50,13 +50,13 @@ class TeacherLiveChatController extends Controller
             $data['sender'] = [
                 'id' => $authUser->id,
                 'name' => $authUser->name,
-                'avatar' => @globalAsset($authUser->upload->path),
+                'avatar' => '',
             ];
 
             $data['receiver'] = [
                 'id' => $reciver_user->id,
                 'name' => $reciver_user->name,
-                'avatar' => @globalAsset($reciver_user->upload->path),
+                'avatar' => '',
             ];
 
             $messages = $this->livechat->model()->UserReceiverIdOrReceiverUserId($reciver_user->id)->orderBy('created_at', 'ASC')->get();
@@ -77,7 +77,7 @@ class TeacherLiveChatController extends Controller
             $result = $this->livechat->store($request);
 
             if ($result->original) {
-                return $this->responseWithSuccess($result->original['message'], @globalAsset(auth()->user()->image->original));
+                return $this->responseWithSuccess($result->original['message'], '');
             } else {
                 return $this->responseWithError(___('alert.something_went_wrong_please_try_again'), [], 400);
             }

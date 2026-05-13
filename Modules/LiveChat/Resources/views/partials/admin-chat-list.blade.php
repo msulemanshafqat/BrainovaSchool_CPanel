@@ -12,9 +12,7 @@
        id="receiver_id_{{ $user->id }}"
         href="{{ route('admin_livechat.chat', encryptFunction(@$user->id)) }}">
         <div class="chat-cap d-flex gap-3">
-            <div class="user-img">
-                <img src="{{ @globalAsset(@$user->upload->path) }}" height="44" width="44" alt="img" class="img-cover">
-            </div>
+            <div class="user-img" aria-hidden="true"></div>
             <div class="user-chat-caption">
                 <h5 class="user-name mb-0">{{ @$user->name }}</h5>
                 <p class="chat">{{ @$user->lastMessage->message ?? 'No Message' }}</p>
