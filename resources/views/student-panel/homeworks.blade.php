@@ -67,33 +67,48 @@
     $ci++;
   }
 
-  $gradedChrono = $homeworks
-    ->filter(fn($h) => $h->check_submitted && $h->check_submitted->marks !== null)
-    ->sortBy(function ($h) {
-      $s = $h->check_submitted;
-      $ts = $s->updated_at ?? $s->created_at ?? null;
-      if ($ts) {
-        return \Carbon\Carbon::parse($ts)->timestamp;
-      }
-      return \Carbon\Carbon::parse($h->submission_date ?? $h->created_at ?? '1970-01-01')->timestamp;
-    })
-    ->values();
+  $computeProgressSeries = function ($collection) {
+      $gradedChrono = $collection
+          ->filter(fn($h) => $h->check_submitted && $h->check_submitted->marks !== null)
+          ->sortBy(function ($h) {
+              $s = $h->check_submitted;
+              $ts = $s->updated_at ?? $s->created_at ?? null;
+              if ($ts) {
+                  return \Carbon\Carbon::parse($ts)->timestamp;
+              }
 
-  $progressLabels = [];
-  $progressAvgEarned = [];
-  $progressAvgMax = [];
-  $cumMarks = 0.0;
-  $cumMax = 0.0;
-  $step = 0;
-  foreach ($gradedChrono as $h) {
-    $earned = (float) $h->check_submitted->marks;
-    $maxMarks = (float) ($h->marks ?? 0);
-    $cumMarks += $earned;
-    $cumMax += $maxMarks;
-    $step++;
-    $progressLabels[] = '#' . $step;
-    $progressAvgEarned[] = round($cumMarks / $step, 1);
-    $progressAvgMax[] = round($cumMax / $step, 1);
+              return \Carbon\Carbon::parse($h->submission_date ?? $h->created_at ?? '1970-01-01')->timestamp;
+          })
+          ->values();
+
+      $labels = [];
+      $earned = [];
+      $maxAvg = [];
+      $cumMarks = 0.0;
+      $cumMax = 0.0;
+      $step = 0;
+      foreach ($gradedChrono as $h) {
+          $m = (float) $h->check_submitted->marks;
+          $maxMarks = (float) ($h->marks ?? 0);
+          $cumMarks += $m;
+          $cumMax += $maxMarks;
+          $step++;
+          $labels[] = '#' . $step;
+          $earned[] = round($cumMarks / $step, 1);
+          $maxAvg[] = round($cumMax / $step, 1);
+      }
+
+      return ['labels' => $labels, 'earned' => $earned, 'maxAvg' => $maxAvg];
+  };
+
+  $progressAll = $computeProgressSeries($homeworks);
+  $progressLabels = $progressAll['labels'];
+  $progressAvgEarned = $progressAll['earned'];
+  $progressAvgMax = $progressAll['maxAvg'];
+
+  $progressBySubject = ['all' => $progressAll];
+  foreach ($grouped as $sid => $items) {
+      $progressBySubject[(string) $sid] = $computeProgressSeries($items);
   }
 @endphp
 
@@ -470,6 +485,27 @@
 @push('script')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+var PROGRESS_BY_SUBJECT = @json($progressBySubject);
+window.lineChartPC = null;
+
+function updateStudentProgressChart(subjectKey) {
+  var key = (subjectKey === 'all' || subjectKey === undefined || subjectKey === '') ? 'all' : String(subjectKey);
+  var series = PROGRESS_BY_SUBJECT[key];
+  if (!series) {
+    series = { labels: [], earned: [], maxAvg: [] };
+  }
+  if (!window.lineChartPC) {
+    return;
+  }
+  var L = series.labels || [];
+  var E = series.earned || [];
+  var M = series.maxAvg || [];
+  window.lineChartPC.data.labels = L.slice();
+  window.lineChartPC.data.datasets[0].data = E.slice();
+  window.lineChartPC.data.datasets[1].data = M.slice();
+  window.lineChartPC.update();
+}
+
 // ── SUBJECT TABS ──────────────────────────────────────────────────────────────
 document.querySelectorAll('.stab').forEach(function(t) {
   t.addEventListener('click', function() {
@@ -479,6 +515,7 @@ document.querySelectorAll('.stab').forEach(function(t) {
     document.querySelectorAll('.hw-card-hover').forEach(function(c){
       c.style.display = (s === 'all' || c.dataset.sub === s) ? '' : 'none';
     });
+    updateStudentProgressChart(s);
     // Re-open visible sections so collapsed height is recalculated
     document.querySelectorAll('.status-body').forEach(function(b){
       if (b.style.maxHeight && b.style.maxHeight !== '0px') {
@@ -512,9 +549,9 @@ document.querySelectorAll('.status-body').forEach(function(b) {
   }
 });
 
-// ── CHART 1: Line chart — overall running average (graded work, all subjects) ─
+// ── CHART 1: Line chart — running average (updates when subject tab changes) ───
 @if(count($progressLabels) > 0)
-new Chart(document.getElementById('pC'), {
+window.lineChartPC = new Chart(document.getElementById('pC'), {
   type: 'line',
   data: {
     labels: @json($progressLabels),
