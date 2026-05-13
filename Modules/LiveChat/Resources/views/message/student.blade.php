@@ -85,9 +85,10 @@
                         <div class="chat-cap d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
                                 <div class="user-img flex-shrink-0">
-                                    <img src="{{ @globalAsset($user->upload->path) }}" alt="" class="img-cover">
+                                    <img src="{{ @globalAsset(optional($user->upload)->path) }}"
+                                        alt="" class="img-cover">
                                 </div>
-                                <div class="user-chat-caption min-w-0" id="current_user" data-id="{{ encryptFunction(@$user->id) }}">
+                                <div class="user-chat-caption min-w-0" id="current_user" data-id="{{ encryptFunction(@$user->user_id) }}">
                                     <span class="lc-brainova-chip">Brainova</span>
                                     <h4 class="mb-0 mt-1">
                                         <span class="user-name text-break">{{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) }}</span>

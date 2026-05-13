@@ -41,7 +41,7 @@
                 <div class="chat-body text-center">
                     <div class="d-flex justify-content-center align-items-center">
                         <div class="login-image ">
-                            <img src="{{ @globalAsset('modules/livechat/img/greetings.png') }}" alt="img">
+                            <img src="{{ asset('images/brainova-live-chat-logo.png') }}" alt="Brainova" class="img-fluid" style="max-width: 280px;">
                         </div>
                     </div>
                 </div>

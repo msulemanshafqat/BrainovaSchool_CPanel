@@ -85,19 +85,26 @@ class MessageController extends Controller
     {
         $decryptedId = decryptFunction($id);
 
-        // Fetch staff data
-        $staff = Staff::where('user_id', $decryptedId)->first();
+        $staff = Staff::with('upload')->where('user_id', $decryptedId)->first();
 
-        // Fetch admin data (or other user roles)
-        $admin = User::select('name as first_name', 'upload_id', 'id as user_id')->where('role_id', 1)->where('id', $decryptedId)->first();
+        $parentUser = null;
+        if (! $staff && ParentGuardian::where('user_id', $decryptedId)->exists()) {
+            $parentUser = User::with('upload')->find($decryptedId);
+        }
 
-        // Merge the datasets
-        $user = collect([$staff, $admin])->filter()->first(); // Use the first non-null value.
-
-        // If no user is found, handle the error gracefully
-        if (!$user) {
+        if ($staff) {
+            $user = $staff;
+        } elseif ($parentUser) {
+            $name = trim((string) ($parentUser->name ?? ''));
+            $parts = preg_split('/\s+/', $name, 2, PREG_SPLIT_NO_EMPTY);
+            $parentUser->first_name = $parts[0] ?? $name;
+            $parentUser->last_name = $parts[1] ?? '';
+            $parentUser->user_id = $parentUser->id;
+            $user = $parentUser;
+        } else {
             abort(404, 'User not found.');
         }
+
         // Mark messages as read
         $this->message->readMessages($id);
 

@@ -39,14 +39,10 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
         }
-        .lc-brainova-wordmark {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            font-weight: 800;
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            letter-spacing: -0.04em;
-            color: #1d4ed8;
-            line-height: 1.1;
-            margin-bottom: 0.35rem;
+        .lc-brainova-logo {
+            max-width: min(280px, 85vw);
+            height: auto;
+            margin-bottom: 1rem;
         }
         .lc-brainova-tag {
             font-size: 0.7rem;
@@ -101,12 +97,13 @@
                 <div class="col-12 col-lg-8 col-xl-8">
                     <div class="chat-body h-100">
                         <div class="lc-empty-panel" id="lc-empty-panel">
-                            <div class="lc-brainova-wordmark" aria-label="Brainova">Brainova</div>
+                            <img class="lc-brainova-logo" src="{{ asset('images/brainova-live-chat-logo.png') }}"
+                                width="280" height="auto" alt="Brainova">
                             <div class="lc-brainova-tag">Live chat</div>
                             <h4 id="lc-empty-teacher-name" class="lc-empty-teacher-name"
-                                data-placeholder="Select a teacher">Select a teacher</h4>
+                                data-placeholder="Select a contact">Select a teacher or parent</h4>
                             <p class="lc-empty-hint">
-                                Point to a teacher in the list to see their name here, or click to open the conversation.
+                                Point to a teacher or parent in the list to see their name here, or click to open the conversation.
                             </p>
                         </div>
                     </div>
@@ -123,10 +120,10 @@
     <script>
         (function () {
             var $name = $('#lc-empty-teacher-name');
-            var placeholder = $name.data('placeholder') || 'Select a teacher';
+            var placeholder = $name.data('placeholder') || 'Select a teacher or parent';
 
             $(document).on('mouseenter', '.chat-list a.single-chat', function () {
-                var n = $(this).data('teacherName');
+                var n = $(this).data('contactName');
                 if (n && String(n).trim() !== '') {
                     $name.text(String(n).trim());
                 }

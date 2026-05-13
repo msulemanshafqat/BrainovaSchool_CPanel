@@ -182,10 +182,26 @@ class LiveChatController extends Controller
                 $userId = $data['userId'];
 
                 if ($userId) {
-                    $staff = Staff::find(decryptFunction($userId));
-                    if ($staff) {
-                        $userId = $staff->id;
-                        $user = $staff;
+                    try {
+                        $decrypted = decryptFunction($userId);
+                    } catch (\Throwable $e) {
+                        $decrypted = null;
+                    }
+
+                    if ($decrypted !== null) {
+                        $staff = Staff::where('user_id', $decrypted)->first();
+                        if ($staff) {
+                            $userId = $staff->id;
+                            $user = $staff->load('upload');
+                        } else {
+                            $parent = ParentGuardian::with('user.upload')
+                                ->where('user_id', $decrypted)
+                                ->first();
+                            if ($parent) {
+                                $userId = $parent->id;
+                                $user = $parent;
+                            }
+                        }
                     }
                 }
             }

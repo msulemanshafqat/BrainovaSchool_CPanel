@@ -227,16 +227,7 @@ class LiveChatRepository implements LiveChatInterface
 
         $uniqueStaffIds = array_unique($staffIdsArray);
 
-
-        $admin = User::with('lastMessage')
-            ->where('role_id', 1)
-            ->when($request->filled('key'), function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->key . '%');
-            })
-            ->select('users.name as first_name', 'users.upload_id', 'id as user_id')
-            ->get();
-
-
+        /** Teachers assigned to the student’s class (subject staff). */
         $users = Staff::query()
             ->with(['lastMessage' => function ($query) {
                 $query->latest('created_at');
@@ -253,15 +244,68 @@ class LiveChatRepository implements LiveChatInterface
             ->orderBy('last_message_time', 'desc')
             ->get();
 
-        // Merge the two collections
-        $users = $users->merge($admin);
+        /** Parent / guardian for this student (same thread model as teachers). */
+        $student = $authStudent->student()->with('parent.user.upload')->first();
+        if ($student && $student->parent_guardian_id && $student->parent) {
+            $parent = $student->parent;
+            $meta    = $this->liveChatThreadMetaForUserPair((int) $authStudent->id, (int) $parent->user_id);
+            $parent->setRelation('lastMessage', $meta['last']);
+            $parent->setAttribute('_unread_count', $meta['unread']);
 
+            $key = $request->input('key');
+            if ($key) {
+                $hay = strtolower(trim(
+                    ($parent->guardian_name ?? '')
+                    . ' ' . ($parent->father_name ?? '')
+                    . ' ' . ($parent->mother_name ?? '')
+                    . ' ' . (optional($parent->user)->name ?? '')
+                ));
+                if (! str_contains($hay, strtolower($key))) {
+                    $parent = null;
+                }
+            }
+
+            if ($parent) {
+                $users = $users->push($parent);
+            }
+        }
+
+        $users = $users
+            ->sortByDesc(function ($u) {
+                return optional($u->lastMessage)->created_at?->timestamp ?? 0;
+            })
+            ->values();
 
         return [
             'users' => $users,
             'user' => $user,
             'userId' => $userId,
         ];
+    }
+
+    /**
+     * Latest message and unread count between the authenticated user and $otherUserId.
+     */
+    private function liveChatThreadMetaForUserPair(int $authUserId, int $otherUserId): array
+    {
+        $last = $this->messageModel::query()
+            ->where(function ($q) use ($authUserId, $otherUserId) {
+                $q->where(function ($q2) use ($authUserId, $otherUserId) {
+                    $q2->where('sender_id', $authUserId)->where('receiver_id', $otherUserId);
+                })->orWhere(function ($q3) use ($authUserId, $otherUserId) {
+                    $q3->where('sender_id', $otherUserId)->where('receiver_id', $authUserId);
+                });
+            })
+            ->orderByDesc('created_at')
+            ->first();
+
+        $unread = (int) $this->messageModel::query()
+            ->where('sender_id', $otherUserId)
+            ->where('receiver_id', $authUserId)
+            ->where('is_seen', 0)
+            ->count();
+
+        return ['last' => $last, 'unread' => $unread];
     }
 
 

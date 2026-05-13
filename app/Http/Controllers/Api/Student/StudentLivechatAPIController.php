@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Student\ChatConversionResource;
 use App\Http\Resources\Student\ChatListResource;
 use App\Models\Staff\Staff;
+use App\Models\StudentInfo\ParentGuardian;
 use App\Traits\ApiReturnFormatTrait;
 use Illuminate\Http\Request;
 use Modules\LiveChat\Interfaces\LiveChatInterface;
@@ -59,11 +60,16 @@ class StudentLivechatAPIController extends Controller
     public function chatConversions(Request $request, $id)
     {
         try{
-            $user = Staff::where('user_id',$id)->first();
+            $user = Staff::where('user_id', $id)->first();
+
+            if (empty($user)) {
+                $user = ParentGuardian::with('user.upload')->where('user_id', $id)->first();
+            }
 
             if (empty($user)) {
                 return $this->responseWithError('User not found');
             }
+
             $this->livechat->readMessages(encryptFunction($id));
 
             $authUser = auth()->user();
@@ -74,11 +80,20 @@ class StudentLivechatAPIController extends Controller
                 'avatar' => @globalAsset($authUser->upload->path),
             ];
 
-            $data['receiver'] = [
-                'id' => $user->user_id,
-                'name' => $user->first_name . ' ' . $user->last_name,
-                'avatar' => @globalAsset($user->upload->path),
-            ];
+            if ($user instanceof ParentGuardian) {
+                $receiverName = trim(($user->guardian_name ?? '') ?: (optional($user->user)->name ?? '') ?: 'Parent');
+                $data['receiver'] = [
+                    'id' => $user->user_id,
+                    'name' => $receiverName,
+                    'avatar' => @globalAsset(optional($user->user)->upload->path),
+                ];
+            } else {
+                $data['receiver'] = [
+                    'id' => $user->user_id,
+                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'avatar' => @globalAsset($user->upload->path),
+                ];
+            }
 
             $messages = $this->livechat->model()->UserReceiverIdOrReceiverUserId($user->user_id)->orderBy('created_at', 'ASC')->get();
             $data['messages'] = ChatConversionResource::collection($messages);
