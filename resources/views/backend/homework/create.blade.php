@@ -4,37 +4,57 @@
     {{ @$data['title'] }}
 @endsection
 
-@section('content')
-    <div class="page-content">
+@push('css')
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ global_asset('backend/assets/css/homework-teacher-gamified.css') }}">
+@endpush
 
-        {{-- BREADCRUMB + quick actions (same shortcuts as homework dashboard) --}}
-        <div class="page-header">
-            <div class="row align-items-center">
-                <div class="col-sm-6">
-                    <h4 class="bradecrumb-title mb-1">{{ $data['title'] }}</h4>
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a>
-                        </li>
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('homework.index') }}">{{ $data['title'] }}</a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ ___('common.add_new') }}</li>
-                    </ol>
+@section('content')
+    <div class="page-content homework-index-page hw-gamified">
+
+        <div class="hw-game-hero mt-20">
+            <div class="hw-game-hero-inner row align-items-start g-3">
+                <div class="col-lg">
+                    <p class="hw-game-eyebrow">Mission briefing</p>
+                    <h1 class="hw-game-title">{{ ___('common.add_new') }}</h1>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="hw-game-badge"><i class="fa-solid fa-book-open"></i> {{ $data['title'] }}</span>
+                    </div>
+                    <p class="hw-game-lead">
+                        Choose class, section, subject, and dates—upload a document or quiz CSV, then save when the auto-generated title looks right.
+                    </p>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ route('dashboard') }}">{{ ___('common.home') }}</a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{{ route('homework.index') }}">{{ $data['title'] }}</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ ___('common.add_new') }}</li>
+                        </ol>
+                    </nav>
                 </div>
                 @if(hasPermission('homework_create'))
-                <div class="col-sm-6 text-end mt-3 mt-sm-0">
-                    <a href="{{ route('homework.download-sample') }}"
-                       class="btn btn-outline-secondary btn-sm">
-                        <i class="fa-solid fa-download me-1"></i>CSV template
-                    </a>
+                <div class="col-lg-auto">
+                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                        <a href="{{ route('homework.download-sample') }}" class="btn btn-lg ot-btn-primary">
+                            <span><i class="fa-solid fa-download"></i></span>
+                            <span>CSV template</span>
+                        </a>
+                    </div>
                 </div>
                 @endif
             </div>
         </div>
-        {{-- END BREADCRUMB --}}
 
-        <div class="card ot-card">
+        <div class="table-content table-basic mt-20">
+        <div class="card ot-card hw-mission-panel">
+            <div class="card-header">
+                <span class="hw-section-chip"><i class="fa-solid fa-clipboard-list"></i> Stage 1</span>
+                <h4 class="hw-mission-title mb-0">{{ ___('common.add_new') }}</h4>
+                <p class="hw-mission-desc">Complete the fields below. For quiz tasks, use the CSV template so questions import correctly.</p>
+            </div>
             <div class="card-body">
 
                 {{--
@@ -306,6 +326,7 @@
                 </form>
 
             </div>
+        </div>
         </div>
     </div>
 @endsection
