@@ -221,7 +221,31 @@
   color: #64748b;
   line-height: 1.55;
   flex: 1;
+  margin-bottom: 0.75rem;
+}
+
+.fe-course-card-price-wrap {
   margin-bottom: 1rem;
+  padding: 0.55rem 0;
+  border-top: 1px dashed rgba(148, 163, 184, 0.55);
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.55);
+}
+
+.fe-course-card-price-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+}
+
+.fe-course-card-price {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .fe-course-meta {
@@ -427,6 +451,36 @@
   font-size: 1.1rem;
   color: #334155;
   line-height: 1.65;
+}
+
+.fe-course-detail-price {
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.fe-course-detail-price-box {
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fe-course-detail-price-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.fe-course-detail-price-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .fe-course-detail-copy {

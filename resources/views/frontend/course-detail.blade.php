@@ -55,6 +55,10 @@
                         <p class="fe-course-enrolled mb-3"><i class="fas fa-users me-2"></i>{{ $course['enrolled'] }}</p>
                     @endif
 
+                    @if(!empty($course['price']))
+                        <p class="fe-course-detail-price mb-3"><i class="fas fa-tag me-2"></i><strong>{{ $course['price'] }}</strong> <span class="text-muted small">(confirm with admissions)</span></p>
+                    @endif
+
                     @if(!empty($course['description']))
                         <p class="fe-course-detail-lead mb-4">{{ $course['description'] }}</p>
                     @endif
@@ -88,6 +92,12 @@
                 </div>
                 <div class="col-lg-4 mt-4 mt-lg-0 offset-lg-1">
                     <aside class="fe-course-detail-sidebar">
+                        @if(!empty($course['price']))
+                            <div class="fe-course-detail-price-box mb-4">
+                                <span class="fe-course-detail-price-label">Program fee</span>
+                                <span class="fe-course-detail-price-value">{{ $course['price'] }}</span>
+                            </div>
+                        @endif
                         <h4 class="fe-course-detail-heading">What you can expect</h4>
                         @if(!empty($course['highlights']) && is_array($course['highlights']))
                             <ul class="fe-course-detail-highlights">

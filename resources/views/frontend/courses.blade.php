@@ -79,7 +79,14 @@
                             </div>
                             <div class="fe-course-card-body">
                                 <h3 class="fe-course-card-title">{{ $course['title'] ?? '' }}</h3>
-                                <p class="fe-course-card-desc">{{ $course['description'] ?? '' }}</p>
+                                <p class="fe-course-card-desc">{{ \Illuminate\Support\Str::limit(strip_tags($course['description'] ?? ''), 120) }}</p>
+
+                                @if(!empty($course['price']))
+                                    <div class="fe-course-card-price-wrap" aria-label="Course fee">
+                                        <span class="fe-course-card-price-label">Fee</span>
+                                        <div class="fe-course-card-price">{{ $course['price'] }}</div>
+                                    </div>
+                                @endif
 
                                 <div class="fe-course-meta">
                                     <span><i class="fas fa-user-graduate"></i>{{ $course['age_range'] ?? '' }}</span>
@@ -96,10 +103,9 @@
 
                                 <div class="fe-course-actions">
                                     @if(!empty($course['slug']))
-                                        <a href="{{ route('frontend.course-detail', $course['slug']) }}" class="fe-btn-pill fe-btn-primary fe-mini">View details</a>
+                                        <a href="{{ route('frontend.course-detail', $course['slug']) }}" class="fe-btn-pill fe-btn-primary fe-mini">View course</a>
                                     @endif
                                     <a href="{{ route('frontend.contact') }}" class="fe-btn-pill fe-btn-ghost fe-mini">Enquire</a>
-                                    <a href="{{ route('frontend.online-admission') }}" class="fe-btn-pill fe-btn-ghost fe-mini">Apply</a>
                                 </div>
                             </div>
                         </article>
