@@ -143,13 +143,14 @@ class FrontendController extends Controller
 
     public function courses()
     {
-        $data = config('frontend_courses', []);
+        $data = $this->frontendCoursesCatalog();
+
         return view('frontend.courses', compact('data'));
     }
 
     public function courseDetail(string $slug)
     {
-        $data = config('frontend_courses', []);
+        $data = $this->frontendCoursesCatalog();
         $courses = $data['courses'] ?? [];
         $course = collect($courses)->firstWhere('slug', $slug);
         if ($course === null) {
@@ -158,6 +159,105 @@ class FrontendController extends Controller
         $data['course'] = $course;
 
         return view('frontend.course-detail', compact('data'));
+    }
+
+    /**
+     * Public courses catalog. Prefer config(); if courses are missing (stale
+     * config:cache, file not merged, or deploy without the file), load
+     * config/frontend_courses.php from disk, then use a minimal fallback.
+     */
+    protected function frontendCoursesCatalog(): array
+    {
+        $data = config('frontend_courses');
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        $courses = $data['courses'] ?? null;
+        if (!is_array($courses) || count($courses) === 0) {
+            $path = config_path('frontend_courses.php');
+            if (is_file($path)) {
+                $fromFile = require $path;
+                if (is_array($fromFile)) {
+                    $data = array_replace_recursive($data, $fromFile);
+                }
+            }
+        }
+
+        $courses = $data['courses'] ?? null;
+        if (!is_array($courses) || count($courses) === 0) {
+            $data = $this->minimalFrontendCoursesCatalog();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Last-resort catalog so /courses is never blank (e.g. missing deploy).
+     */
+    protected function minimalFrontendCoursesCatalog(): array
+    {
+        return [
+            'hero' => [
+                'title'       => 'Explore our courses',
+                'subtitle'    => 'Programs at Brainova School—contact us for the full catalog and current intake.',
+                'primary_cta' => [
+                    'label' => 'Contact us',
+                    'route' => 'frontend.contact',
+                ],
+                'secondary_cta' => [
+                    'label' => 'Online admission',
+                    'route' => 'frontend.online-admission',
+                ],
+            ],
+            'categories' => [
+                ['slug' => 'all', 'label' => 'All programs'],
+                ['slug' => 'stem', 'label' => 'STEM'],
+            ],
+            'courses' => [
+                [
+                    'slug'        => 'sample-stem-intro',
+                    'category'    => 'stem',
+                    'badge'       => 'STEM',
+                    'title'       => 'Introduction to STEM',
+                    'description' => 'Hands-on science and computing basics for curious learners.',
+                    'age_range'   => 'Ages 8–11',
+                    'grade'       => 'Grade 3–5',
+                    'lessons'     => '12 sessions',
+                    'duration'    => '6 weeks',
+                    'enrolled'    => 'Open enrollment',
+                    'price'       => 'Contact for fee',
+                    'accent'      => 'indigo',
+                    'image'       => 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80',
+                    'overview'    => ['Details available from the school office.'],
+                    'highlights'  => ['Small groups', 'Safe lab practices'],
+                    'format'      => 'Weekly sessions.',
+                ],
+                [
+                    'slug'        => 'sample-math-boost',
+                    'category'    => 'stem',
+                    'badge'       => 'Math',
+                    'title'       => 'Math confidence boost',
+                    'description' => 'Number sense and word problems in a supportive setting.',
+                    'age_range'   => 'Ages 9–12',
+                    'grade'       => 'Grade 4–6',
+                    'lessons'     => '10 sessions',
+                    'duration'    => '4 weeks',
+                    'enrolled'    => 'Open enrollment',
+                    'price'       => 'Contact for fee',
+                    'accent'      => 'teal',
+                    'image'       => 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80',
+                    'overview'    => ['Placement by short diagnostic.'],
+                    'highlights'  => ['Growth mindset', 'Weekly feedback'],
+                    'format'      => 'Twice weekly.',
+                ],
+            ],
+            'faqs' => [],
+            'trust' => [
+                'headline' => 'Need the full program list?',
+                'body'     => 'Our team can share current courses, fees, and start dates. Use Contact or Online admission—we reply within business hours.',
+            ],
+        ];
     }
 
     public function eventDetail($id)
