@@ -102,7 +102,7 @@
                 <div class="news_page_right_sidebar mb_25">
                     @if(!empty($course['price']))
                         <div class="fe-course-sidebar-price mb_30">
-                            <h4 class="font_24 f_w_400 mb_15">Program fee</h4>
+                            <h4 class="font_24 f_w_400 mb_15">Online learning program</h4>
                             <p class="fe-course-sidebar-price__val mb-0">{{ $course['price'] }}</p>
                             <p class="small text-muted mt-2 mb-0">Confirm fee and availability with admissions.</p>
                         </div>
