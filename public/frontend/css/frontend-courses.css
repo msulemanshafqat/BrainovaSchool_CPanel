@@ -379,4 +379,114 @@
   .fe-course-meta {
     grid-template-columns: 1fr;
   }
+
+  .fe-course-meta--detail {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Course detail ------------------------------------------------------------ */
+.fe-course-detail-breadcrumb .breadcrumb-item.active {
+  color: inherit;
+}
+
+.fe-course-detail-hero__media {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}
+
+.fe-course-detail-hero__media img {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .fe-course-detail-hero__media img {
+    aspect-ratio: 16 / 10;
+    max-height: 280px;
+  }
+}
+
+.fe-course-detail-hero__badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  transform: none;
+}
+
+.fe-course-meta--detail {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fe-course-detail-lead {
+  font-size: 1.1rem;
+  color: #334155;
+  line-height: 1.65;
+}
+
+.fe-course-detail-copy {
+  color: #475569;
+  line-height: 1.72;
+  margin-bottom: 1.1rem;
+  font-size: 0.98rem;
+}
+
+.fe-course-detail-heading {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.85rem;
+}
+
+.fe-course-detail-format {
+  margin-top: 1.75rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.fe-course-detail-sidebar {
+  position: sticky;
+  top: 1.25rem;
+  padding: 1.35rem;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.07);
+  background: #fff;
+}
+
+.fe-course-detail-highlights {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: #475569;
+  font-size: 0.93rem;
+  line-height: 1.65;
+}
+
+.fe-course-detail-highlights li {
+  margin-bottom: 0.5rem;
+}
+
+.fe-course-detail-highlights li::marker {
+  color: #6366f1;
+}
+
+@media (max-width: 991px) {
+  .fe-course-meta--detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fe-course-detail-sidebar {
+    position: static;
+  }
+
+  .fe-course-detail-page .fe-btn-pill.w-100 {
+    width: 100%;
+  }
 }

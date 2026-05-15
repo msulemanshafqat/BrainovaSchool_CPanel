@@ -146,6 +146,20 @@ class FrontendController extends Controller
         $data = config('frontend_courses', []);
         return view('frontend.courses', compact('data'));
     }
+
+    public function courseDetail(string $slug)
+    {
+        $data = config('frontend_courses', []);
+        $courses = $data['courses'] ?? [];
+        $course = collect($courses)->firstWhere('slug', $slug);
+        if ($course === null) {
+            abort(404);
+        }
+        $data['course'] = $course;
+
+        return view('frontend.course-detail', compact('data'));
+    }
+
     public function eventDetail($id)
     {
         $data['allEvent'] = $this->repo->events();

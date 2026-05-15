@@ -95,7 +95,10 @@
                                 @endif
 
                                 <div class="fe-course-actions">
-                                    <a href="{{ route('frontend.contact') }}" class="fe-btn-pill fe-btn-primary fe-mini">Enquire</a>
+                                    @if(!empty($course['slug']))
+                                        <a href="{{ route('frontend.course-detail', $course['slug']) }}" class="fe-btn-pill fe-btn-primary fe-mini">View details</a>
+                                    @endif
+                                    <a href="{{ route('frontend.contact') }}" class="fe-btn-pill fe-btn-ghost fe-mini">Enquire</a>
                                     <a href="{{ route('frontend.online-admission') }}" class="fe-btn-pill fe-btn-ghost fe-mini">Apply</a>
                                 </div>
                             </div>
