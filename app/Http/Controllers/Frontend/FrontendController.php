@@ -140,6 +140,12 @@ class FrontendController extends Controller
         $events = $this->repo->events();
         return view('frontend.events', compact('events'));
     }
+
+    public function courses()
+    {
+        $data = config('frontend_courses', []);
+        return view('frontend.courses', compact('data'));
+    }
     public function eventDetail($id)
     {
         $data['allEvent'] = $this->repo->events();

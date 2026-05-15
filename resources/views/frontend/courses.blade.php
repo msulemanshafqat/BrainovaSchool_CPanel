@@ -1,0 +1,199 @@
+@extends('frontend.master')
+
+@section('title')
+    {{ ___('frontend.Courses') }}
+@endsection
+
+@push('css')
+<link rel="stylesheet" href="{{ global_asset('frontend') }}/css/frontend-courses.css">
+@endpush
+
+@section('main')
+@php
+    $hero = $data['hero'] ?? [];
+    $categories = $data['categories'] ?? [];
+    $courses = $data['courses'] ?? [];
+    $faqs = $data['faqs'] ?? [];
+    $trust = $data['trust'] ?? [];
+@endphp
+
+<div class="fe-courses-page">
+    <div class="fe-courses-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-10 col-xl-8">
+                    <h1>{{ $hero['title'] ?? 'Explore our courses' }}</h1>
+                    <p class="fe-courses-hero-lead">{{ $hero['subtitle'] ?? '' }}</p>
+                    <div class="fe-courses-hero-cta">
+                        @if(!empty($hero['primary_cta']['route']))
+                            <a href="{{ route($hero['primary_cta']['route']) }}" class="fe-btn-pill fe-btn-primary">
+                                {{ $hero['primary_cta']['label'] ?? 'Contact us' }}
+                            </a>
+                        @endif
+                        @if(!empty($hero['secondary_cta']['route']))
+                            <a href="{{ route($hero['secondary_cta']['route']) }}" class="fe-btn-pill fe-btn-ghost">
+                                {{ $hero['secondary_cta']['label'] ?? 'Admission' }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="fe-courses-filters section_padding pt-4 pb-0">
+        <div class="container">
+            <div class="fe-filter-pills" id="feCourseFilters" role="tablist" aria-label="Course categories">
+                @foreach ($categories as $idx => $cat)
+                    @php $slug = $cat['slug'] ?? 'all'; @endphp
+                    <button type="button"
+                        class="fe-filter-pill {{ $idx === 0 ? 'fe-is-active' : '' }}"
+                        data-fe-filter="{{ $slug }}"
+                        role="tab"
+                        aria-selected="{{ $idx === 0 ? 'true' : 'false' }}">{{ $cat['label'] ?? $slug }}</button>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <section class="fe-courses-grid section_padding pt-4">
+        <div class="container">
+            <div class="fe-courses-toolbar">
+                <p class="fe-courses-count mb-0"><span id="feCoursesVisible">{{ count($courses) }}</span> programs shown</p>
+                <a href="{{ route('frontend.contact') }}" class="fe-btn-pill fe-btn-ghost fe-mini d-none d-sm-inline-flex">Ask a question</a>
+            </div>
+
+            <div class="row" id="feCoursesGrid">
+                @foreach ($courses as $course)
+                    @php
+                        $cat = $course['category'] ?? 'all';
+                        $accent = $course['accent'] ?? 'indigo';
+                    @endphp
+                    <div class="col-xl-4 col-lg-4 col-md-6 mb-4 fe-course-wrap" data-fe-course-category="{{ $cat }}">
+                        <article class="fe-course-card">
+                            <div class="fe-course-card-media fe-accent-{{ $accent }} {{ empty($course['image']) ? 'fe-course-card-media--placeholder' : '' }}">
+                                @if(!empty($course['image']))
+                                    <img src="{{ $course['image'] }}" alt="{{ $course['title'] ?? '' }}">
+                                @endif
+                                <span class="fe-course-card__badge">{{ $course['badge'] ?? 'Course' }}</span>
+                            </div>
+                            <div class="fe-course-card-body">
+                                <h3 class="fe-course-card-title">{{ $course['title'] ?? '' }}</h3>
+                                <p class="fe-course-card-desc">{{ $course['description'] ?? '' }}</p>
+
+                                <div class="fe-course-meta">
+                                    <span><i class="fas fa-user-graduate"></i>{{ $course['age_range'] ?? '' }}</span>
+                                    <span><i class="fas fa-school"></i>{{ $course['grade'] ?? '' }}</span>
+                                    <span><i class="fas fa-book-open"></i>{{ $course['lessons'] ?? '' }}</span>
+                                    <span><i class="far fa-clock"></i>{{ $course['duration'] ?? '' }}</span>
+                                </div>
+
+                                @if(!empty($course['enrolled']))
+                                    <div class="fe-course-enrolled">
+                                        <i class="fas fa-users me-1"></i>{{ $course['enrolled'] }}
+                                    </div>
+                                @endif
+
+                                <div class="fe-course-actions">
+                                    <a href="{{ route('frontend.contact') }}" class="fe-btn-pill fe-btn-primary fe-mini">Enquire</a>
+                                    <a href="{{ route('frontend.online-admission') }}" class="fe-btn-pill fe-btn-ghost fe-mini">Apply</a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                @endforeach
+            </div>
+
+            <p class="fe-courses-empty" id="feCoursesEmpty">No programs match this filter yet—try another category or contact us for custom options.</p>
+        </div>
+    </section>
+
+    @if(!empty($trust['headline']))
+        <section class="fe-courses-trust">
+            <div class="container">
+                <h2>{{ $trust['headline'] }}</h2>
+                @if(!empty($trust['body']))
+                    <p class="mb-0">{{ $trust['body'] }}</p>
+                @endif
+            </div>
+        </section>
+    @endif
+
+    @if(count($faqs))
+        <section class="fe-courses-faq">
+            <div class="container col-lg-10 col-xl-8 px-lg-0">
+                <h2>Frequently asked questions</h2>
+                <div id="feFaqList">
+                    @foreach ($faqs as $faq)
+                        <div class="fe-faq-item">
+                            <button type="button" class="fe-faq-q">
+                                {{ $faq['q'] ?? '' }}
+                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                            </button>
+                            <div class="fe-faq-a">
+                                <div class="fe-faq-a-inner">{{ $faq['a'] ?? '' }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+</div>
+@endsection
+
+@push('script')
+<script>
+(function () {
+    var pills = document.querySelectorAll('#feCourseFilters [data-fe-filter]');
+    var wraps = document.querySelectorAll('.fe-course-wrap');
+    var countEl = document.getElementById('feCoursesVisible');
+    var emptyEl = document.getElementById('feCoursesEmpty');
+
+    function applyFilter(slug) {
+        var n = 0;
+        wraps.forEach(function (w) {
+            var ok = slug === 'all' || w.getAttribute('data-fe-course-category') === slug;
+            w.style.display = ok ? '' : 'none';
+            if (ok) n++;
+        });
+        if (countEl) countEl.textContent = n;
+        if (emptyEl) emptyEl.classList.toggle('fe-is-visible', n === 0);
+    }
+
+    pills.forEach(function (p) {
+        p.addEventListener('click', function () {
+            var slug = p.getAttribute('data-fe-filter') || 'all';
+            pills.forEach(function (x) {
+                x.classList.remove('fe-is-active');
+                x.setAttribute('aria-selected', 'false');
+            });
+            p.classList.add('fe-is-active');
+            p.setAttribute('aria-selected', 'true');
+            applyFilter(slug);
+        });
+    });
+
+    document.querySelectorAll('.fe-faq-q').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var item = btn.closest('.fe-faq-item');
+            var panel = item.querySelector('.fe-faq-a');
+            var inner = panel.querySelector('.fe-faq-a-inner');
+            var open = !item.classList.contains('fe-open');
+            document.querySelectorAll('.fe-faq-item.fe-open').forEach(function (o) {
+                if (o === item) return;
+                o.classList.remove('fe-open');
+                o.querySelector('.fe-faq-a').style.maxHeight = '0';
+            });
+            if (open) {
+                item.classList.add('fe-open');
+                panel.style.maxHeight = inner.scrollHeight + 24 + 'px';
+            } else {
+                item.classList.remove('fe-open');
+                panel.style.maxHeight = '0';
+            }
+        });
+    });
+})();
+</script>
+@endpush

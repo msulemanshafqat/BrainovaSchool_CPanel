@@ -87,6 +87,7 @@
                                         <li><a href="{{ route('frontend.about') }}">{{ ___('frontend.About') }}</a></li>
                                         <li><a href="{{ route('frontend.news') }}">{{ ___('frontend.News') }}</a></li>
                                         <li><a href="{{ route('frontend.events') }}">{{ ___('frontend.Events') }}</a></li>
+                                        <li><a href="{{ route('frontend.courses') }}">{{ ___('frontend.Courses') }}</a></li>
                                         <li><a href="{{ route('frontend.notices') }}">{{ ___('frontend.notices') }}</a></li>
                                         <li><a href="{{ route('frontend.result') }}">{{ ___('frontend.Result') }}</a></li>
                                         <li><a href="{{ route('frontend.contact') }}">{{ ___('frontend.contact_us') }}</a></li>
